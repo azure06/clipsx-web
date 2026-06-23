@@ -20,23 +20,23 @@ export default function ChangelogPage({
     <div className="py-24 px-4 sm:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="mb-16">
-          <h1 className="font-heading text-4xl sm:text-5xl font-black text-white mb-4">
+          <h1 className="font-heading text-4xl sm:text-5xl font-black text-gray-900 mb-4 dark:text-white">
             {t('title')}
           </h1>
-          <p className="text-lg text-gray-400">{t('subtitle')}</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
         <div className="space-y-12">
           {changelog.map((entry) => (
-            <div key={entry.version} className="relative pl-8 border-l border-white/8">
+            <div key={entry.version} className="relative pl-8 border-l border-gray-200 dark:border-white/8">
               <div className="absolute -left-2 top-0 h-4 w-4 rounded-full bg-cyan-500" />
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <Badge variant="cyan">v{entry.version}</Badge>
-                <span className="text-xs text-gray-600">{entry.date}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-600">{entry.date}</span>
               </div>
               <ul className="space-y-2">
                 {entry.items.map((item) => (
-                  <li key={item} className="flex items-start gap-2 text-sm text-gray-400">
+                  <li key={item} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <span className="text-cyan-500 mt-1.5">•</span>
                     {item}
                   </li>

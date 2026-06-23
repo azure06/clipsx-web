@@ -58,9 +58,10 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={`${spaceGrotesk.variable} ${notoSansJP.variable} dark`}
+      suppressHydrationWarning
+      className={`${spaceGrotesk.variable} ${notoSansJP.variable}`}
     >
-      <body className="min-h-screen bg-gray-950 text-gray-100 antialiased font-sans">
+      <body className="min-h-screen bg-white text-gray-900 antialiased font-sans transition-colors dark:bg-gray-950 dark:text-gray-100">
         <NextIntlClientProvider messages={messages}>
           <Header user={user} />
           <main className="pt-16">{children}</main>

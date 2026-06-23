@@ -42,10 +42,10 @@ export default function ContactPage() {
     <div className="py-24 px-4 sm:px-6">
       <div className="mx-auto max-w-xl">
         <div className="text-center mb-12">
-          <h1 className="font-heading text-4xl sm:text-5xl font-black text-white mb-4">
+          <h1 className="font-heading text-4xl sm:text-5xl font-black text-gray-900 mb-4 dark:text-white">
             {t('title')}
           </h1>
-          <p className="text-gray-400">{t('subtitle')}</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

@@ -50,15 +50,15 @@ export default function PricingPage() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="font-heading text-4xl sm:text-5xl font-black text-white mb-4">
+          <h1 className="font-heading text-4xl sm:text-5xl font-black text-gray-900 mb-4 dark:text-white">
             {t('title')}
           </h1>
-          <p className="text-lg text-gray-400">{t('subtitle')}</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
         {/* Toggle */}
         <div className="flex justify-center mb-12">
-          <div className="flex rounded-xl border border-white/10 bg-white/5 p-1 gap-1">
+          <div className="flex rounded-xl border border-gray-200 bg-gray-100/70 p-1 gap-1 dark:border-white/10 dark:bg-white/5">
             {(['monthly', 'yearly'] as const).map((i) => (
               <button
                 key={i}
@@ -67,7 +67,7 @@ export default function PricingPage() {
                   'rounded-lg px-5 py-2 text-sm font-medium transition-all',
                   interval === i
                     ? 'bg-cyan-500 text-white shadow'
-                    : 'text-gray-400 hover:text-white'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 )}
               >
                 {t(i as any)}
@@ -92,8 +92,8 @@ export default function PricingPage() {
                 className={cn(
                   'relative flex flex-col rounded-2xl border p-8 transition-all',
                   plan.highlighted
-                    ? 'border-cyan-500/50 bg-gradient-to-b from-cyan-950/30 to-gray-950 shadow-xl shadow-cyan-500/10'
-                    : 'border-white/8 bg-white/3 hover:border-white/15'
+                    ? 'border-cyan-500/50 bg-gradient-to-b from-cyan-100 to-blue-100 shadow-xl shadow-cyan-500/10 dark:from-cyan-950/30 dark:to-gray-950'
+                    : 'border-gray-200 bg-white hover:border-gray-300 dark:border-white/8 dark:bg-white/3 dark:hover:border-white/15'
                 )}
               >
                 {plan.highlighted && (
@@ -103,20 +103,20 @@ export default function PricingPage() {
                 )}
 
                 <div className="mb-6">
-                  <h2 className="font-heading font-black text-white text-xl mb-1">
+                  <h2 className="font-heading font-black text-gray-900 text-xl mb-1 dark:text-white">
                     {t(plan.nameKey as any)}
                   </h2>
-                  <p className="text-sm text-gray-500">{t(plan.descKey as any)}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-500">{t(plan.descKey as any)}</p>
                 </div>
 
                 <div className="mb-8">
-                  <span className="font-heading text-5xl font-black text-white">{price}</span>
-                  <span className="text-sm text-gray-500 ml-1">{period}</span>
+                  <span className="font-heading text-5xl font-black text-gray-900 dark:text-white">{price}</span>
+                  <span className="text-sm text-gray-600 ml-1 dark:text-gray-500">{period}</span>
                 </div>
 
                 <ul className="space-y-2.5 mb-8 flex-1">
                   {plan.features.map((fk) => (
-                    <li key={fk} className="flex items-start gap-2.5 text-sm text-gray-400">
+                    <li key={fk} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
                       <Check size={16} className="text-cyan-500 mt-0.5 shrink-0" />
                       {t(fk as any)}
                     </li>
@@ -139,7 +139,7 @@ export default function PricingPage() {
 
         {/* FAQ */}
         <div className="mx-auto max-w-2xl">
-          <h2 className="font-heading text-2xl font-bold text-white mb-8 text-center">
+          <h2 className="font-heading text-2xl font-bold text-gray-900 mb-8 text-center dark:text-white">
             {t('faq_title')}
           </h2>
           {[
@@ -147,9 +147,9 @@ export default function PricingPage() {
             { q: 'faq_refund_q', a: 'faq_refund_a' },
             { q: 'faq_trial_q', a: 'faq_trial_a' },
           ].map(({ q, a }) => (
-            <div key={q} className="border-b border-white/8 py-6">
-              <h3 className="font-semibold text-white mb-2">{t(q as any)}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{t(a as any)}</p>
+            <div key={q} className="border-b border-gray-200 py-6 dark:border-white/8">
+              <h3 className="font-semibold text-gray-900 mb-2 dark:text-white">{t(q as any)}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed dark:text-gray-500">{t(a as any)}</p>
             </div>
           ))}
         </div>

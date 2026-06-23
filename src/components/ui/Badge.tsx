@@ -12,8 +12,8 @@ export function Badge({ children, className, variant = 'default' }: BadgeProps) 
       className={cn(
         'inline-flex items-center rounded-full px-3 py-0.5 text-xs font-medium',
         {
-          'bg-white/10 text-gray-300 border border-white/10': variant === 'default',
-          'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20': variant === 'cyan',
+          'bg-black/5 text-gray-700 border border-gray-300 dark:bg-white/10 dark:text-gray-300 dark:border-white/10': variant === 'default',
+          'bg-cyan-500/10 text-cyan-700 border border-cyan-500/30 dark:text-cyan-400 dark:border-cyan-500/20': variant === 'cyan',
           'bg-green-500/10 text-green-400 border border-green-500/20': variant === 'green',
           'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20': variant === 'yellow',
         },

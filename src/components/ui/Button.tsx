@@ -10,10 +10,10 @@ const buttonVariants = cva(
         primary:
           'bg-cyan-500 text-white hover:bg-cyan-400 shadow-lg shadow-cyan-500/20',
         secondary:
-          'bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm',
+          'bg-white text-gray-900 border border-gray-300 hover:bg-gray-100 dark:bg-white/10 dark:text-white dark:border-white/20 dark:hover:bg-white/20 backdrop-blur-sm',
         outline:
-          'border border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-300',
-        ghost: 'text-gray-400 hover:text-white hover:bg-white/5',
+          'border border-cyan-500/50 text-cyan-700 hover:border-cyan-600 hover:text-cyan-800 dark:text-cyan-400 dark:hover:border-cyan-400 dark:hover:text-cyan-300',
+        ghost: 'text-gray-600 hover:text-gray-900 hover:bg-black/5 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/5',
         danger: 'bg-red-600 text-white hover:bg-red-500',
       },
       size: {

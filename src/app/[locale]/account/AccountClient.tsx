@@ -47,11 +47,11 @@ export function AccountClient({ user }: AccountClientProps) {
             <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">
               {t('email_label')}
             </p>
-            <p className="text-white font-medium">{user.email}</p>
+            <p className="text-gray-900 font-medium dark:text-white">{user.email}</p>
           </div>
         </div>
 
-        <div className="border-t border-white/8 pt-4 flex items-center justify-between">
+        <div className="border-t border-gray-200 pt-4 flex items-center justify-between dark:border-white/8">
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">
               {t('plan_label')}

@@ -23,8 +23,8 @@ export function LocaleSwitcher() {
           onClick={() => switchLocale(l)}
           className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
             l === locale
-              ? 'text-cyan-400 bg-cyan-500/10'
-              : 'text-gray-400 hover:text-gray-200'
+              ? 'text-cyan-600 bg-cyan-500/10 dark:text-cyan-400'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
           }`}
           aria-label={`Switch to ${l}`}
         >

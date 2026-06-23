@@ -40,8 +40,8 @@ export default function SignInPage() {
     <div className="py-24 px-4 sm:px-6 min-h-[80vh] flex items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <h1 className="font-heading text-3xl font-black text-white mb-2">{t('title')}</h1>
-          <p className="text-gray-400 text-sm">{t('subtitle')}</p>
+          <h1 className="font-heading text-3xl font-black text-gray-900 mb-2 dark:text-white">{t('title')}</h1>
+          <p className="text-gray-600 text-sm dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -71,7 +71,7 @@ export default function SignInPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-500">
           {t('no_account')}{' '}
           <Link href="/signup" className="text-cyan-400 hover:text-cyan-300">
             {t('sign_up_link')}

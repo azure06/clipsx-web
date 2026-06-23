@@ -18,20 +18,20 @@ export function Header({ user }: HeaderProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-gray-950/80 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/70 bg-white/80 backdrop-blur-xl dark:border-white/5 dark:bg-gray-950/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <Link href="/" className="group flex items-center gap-2.5 text-white">
+        <Link href="/" className="group flex items-center gap-2.5 text-gray-900 dark:text-white">
           <Image
             src="/icons/monochromatic.svg"
             alt="ClipsX logo"
             width={38}
             height={38}
-            className="h-[38px] w-auto drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] transition-all duration-200 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]"
+            className="h-[38px] w-auto opacity-80 transition-all duration-200 group-hover:opacity-100 dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.15)] dark:group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]"
             priority
           />
-          <span className="font-heading text-[1rem] font-bold tracking-[0.22em] text-white uppercase">
-            CLIPS<span className="text-cyan-400">X</span>
+          <span className="font-heading text-[1rem] font-bold tracking-[0.22em] uppercase">
+            <span className="text-gray-900 dark:text-white">CLIPS</span><span className="text-gray-500 dark:text-gray-400">X</span>
           </span>
         </Link>
 
@@ -41,7 +41,7 @@ export function Header({ user }: HeaderProps) {
             <Link
               key={item.href}
               href={item.href}
-              className="px-3 py-2 text-sm text-gray-400 hover:text-white rounded-md transition-colors"
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-md transition-colors dark:text-gray-400 dark:hover:text-white"
             >
               {t(item.labelKey as any)}
             </Link>
@@ -54,7 +54,7 @@ export function Header({ user }: HeaderProps) {
           {user ? (
             <Link
               href="/account"
-              className="text-sm text-gray-400 hover:text-white transition-colors"
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white"
             >
               {t('Nav.account')}
             </Link>
@@ -62,7 +62,7 @@ export function Header({ user }: HeaderProps) {
             <>
               <Link
                 href="/signin"
-                className="text-sm text-gray-400 hover:text-white transition-colors"
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white"
               >
                 {t('Nav.signIn')}
               </Link>
@@ -78,7 +78,7 @@ export function Header({ user }: HeaderProps) {
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden text-gray-400 hover:text-white"
+          className="md:hidden text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
         >
@@ -88,28 +88,30 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden border-t border-white/5 bg-gray-950/95 px-4 py-4">
+        <div className="md:hidden border-t border-gray-200/70 bg-white/95 px-4 py-4 dark:border-white/5 dark:bg-gray-950/95">
           <nav className="flex flex-col gap-1 mb-4">
             {mainNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="px-3 py-2.5 text-sm text-gray-300 hover:text-white rounded-md transition-colors"
+                className="px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 rounded-md transition-colors dark:text-gray-300 dark:hover:text-white"
               >
                 {t(item.labelKey as any)}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center justify-between border-t border-white/5 pt-4">
-            <LocaleSwitcher />
+          <div className="flex items-center justify-between border-t border-gray-200/70 pt-4 dark:border-white/5">
+            <div className="flex items-center gap-2">
+              <LocaleSwitcher />
+            </div>
             {user ? (
-              <Link href="/account" onClick={() => setOpen(false)} className="text-sm text-gray-400 hover:text-white">
+              <Link href="/account" onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                 {t('Nav.account')}
               </Link>
             ) : (
               <div className="flex gap-3">
-                <Link href="/signin" onClick={() => setOpen(false)} className="text-sm text-gray-400 hover:text-white">
+                <Link href="/signin" onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   {t('Nav.signIn')}
                 </Link>
                 <Link

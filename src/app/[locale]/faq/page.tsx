@@ -27,17 +27,17 @@ export default function FaqPage({
     <div className="py-24 px-4 sm:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="text-center mb-16">
-          <h1 className="font-heading text-4xl sm:text-5xl font-black text-white mb-4">
+          <h1 className="font-heading text-4xl sm:text-5xl font-black text-gray-900 mb-4 dark:text-white">
             {t('title')}
           </h1>
-          <p className="text-lg text-gray-400">{t('subtitle')}</p>
+          <p className="text-lg text-gray-600 dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
-        <div className="divide-y divide-white/8">
+        <div className="divide-y divide-gray-200 dark:divide-white/8">
           {faqs.map(({ q, a }) => (
             <div key={q} className="py-8">
-              <h2 className="font-heading font-bold text-white text-lg mb-3">{t(q)}</h2>
-              <p className="text-gray-400 leading-relaxed">{t(a)}</p>
+              <h2 className="font-heading font-bold text-gray-900 text-lg mb-3 dark:text-white">{t(q)}</h2>
+              <p className="text-gray-600 leading-relaxed dark:text-gray-400">{t(a)}</p>
             </div>
           ))}
         </div>

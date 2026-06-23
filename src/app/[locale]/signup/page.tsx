@@ -45,8 +45,8 @@ export default function SignUpPage() {
       <div className="py-24 px-4 sm:px-6 min-h-[80vh] flex items-center justify-center">
         <div className="text-center max-w-sm">
           <div className="text-4xl mb-4">📬</div>
-          <h2 className="font-heading text-2xl font-bold text-white mb-2">Check your email</h2>
-          <p className="text-gray-400 text-sm">
+          <h2 className="font-heading text-2xl font-bold text-gray-900 mb-2 dark:text-white">Check your email</h2>
+          <p className="text-gray-600 text-sm dark:text-gray-400">
             We sent a confirmation link to your email address. Click it to activate your account.
           </p>
         </div>
@@ -58,8 +58,8 @@ export default function SignUpPage() {
     <div className="py-24 px-4 sm:px-6 min-h-[80vh] flex items-center justify-center">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <h1 className="font-heading text-3xl font-black text-white mb-2">{t('title')}</h1>
-          <p className="text-gray-400 text-sm">{t('subtitle')}</p>
+          <h1 className="font-heading text-3xl font-black text-gray-900 mb-2 dark:text-white">{t('title')}</h1>
+          <p className="text-gray-600 text-sm dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -89,19 +89,19 @@ export default function SignUpPage() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-500">
           {t('have_account')}{' '}
           <Link href="/signin" className="text-cyan-400 hover:text-cyan-300">
             {t('sign_in_link')}
           </Link>
         </p>
-        <p className="mt-4 text-center text-xs text-gray-600">
+        <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-600">
           By signing up you agree to our{' '}
-          <Link href="/terms" className="underline text-gray-500 hover:text-gray-300">
+          <Link href="/terms" className="underline text-gray-600 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-300">
             {t('terms_link')}
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="underline text-gray-500 hover:text-gray-300">
+          <Link href="/privacy" className="underline text-gray-600 hover:text-gray-900 dark:text-gray-500 dark:hover:text-gray-300">
             {t('privacy_link')}
           </Link>.
         </p>

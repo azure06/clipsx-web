@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --font-sans: var(--font-noto), var(--font-heading), system-ui, sans-serif;
   --font-heading: var(--font-heading), system-ui, sans-serif;
+}
+
+@layer base {
+  html,
+  body {
+    color-scheme: light dark;
+  }
+
+  :root.dark {
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -16,4 +27,15 @@ html {
 ::selection {
   background: rgb(6 182 212 / 0.3);
 }
+
+/*
+  NOTE: Tailwind v4 + @tailwindcss/postcss does not currently support class-based dark mode.
+  The 'dark:' prefixed classes are generated as literal CSS class names (.dark\:text-white)
+  rather than dark mode variants that respond to the .dark class on the HTML element.
+  
+  Theme toggle is functional (updates localStorage and html.class) but visual styles don't
+  change because Tailwind isn't generating proper `.dark .className` selectors.
+  
+  Status: Awaiting Tailwind v4 PostCSS plugin updates or migration to Tailwind v3.
+*/
 
