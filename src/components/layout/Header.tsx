@@ -5,9 +5,11 @@ import { useTranslations } from 'next-intl';
 import { Menu, X } from 'lucide-react';
 import Image from 'next/image';
 import { Link } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
 import { mainNav } from '@/config/nav';
 import { LocaleSwitcher } from './LocaleSwitcher';
 import type { User } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 
 interface HeaderProps {
   user: User | null;
@@ -15,7 +17,25 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const t = useTranslations();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [signOutLoading, setSignOutLoading] = useState(false);
+  const [signOutError, setSignOutError] = useState(false);
+
+  async function handleSignOut() {
+    setSignOutError(false);
+    setSignOutLoading(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setSignOutLoading(false);
+      setSignOutError(true);
+      return;
+    }
+    setOpen(false);
+    router.push('/');
+    router.refresh();
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200/70 bg-white/80 backdrop-blur-xl dark:border-white/5 dark:bg-gray-950/80">
@@ -52,12 +72,23 @@ export function Header({ user }: HeaderProps) {
         <div className="hidden md:flex items-center gap-3">
           <LocaleSwitcher />
           {user ? (
-            <Link
-              href="/account"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white"
-            >
-              {t('Nav.account')}
-            </Link>
+            <>
+              <Link
+                href="/account"
+                className="max-w-44 truncate text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white"
+                title={user.email ?? t('Nav.account')}
+              >
+                {user.email ?? t('Nav.account')}
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signOutLoading}
+                className="text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 dark:text-gray-400 dark:hover:text-white"
+              >
+                {signOutLoading ? '…' : t('Nav.signOut')}
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -86,6 +117,12 @@ export function Header({ user }: HeaderProps) {
         </button>
       </div>
 
+      {signOutError && (
+        <p className="absolute right-4 top-16 rounded-b-md bg-red-50 px-3 py-2 text-xs text-red-700 shadow-sm dark:bg-red-950 dark:text-red-200" role="alert">
+          {t('Nav.signOutError')}
+        </p>
+      )}
+
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-gray-200/70 bg-white/95 px-4 py-4 dark:border-white/5 dark:bg-gray-950/95">
@@ -106,9 +143,19 @@ export function Header({ user }: HeaderProps) {
               <LocaleSwitcher />
             </div>
             {user ? (
-              <Link href="/account" onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                {t('Nav.account')}
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link href="/account" onClick={() => setOpen(false)} className="max-w-40 truncate text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white" title={user.email ?? t('Nav.account')}>
+                  {user.email ?? t('Nav.account')}
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signOutLoading}
+                  className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50 dark:text-gray-400 dark:hover:text-white"
+                >
+                  {signOutLoading ? '…' : t('Nav.signOut')}
+                </button>
+              </div>
             ) : (
               <div className="flex gap-3">
                 <Link href="/signin" onClick={() => setOpen(false)} className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">

@@ -10,6 +10,7 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Sign Out",
+    "signOutError": "We couldn't sign you out. Please try again.",
     "account": "Account"
   },
   "Footer": {
@@ -190,7 +191,10 @@
     "submit": "Sign in",
     "no_account": "Don't have an account?",
     "sign_up_link": "Sign up",
-    "forgot": "Forgot password?"
+    "forgot": "Forgot password?",
+    "continue_with_google": "Continue with Google",
+    "or": "or",
+    "oauth_error": "We couldn't sign you in. Please try again."
   },
   "SignUpPage": {
     "title": "Create your account",
