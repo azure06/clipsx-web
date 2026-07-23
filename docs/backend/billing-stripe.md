@@ -55,6 +55,10 @@ The implementation must:
 7. The worker marks the event processed. On failure it records the error and
    attempt count, leaving the event available for retry and reconciliation.
 
+Claiming uses a lease (`locked_by`, `locked_at`, `lease_expires_at`) and a
+next-available time. This prevents two workers from processing one event and
+allows a later worker to recover an event abandoned by a crash.
+
 Only a failure to verify or persist the inbox record returns non-2xx to Stripe.
 That gives Stripe a chance to retry delivery without coupling delivery success
 to a potentially slow canonical-object retrieval.
