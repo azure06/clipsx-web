@@ -11,9 +11,13 @@
     "postbuild": "next-sitemap",
     "stripe:listen": "stripe listen --forward-to=localhost:3000/api/webhooks/stripe",
     "stripe:fixtures": "stripe fixtures fixtures/stripe-fixtures.json",
-    "supabase:start": "npx supabase start",
-    "supabase:stop": "npx supabase stop",
-    "supabase:generate-types": "npx supabase gen types typescript --linked > src/types/supabase.ts"
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset --local",
+    "supabase:generate-types": "supabase gen types typescript --linked > src/types/supabase.ts",
+    "supabase:generate-types:local": "supabase gen types typescript --local > src/types/supabase.ts",
+    "test:db": "supabase test db --local supabase/tests",
+    "test:backend": "npm run supabase:reset && npm run test:db && npm run typecheck && npm run lint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -40,6 +44,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "supabase": "2.109.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
