@@ -26,41 +26,68 @@ receive only intentionally designed RPC or view results.
 
 ## Billing flow
 
+The webhook endpoint is an **inbox**, not the billing engine. Its only
+time-critical responsibility is signature verification and durable,
+idempotent event capture. A worker then retrieves the canonical Stripe object
+and updates the local projection. This separation prevents an expensive or
+temporarily failing Stripe retrieval from losing an already authenticated
+event.
+
 ```mermaid
 sequenceDiagram
   autonumber
   actor User
   participant App as ClipsX website
-  participant DB as Supabase private billing
+  participant Checkout as Checkout / Portal API
   participant Stripe
   participant Hook as /api/webhooks/stripe
+  participant Inbox as private.billing_webhook_events
+  participant Worker as Billing projection worker
+  participant Billing as private billing projection
 
   User->>App: Choose Pro monthly or annual
-  App->>DB: Resolve personal billing account
-  App->>Stripe: Create or reuse Customer; create Checkout Session
+  App->>Checkout: Authenticated checkout request
+  Checkout->>Billing: Resolve billing account and stored Customer ID
+  Checkout->>Stripe: Create/reuse Customer and Checkout Session
+  Checkout-->>App: Hosted Checkout URL
   Stripe-->>User: Hosted Checkout
   User->>Stripe: Complete payment
   Stripe-->>Hook: subscription / invoice event
   Hook->>Hook: Verify raw body and signature
-  Hook->>DB: Insert Stripe event ID once
+  Hook->>Inbox: Insert event ID once
   alt event already processed
-    DB-->>Hook: duplicate
+    Inbox-->>Hook: duplicate
     Hook-->>Stripe: 200
   else new event
-    Hook->>Stripe: Retrieve canonical current object
-    Stripe-->>Hook: current object
-    Hook->>DB: Transactional projection upsert
-    DB->>DB: Recalculate entitlement and allowance
+    Inbox-->>Hook: durable pending event
     Hook-->>Stripe: 200
+    Worker->>Inbox: Claim pending event
+    Worker->>Stripe: Retrieve canonical current object
+    Stripe-->>Worker: current object
+    Worker->>Billing: Transactional projection upsert
+    Billing->>Billing: Recalculate entitlement and allowance
+    Worker->>Inbox: Mark processed or failed
   end
-  App->>DB: Read local entitlement
-  DB-->>App: plan, access status, allowance
+  App->>Checkout: Read safe billing summary
+  Checkout->>Billing: Read local entitlement
+  Billing-->>Checkout: plan, access status, allowance
+  Checkout-->>App: safe billing summary
 ```
 
 Stripe events are not ordered and can be delivered more than once. The event
 inbox is therefore an idempotency boundary, and the processor retrieves the
 canonical Stripe object before changing the local projection. Failed events
 remain retryable and a scheduled reconciliation compares local state to Stripe.
+
+### What happens if billing components fail?
+
+| Failure | What happens now | Recovery path |
+| --- | --- | --- |
+| Signature invalid | Webhook returns 400 and writes nothing. | Investigate endpoint secret or an invalid sender. |
+| Inbox insert fails | Webhook returns non-2xx, so Stripe retries. | Alert on repeated failures; Stripe retry/replay plus reconciliation. |
+| Projection worker fails | Event stays `failed` with error and attempt count. | Retry worker; reconcile canonical Stripe state later. |
+| Duplicate/out-of-order event | Inbox deduplicates event ID; worker retrieves canonical object. | No manual action unless reconciliation detects drift. |
+| Stripe API unavailable | Existing local entitlement remains in effect until its recorded deadline. | Worker retries; reconcile when Stripe is available. |
 
 ## Encrypted vault flow
 
@@ -90,6 +117,74 @@ The server can authorize who receives ciphertext but cannot decrypt it. Item
 keys limit the blast radius of a single item; collection-key versions make
 future key rotation explicit.
 
+## Device and session lifecycle
+
+Three things must not be confused:
+
+- A **Supabase session** is the browser/app login represented by a JWT and a
+  refresh token.
+- A **device record** is the registered public key and its server-side access
+  state.
+- A **device private key** lives only in the OS credential vault. Logging out
+  does not automatically erase it; revoking a lost device does not recover it.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User
+  participant Device as Current device
+  participant Auth as Supabase Auth
+  participant DB as Devices + RLS guard
+  participant Vault as OS credential vault
+  participant Trusted as Another trusted device
+
+  User->>Device: Sign in
+  Device->>Auth: Authenticate
+  Auth-->>Device: JWT with session_id
+  Device->>Vault: Load existing private key
+  Device->>DB: Bind active device to session_id
+  Device->>DB: Sync request with JWT
+  DB-->>Device: Allow only if user, active device, and live session match
+
+  alt Sign out this device
+    Device->>DB: Clear this device's session binding
+    Device->>Auth: signOut(scope: local)
+    Note over Device,Vault: Private key remains local for a later rebind
+  else Sign out other devices
+    Device->>DB: Clear session bindings for every other active device
+    Device->>Auth: signOut(scope: others)
+    Note over DB: Other devices must authenticate and rebind before vault access
+  else Device is lost or stolen
+    Trusted->>DB: Set lost device to revoked and clear its session binding
+    Trusted->>Auth: End the corresponding session where possible
+    Note over DB: RLS denies the lost device immediately, even before JWT expiry
+  else New or reinstalled device
+    Device->>Vault: Generate a new key pair if no private key exists
+    Device->>DB: Register new public key and bind current session
+    Device->>DB: Receive envelopes for active collections or restore through recovery
+  end
+```
+
+### Device and session scenarios
+
+| User situation | Server action | Key/material result | What the user experiences |
+| --- | --- | --- | --- |
+| Normal sign-in on a known device | Bind the current `session_id` to its active device record. | Existing private key stays in OS vault. | Sync resumes after the device proves it owns its existing key. |
+| Sign out only this device | Clear its session binding, then use Supabase `signOut({ scope: 'local' })`. | Private key remains locally stored. | This device cannot sync until it signs in and rebinds. |
+| Sign out all other devices | Clear other device session bindings, then use `signOut({ scope: 'others' })`. | Their keys remain on those devices. | Other devices must sign in again; this is not a lost-device response. |
+| Sign out everywhere | Clear all bindings before global sign-out. | Keys remain local but no device is session-bound. | Every device must sign in and rebind. |
+| Lost or stolen device | Mark that device `revoked` and clear its binding; invalidate its session where possible. | Its historical private key may still exist on the lost hardware. | Server-side vault access stops immediately; already downloaded ciphertext cannot be recalled. |
+| New phone / reinstall | Register a new device key; do not reuse an absent private key. | New key receives fresh envelopes from a trusted device or recovery flow. | User can restore access without weakening old-device revocation. |
+| Lost only device, recovery code available | Create a new device and decrypt the recovery-key backup locally. | Recovery material opens collection-key envelopes for the new device. | Vault access is restored; old device is revoked. |
+| Lost recovery code and all devices | No server-side bypass exists. | Encrypted data cannot be decrypted. | Account/billing may remain, but encrypted vault recovery is impossible by design. |
+| Password reset or security event | Auth may terminate sessions; the RLS session guard detects absence from `auth.sessions`. | Device key is unchanged but cannot be used until a valid session is rebound. | Re-authentication is required. |
+
+Supabase sign-out revokes refresh tokens but an already issued access token can
+otherwise remain valid until expiry. ClipsX therefore does not rely on
+sign-out alone for vault protection: RLS/RPC checks require an active device,
+a matching JWT `session_id`, and a still-live Auth session. For a lost device,
+the explicit device revocation changes local authorization immediately.
+
 ## Access rules
 
 - Public-schema tables must have RLS enabled and explicit grants. Public tables
@@ -101,7 +196,10 @@ future key rotation explicit.
 - Security-definer functions are exceptional. When required, they pin
   `search_path`, check the authenticated caller, revoke default `PUBLIC`
   execution, and grant only the intended role.
-- Device revocation checks both device status and the JWT session identifier.
+- Vault reads and writes require all of: device ownership, `status = active`,
+  a matching JWT `session_id`, and a still-live row in `auth.sessions`.
+- A sign-out action clears the affected device binding before it ends the Auth
+  session. A lost-device action also changes the device status to `revoked`.
 
 ## Failure behavior
 
@@ -114,4 +212,8 @@ future key rotation explicit.
 | Payment becomes past due | Keep temporary grace access; show billing action required. |
 | Grace expires / unpaid / canceled | Switch to read-only cloud retention; do not delete ciphertext. |
 | Device revoked | Deny future requests immediately; already-downloaded data cannot be recalled. |
+| Local sign-out | Clear the current device's binding; private keys remain only in its OS vault. |
+| Sign out other devices | Clear their bindings and end refresh-token sessions; their old JWTs are also rejected by the session guard. |
+| Lost only device | Require recovery code on a new device; without it, ciphertext cannot be recovered. |
+| Reinstalled device | Treat as a new device identity; issue new envelopes after trust/recovery. |
 | Item deleted | Delete ciphertext immediately; retain a tombstone for sync convergence. |

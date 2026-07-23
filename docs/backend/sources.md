@@ -22,6 +22,8 @@ upgrade or enabling a new billing/tax feature.
 
 - [Supabase changelog](https://supabase.com/changelog): current platform changes, including Data API exposure behavior.
 - [Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security): public-schema policy model.
+- [User sessions](https://supabase.com/docs/guides/auth/sessions): JWT `session_id`, session lifetime, and strict session validation.
+- [Signing out](https://supabase.com/docs/guides/auth/signout): local, other-device, and global sign-out scopes and JWT-expiry limitation.
 - [Database testing](https://supabase.com/docs/guides/database/testing): local SQL/pgTAP workflow.
 - [Supabase CLI](https://supabase.com/docs/reference/cli/introduction): migration, reset, testing, and type-generation commands.
 - [PostgreSQL documentation](https://www.postgresql.org/docs/current/): database constraints, transaction isolation, indexes, and roles.

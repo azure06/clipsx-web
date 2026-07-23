@@ -45,13 +45,19 @@ The implementation must:
 
 1. Read the unmodified raw request body and verify the Stripe signature.
 2. Insert `stripe_event_id` into `private.billing_webhook_events` atomically.
-3. A processed duplicate returns HTTP 200 without side effects.
-4. For a new event, retrieve the canonical Stripe object. Never assume event
-   delivery order.
-5. In one database transaction, upsert the relevant object projection and
-   recompute the account entitlement/allowance effect.
-6. Mark the event processed. On failure, retain error details, increment the
-   attempt count, and return a non-2xx response so Stripe retries.
+3. A duplicate returns HTTP 200 without side effects.
+4. A successfully persisted new event also returns HTTP 200 immediately. The
+   durable inbox, not the request lifetime, is the hand-off to processing.
+5. A worker claims one pending event, retrieves the canonical Stripe object,
+   and never assumes event delivery order.
+6. In one database transaction, the worker upserts the relevant projection and
+   recomputes the account entitlement/allowance effect.
+7. The worker marks the event processed. On failure it records the error and
+   attempt count, leaving the event available for retry and reconciliation.
+
+Only a failure to verify or persist the inbox record returns non-2xx to Stripe.
+That gives Stripe a chance to retry delivery without coupling delivery success
+to a potentially slow canonical-object retrieval.
 
 For destructive Product events that cannot be retrieved, preserve the object
 ID and mark the local catalog record inactive/deleted from the signed event.
