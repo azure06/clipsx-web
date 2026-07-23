@@ -19,9 +19,10 @@ flowchart LR
 
 The client encrypts saved content before it reaches Supabase. Supabase stores
 ciphertext, wrapped keys, encrypted metadata, and synchronization markers.
-Stripe never sees vault content. Stripe billing tables live in a non-exposed
-`private` schema; browser clients receive only intentionally designed RPC or
-view results.
+Stripe never sees vault content. Stripe billing tables live in a `private`
+schema exposed only so the server-side `service_role` can use the Supabase API;
+`anon` and `authenticated` receive no schema or table grants. Browser clients
+receive only intentionally designed RPC or view results.
 
 ## Billing flow
 

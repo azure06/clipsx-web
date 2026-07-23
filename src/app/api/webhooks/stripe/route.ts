@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
 
+import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  isSupportedStripeWebhookEvent,
+  toStripeWebhookInboxRecord,
+} from '@/lib/stripe/webhook-event';
+
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
-  const headersList = await headers();
-  const sig = headersList.get('stripe-signature');
+  const sig = request.headers.get('stripe-signature');
 
   if (!sig) return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
 
@@ -19,19 +25,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  switch (event.type) {
-    case 'customer.subscription.created':
-    case 'customer.subscription.updated':
-    case 'customer.subscription.deleted': {
-      // TODO: sync subscription state to Supabase
-      break;
+  if (!isSupportedStripeWebhookEvent(event.type)) {
+    return NextResponse.json({ received: true, ignored: true });
+  }
+
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase
+      .schema('private')
+      .from('billing_webhook_events')
+      .insert(toStripeWebhookInboxRecord(event));
+
+    if (error?.code === '23505') {
+      return NextResponse.json({ received: true, duplicate: true });
     }
-    case 'checkout.session.completed': {
-      // TODO: activate user plan
-      break;
+
+    if (error) {
+      console.error('Failed to persist Stripe webhook event', {
+        eventId: event.id,
+        eventType: event.type,
+        error: error.message,
+      });
+      return NextResponse.json({ error: 'Webhook persistence failed' }, { status: 500 });
     }
-    default:
-      break;
+  } catch (error) {
+    console.error('Failed to handle Stripe webhook event', {
+      eventId: event.id,
+      eventType: event.type,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return NextResponse.json({ error: 'Webhook persistence failed' }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

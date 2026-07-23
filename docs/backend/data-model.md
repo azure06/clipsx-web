@@ -10,7 +10,7 @@ normally equal.
 | Schema | Purpose | Browser access |
 | --- | --- | --- |
 | `public` | encrypted vault rows and safe user-facing RPCs | Explicit grants plus RLS |
-| `private` | Stripe projection, accounting support, and worker internals | No browser grants |
+| `private` | Stripe projection, accounting support, and worker internals | API-enabled for `service_role` only; no browser grants |
 
 ## Billing and plans
 
