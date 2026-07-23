@@ -5,7 +5,7 @@ ClipsX is a modern clipboard manager that intelligently saves and retrieves your
 ## Features
 
 - **Semantic Search**: Find clipboard items by meaning, not just exact text matches
-- **Cloud Sync**: Seamless synchronization across devices via Supabase
+- **Pro Cloud Services**: End-to-end encrypted sync for deliberately saved items and shared collections
 - **Authentication**: Secure user accounts with email/password and OAuth
 - **Billing**: Stripe-integrated subscription management and payment processing
 - **Multi-language**: Full i18n support (English, Japanese)
