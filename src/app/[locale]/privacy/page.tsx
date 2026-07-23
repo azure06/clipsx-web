@@ -27,10 +27,11 @@ export default function PrivacyPage({
 
         <h2 className="text-gray-900 dark:text-white">1. Information We Collect</h2>
         <p className="text-gray-700 dark:text-gray-400">
-          ClipsX is a local-first desktop application. All clipboard data is stored on your device
-          and is never transmitted to our servers. When you create an account, we collect your
-          email address and account preferences. When you subscribe, billing is handled by Stripe
-          and we do not store payment card data.
+          ClipsX is a local-first desktop application. Raw clipboard history and native Office
+          clipboard data stay on your device. Only items you deliberately save or share may be
+          transmitted when you use Pro sync or sharing features. When you create an account, we
+          collect your email address and account preferences. When you subscribe, billing is
+          handled by Stripe and we do not store payment card data.
         </p>
 
         <h2 className="text-gray-900 dark:text-white">2. How We Use Your Information</h2>
@@ -42,8 +43,10 @@ export default function PrivacyPage({
 
         <h2 className="text-gray-900 dark:text-white">3. Data Storage and Security</h2>
         <p className="text-gray-700 dark:text-gray-400">
-          Clipboard data stays on your device. Account data is stored in Supabase-managed
-          infrastructure with industry-standard encryption at rest and in transit.
+          Raw clipboard history stays on your device. Deliberately saved items may be stored for
+          Pro services; the exact encryption and recovery design will be documented before those
+          services launch. Account data is stored in Supabase-managed infrastructure with
+          industry-standard encryption at rest and in transit.
         </p>
 
         <h2 className="text-gray-900 dark:text-white">4. Third-Party Services</h2>

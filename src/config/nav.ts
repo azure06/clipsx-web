@@ -6,6 +6,7 @@ export interface NavItem {
 export const mainNav: NavItem[] = [
   { labelKey: 'Nav.features', href: '/features' },
   { labelKey: 'Nav.pricing', href: '/pricing' },
+  { labelKey: 'Nav.blog', href: '/blog' },
   { labelKey: 'Nav.download', href: '/download' },
   { labelKey: 'Nav.changelog', href: '/changelog' },
   { labelKey: 'Nav.faq', href: '/faq' },
@@ -17,6 +18,7 @@ export const footerNav = {
     { labelKey: 'Footer.pricing', href: '/pricing' },
     { labelKey: 'Footer.download', href: '/download' },
     { labelKey: 'Footer.changelog', href: '/changelog' },
+    { labelKey: 'Footer.blog', href: '/blog' },
   ],
   company: [
     { labelKey: 'Footer.contact', href: '/contact' },
