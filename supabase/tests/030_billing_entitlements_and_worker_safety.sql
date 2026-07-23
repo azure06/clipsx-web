@@ -1,6 +1,6 @@
 begin;
 
-select plan(15);
+select plan(16);
 
 select has_table('private', 'account_entitlements', 'current entitlement table exists');
 select has_table('private', 'ai_allowance_periods', 'AI allowance period table exists');
@@ -17,6 +17,23 @@ select has_column('private', 'billing_webhook_events', 'locked_by', 'webhook eve
 select has_column('private', 'billing_webhook_events', 'lease_expires_at', 'webhook event can recover after worker failure');
 select col_not_null('private', 'ai_usage_events', 'actor_user_id', 'usage remains attributable for future Team plans');
 select hasnt_table('public', 'account_entitlements', 'entitlements are not in the public schema');
+select is(
+  (
+    select count(*)::integer
+    from information_schema.tables as private_tables
+    where private_tables.table_schema = 'private'
+      and private_tables.table_type = 'BASE TABLE'
+      and not exists (
+        select 1
+        from information_schema.columns as private_columns
+        where private_columns.table_schema = private_tables.table_schema
+          and private_columns.table_name = private_tables.table_name
+          and private_columns.column_name = 'updated_at'
+      )
+  ),
+  0,
+  'every private application table has updated_at'
+);
 
 select * from finish();
 
