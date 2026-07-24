@@ -82,7 +82,7 @@ ID and mark the local catalog record inactive/deleted from the signed event.
 | Stripe state | ClipsX access |
 | --- | --- |
 | `trialing`, `active` | Pro |
-| `past_due` | Pro during configured grace window |
+| `past_due` | Read-only immediately; no grace period in v1 |
 | `incomplete` | No Pro access until payment succeeds |
 | `incomplete_expired`, `unpaid`, `canceled`, `paused` | Read-only retained cloud data |
 | `cancel_at_period_end` | Pro until `paid_through`, then read-only |
