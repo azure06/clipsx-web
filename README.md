@@ -73,6 +73,54 @@ src/
 └── types/           # TypeScript type definitions
 ```
 
+## Deployment Readiness
+
+The v1 target is a public paid launch using Vercel, hosted Supabase, Stripe,
+and desktop installers published by the separate ClipsX GitHub Releases
+repository. Team billing is a later phase; browser-based E2EE vault access is
+part of the v1 deployment scope.
+
+Before deployment, complete this checklist:
+
+- Replace the template Privacy Policy and Terms of Service with reviewed legal
+  text, including company identity, jurisdiction, data handling, E2EE limits,
+  subscriptions, refunds, deletion, and support contact details.
+- Review English and Japanese content so every feature, Pro benefit, FAQ,
+  download instruction, and AI statement matches the implemented desktop app.
+- Connect the Download page to real versioned GitHub Release assets and verify
+  signed installers or checksums for Windows, macOS, and Linux.
+- Deliver an E2EE browser vault for a signed-in user's own passwords and
+  encrypted notes. Supabase stores only ciphertext and key envelopes; the
+  browser decrypts locally with Web Crypto.
+- Treat the browser as a separately enrolled trusted device: generate a
+  non-extractable private `CryptoKey`, persist it in IndexedDB, and obtain
+  collection-key envelopes through either trusted-device approval or recovery
+  code. Never send plaintext, the recovery code, or a private key to the
+  server.
+- Secure the browser vault as a high-risk surface: use a strict CSP, avoid
+  third-party scripts on vault routes, prevent XSS, avoid sensitive logging,
+  clear local session state on sign-out, and test revocation/recovery. A
+  non-extractable `CryptoKey` prevents export but does not protect against a
+  malicious script executing on the ClipsX origin.
+- Block duplicate Stripe subscriptions and route existing subscribers to the
+  Customer Portal. Verify payment, cancellation, refund, retry, and failure
+  flows in Stripe Test mode before enabling live prices.
+- Connect the contact form to a monitored support inbox and add abuse
+  protection; a successful API response must mean the message was delivered.
+- Add the production Supabase, Google OAuth, Stripe webhook, Vercel, and
+  desktop deep-link configuration.
+- Complete the three planned blog articles and their localized metadata.
+- Resolve all lint errors and keep unit tests, database tests, typecheck,
+  production build, and CI passing.
+- Run the final acceptance pass for web login, desktop login, downloads,
+  account billing, localized pages, contact delivery, and webhook recovery.
+
+Use [`docs/deployment-readiness.md`](docs/deployment-readiness.md) as the
+step-by-step launch checklist. See [`docs/backend/`](docs/backend/) for backend
+architecture, billing, security, migration, and recovery procedures, and
+[`docs/web-auth-todo.md`](docs/web-auth-todo.md) for hosted authentication and
+desktop OAuth configuration.
+
 ## Known Limitations
 
 - Theme switching disabled due to Tailwind v4 + @tailwindcss/postcss dark mode CSS generation limitation
