@@ -60,7 +60,7 @@ sequenceDiagram
     Hook->>Stripe: Retrieve canonical current object
     Stripe-->>Hook: current object
     Hook->>Billing: Transactional projection upsert
-    Billing->>Billing: Recalculate entitlement and allowance
+    Billing->>Billing: Recalculate entitlement
     Billing->>Inbox: Mark processed in the same transaction
     Hook-->>Stripe: 200
   else concurrent delivery
@@ -69,7 +69,7 @@ sequenceDiagram
   end
   App->>Checkout: Read safe billing summary
   Checkout->>Billing: Read local entitlement
-  Billing-->>Checkout: plan, access status, allowance
+  Billing-->>Checkout: plan and access status
   Checkout-->>App: safe billing summary
 ```
 

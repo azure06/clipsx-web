@@ -46,15 +46,16 @@ The implementation must:
 ## Webhook processor
 
 1. Read the unmodified raw request body and verify the Stripe signature.
-2. Insert `stripe_event_id` into `private.billing_webhook_events` atomically.
-3. A duplicate returns HTTP 200 without side effects.
-4. A successfully persisted new event also returns HTTP 200 immediately. The
-   durable inbox, not the request lifetime, is the hand-off to processing.
-5. The endpoint claims the event, retrieves the canonical Stripe object, and
+2. Atomically claim `stripe_event_id` in `private.billing_webhook_events` with
+   a short lease. This inserts a new event or reclaims an expired/failed one.
+3. A duplicate that is already `processed` returns HTTP 200 without side
+   effects. A concurrently processing duplicate returns HTTP 500, so Stripe
+   retries rather than acknowledging uncommitted work.
+4. The endpoint retrieves the canonical Stripe object and
    never assumes event delivery order.
-6. One private database transaction applies the projection, recomputes the
+5. One private database transaction applies the projection, recomputes the
    account entitlement, and marks the event processed.
-7. A transient failure returns HTTP 500 so Stripe retries delivery. A duplicate
+6. A transient failure returns HTTP 500 so Stripe retries delivery. A duplicate
    only receives success after the original projection has committed.
 
 Verification, claim, canonical retrieval, or projection failure returns non-2xx
@@ -85,19 +86,16 @@ ID and mark the local catalog record inactive/deleted from the signed event.
 | `incomplete_expired`, `unpaid`, `canceled`, `paused` | Read-only retained cloud data |
 | `cancel_at_period_end` | Pro until `paid_through`, then read-only |
 
-An annual subscription's item period is one year, but allowance windows are
-monthly. The first window opens after the qualifying payment. A scheduled job
-opens each next monthly anniversary only while the entitlement remains active
-or within the explicitly chosen grace policy.
+AI allowance tables exist for a future feature, but no allowance is granted,
+consumed, or scheduled in v1. AI provider/model pricing and allowance policy
+must be decided before those tables affect customer access or billing.
 
-## Reconciliation and operations
+## Operations and recovery
 
 Webhooks only observe delivery attempts; they are not the only recovery path.
 
 - A code-managed catalog bootstrap creates sandbox Products, Prices, lookup
   keys, and portal configuration idempotently.
-- An initial backfill imports the relevant existing Stripe objects before the
-  webhook endpoint is enabled.
 - A runbook lists pending or failed events, replays them idempotently through
   `npm run stripe:replay-pending`, investigates
   Stripe delivery failures, and records the resolution.

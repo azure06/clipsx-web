@@ -19,7 +19,7 @@ allowances, encrypted content, and sharing.
 | Encrypted personal cloud | Product limit | Higher product limit |
 | Deliberately saved-item sync | Yes, within limit | Yes, within limit |
 | Share a collection with a registered user | Product limit | Higher product limit |
-| AI features | Product allowance | Higher monthly allowance |
+| AI features | Not available in v1 | Not available in v1 |
 | Manage payment method, plan, or cancellation | N/A | Stripe Customer Portal |
 
 The exact limits are product configuration, not hard-coded database policy.
@@ -45,7 +45,8 @@ Stripe Products and Prices contain the commercial representation.
 - No Team workspace, organization membership, seats, or pooled allowance UI.
   The billing-account boundary is present now so those can be added later.
 - No purchasable AI credits, overages, or usage-based billing. A future higher
-  tier is the intended first expansion path.
+  tier is the intended first expansion path. The AI allowance schema is
+  reserved but inactive until provider/model pricing and product policy exist.
 - No arbitrary file attachments or native Office-document syncing.
 - A user who already downloaded ciphertext cannot be made to forget it when
   removed from a collection. Key rotation protects new writes only.

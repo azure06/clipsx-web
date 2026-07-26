@@ -19,6 +19,8 @@ normally equal.
 | `plans` | `id`: internal immutable ID; `code`: stable product code (`free`, `pro`); `display_name`: UI label; `active`: whether new assignments are allowed. |
 | `plan_features` | `plan_id`: owner plan; `feature_key`: stable capability name; `value_jsonb`: typed configurable limit or boolean. This prevents feature limits from being scattered through code. |
 | `billing_accounts` | `id`: billing owner ID; `kind`: `personal` now, `organization` later; `owner_user_id`: creator/owner; `status`: active or closed. Every user has one personal account. |
+| `organizations` | `id`: future Team workspace identity; `name`: display name; timestamps: audit and lifecycle. An organization will own exactly one organization-kind billing account. |
+| `organization_memberships` | `organization_id`, `user_id`: workspace access; `role`: owner/admin/member; `status`: active or removed. Only active owners/admins may start future Team Checkout or open its Billing Portal. |
 | `billing_customers` | `billing_account_id`: local owner; `stripe_customer_id`: stable Stripe identity; `livemode`: prevents test/live collisions; `stripe_deleted_at`: Stripe deletion marker. Email is not the identity key. |
 | `billing_products` | `stripe_product_id`: Stripe Product; `plan_id`: ClipsX plan represented by that Product; `name`, `description`, `active`: display/catalog state; `stripe_created_at`, `stripe_event_created_at`: source timing. |
 | `billing_prices` | `stripe_price_id`: immutable commercial version; `product_id`: parent Product; `lookup_key`: stable deployment-safe handle; `currency`, `unit_amount`, `recurring_interval`, `interval_count`: what is charged; `active`: sale eligibility; `tax_behavior`: future tax configuration. |
@@ -27,16 +29,17 @@ normally equal.
 | `billing_invoices` | `stripe_invoice_id`: invoice identity; `billing_account_id`, `subscription_id`: association; `status`, `amount_due`, `amount_paid`, `currency`, `paid_at`, `next_payment_attempt`: dunning/support information. No payment-method details are copied. |
 | `billing_webhook_events` | `stripe_event_id`: idempotency key; `event_type`, `object_type`, `object_id`: routing; `livemode`: environment boundary; `stripe_event_created_at`: source ordering; `processing_state`, `attempts`, `last_error`, `processed_at`: durable delivery audit; `locked_at`, `locked_by`, `lease_expires_at`: short webhook-processing lease that prevents concurrent delivery from acknowledging uncommitted work. |
 | `account_entitlements` | `billing_account_id`: one current access record; `plan_id`: effective plan; `source_subscription_id`: Stripe-derived origin; `status`: active, grace, or read-only; `effective_from`, `paid_through`, `grace_until`: authorization timeline. |
-| `ai_allowance_periods` | `billing_account_id`: allowance owner; `plan_id`, `source_subscription_item_id`: plan basis; `period_start`, `period_end`: monthly window; `granted_units`, `consumed_units`: capacity accounting; `grant_reason`: initial, renewal, or adjustment; `grant_idempotency_key`: prevents duplicate grants when an event is delivered again. |
-| `ai_usage_events` | `billing_account_id`: payer; `actor_user_id`: future Team member attribution; `allowance_period_id`: charged window; `idempotency_key`: idempotent application action; `kind`: reserve, settle, refund, or adjustment; `delta_units`: signed accounting change; `occurred_at`: business timestamp. Prompts and AI output are never stored. |
+| `ai_allowance_periods` | Reserved for a future AI allowance feature. It will hold `billing_account_id`, plan/item basis, monthly window, granted/consumed capacity, and an idempotency key. It is not populated or enforced in v1. |
+| `ai_usage_events` | Reserved future usage ledger: account payer, optional Team actor, allowance window, idempotency key, event kind, and signed unit delta. It is not populated or enforced in v1; prompts and AI output will never be stored. |
 
 ### Why `billing_account_id` exists
 
 Today it means “this user's personal billing account.” In the future, a Team
 can own an organization account and subscriptions/allowances can move to that
-account without rewriting subscriptions, invoices, or usage history. Team
-membership and allocation policy are intentionally omitted until they are a
-real product requirement.
+account without rewriting subscriptions, invoices, or usage history.
+Organizations and membership roles are present as a foundation; Team Checkout,
+seats, pooled allowances, and member-management UI are intentionally not yet
+implemented.
 
 ## Encrypted vault
 
