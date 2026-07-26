@@ -50,21 +50,16 @@ The implementation must:
 3. A duplicate returns HTTP 200 without side effects.
 4. A successfully persisted new event also returns HTTP 200 immediately. The
    durable inbox, not the request lifetime, is the hand-off to processing.
-5. A worker claims one pending event, retrieves the canonical Stripe object,
-   and never assumes event delivery order.
-6. The worker idempotently upserts the relevant projection and recomputes the
-   account entitlement. A failed event remains retryable, and reconciliation
-   reuses the same projection logic.
-7. The worker marks the event processed. On failure it records the error and
-   attempt count, leaving the event available for retry and reconciliation.
+5. The endpoint claims the event, retrieves the canonical Stripe object, and
+   never assumes event delivery order.
+6. One private database transaction applies the projection, recomputes the
+   account entitlement, and marks the event processed.
+7. A transient failure returns HTTP 500 so Stripe retries delivery. A duplicate
+   only receives success after the original projection has committed.
 
-Claiming uses a lease (`locked_by`, `locked_at`, `lease_expires_at`) and a
-next-available time. This prevents two workers from processing one event and
-allows a later worker to recover an event abandoned by a crash.
-
-Only a failure to verify or persist the inbox record returns non-2xx to Stripe.
-That gives Stripe a chance to retry delivery without coupling delivery success
-to a potentially slow canonical-object retrieval.
+Verification, claim, canonical retrieval, or projection failure returns non-2xx
+to Stripe. That gives Stripe a chance to retry delivery without ever
+acknowledging a result that has not committed.
 
 For destructive Product events that cannot be retrieved, preserve the object
 ID and mark the local catalog record inactive/deleted from the signed event.
@@ -103,13 +98,11 @@ Webhooks only observe delivery attempts; they are not the only recovery path.
   keys, and portal configuration idempotently.
 - An initial backfill imports the relevant existing Stripe objects before the
   webhook endpoint is enabled.
-- A scheduled reconciler compares local Customers, active Subscriptions, and
-  recent Invoices against Stripe; it reuses the same projection functions as
-  the webhook processor.
-- A runbook lists pending events, replays them idempotently, investigates
+- A runbook lists pending or failed events, replays them idempotently through
+  `npm run stripe:replay-pending`, investigates
   Stripe delivery failures, and records the resolution.
 - Test and live rows never share unique identities: every projected object has
-  `livemode` and all worker commands require an explicit environment.
+  `livemode` and all replay commands require an explicit environment.
 
 ### Runtime configuration
 
@@ -120,9 +113,9 @@ Webhooks only observe delivery attempts; they are not the only recovery path.
   Product description, pricing-page URL, and monthly default Price. A product
   image is intentionally optional for sandbox testing and can be added later
   as a stable public HTTPS URL.
-- Vercel calls `/api/internal/stripe/project` every five minutes and
-  `/api/internal/stripe/reconcile` daily. Both routes require
-  `CRON_SECRET`; configure the same value in Vercel and local development.
+- No cron job is required. Stripe webhook delivery retries are the automatic
+  retry mechanism; local support can replay pending events with
+  `npm run stripe:replay-pending`.
 - The browser never receives Stripe secret keys, webhook secrets, Price IDs as
   authority, or raw private billing rows. It receives only workspace and
   billing-summary APIs authorized from the Supabase user ID.

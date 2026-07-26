@@ -30,8 +30,8 @@ Stripe Products and Prices contain the commercial representation.
 
 - Billing access is determined from local entitlement state, so a normal app
   request does not depend on a live Stripe API call.
-- Local state is derived from signed Stripe webhooks and regularly reconciled
-  with Stripe. Stripe remains the commercial authority.
+- Local state is atomically derived from signed Stripe webhooks. Stripe remains
+  the commercial authority and retries a failed delivery.
 - A user cannot read another user's personal ciphertext through Supabase.
 - A collection recipient receives a key envelope only for keys the owner chose
   to share. Acceptance is required before server-side collection access.

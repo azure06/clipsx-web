@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getStripe } from '@/lib/stripe';
+import { applyStripeWebhookProjection } from '@/lib/stripe/supabase-projector';
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
@@ -31,22 +32,38 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = createAdminClient();
-    const { error } = await supabase
-      .schema('private')
-      .from('billing_webhook_events')
-      .insert(toStripeWebhookInboxRecord(event));
+    const record = toStripeWebhookInboxRecord(event);
+    const requestId = crypto.randomUUID();
+    const { data: claim, error: claimError } = await supabase.schema('private').rpc('claim_stripe_webhook_event', {
+      p_livemode: record.livemode,
+      p_stripe_event_id: record.stripe_event_id,
+      p_event_type: record.event_type,
+      p_object_type: record.object_type,
+      p_object_id: record.object_id,
+      p_stripe_event_created_at: record.stripe_event_created_at,
+      p_request_id: requestId,
+      p_lease_seconds: 25,
+    });
 
-    if (error?.code === '23505') {
+    if (claimError) throw new Error(`Webhook claim failed: ${claimError.message}`);
+    if (claim === 'processed') {
       return NextResponse.json({ received: true, duplicate: true });
     }
+    if (claim === 'in_progress') {
+      return NextResponse.json({ error: 'Webhook event is still processing' }, { status: 500 });
+    }
 
-    if (error) {
-      console.error('Failed to persist Stripe webhook event', {
-        eventId: event.id,
-        eventType: event.type,
-        error: error.message,
+    try {
+      await applyStripeWebhookProjection({ supabase, stripe, event, record, requestId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown projection failure';
+      await supabase.schema('private').rpc('fail_stripe_webhook_event', {
+        p_livemode: record.livemode,
+        p_stripe_event_id: record.stripe_event_id,
+        p_request_id: requestId,
+        p_error: message,
       });
-      return NextResponse.json({ error: 'Webhook persistence failed' }, { status: 500 });
+      throw error;
     }
   } catch (error) {
     console.error('Failed to handle Stripe webhook event', {
@@ -54,7 +71,7 @@ export async function POST(request: NextRequest) {
       eventType: event.type,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
-    return NextResponse.json({ error: 'Webhook persistence failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Webhook projection failed' }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

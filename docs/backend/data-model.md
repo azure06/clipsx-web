@@ -10,7 +10,7 @@ normally equal.
 | Schema | Purpose | Browser access |
 | --- | --- | --- |
 | `public` | encrypted vault rows and safe user-facing RPCs | Explicit grants plus RLS |
-| `private` | Stripe projection, accounting support, and worker internals | API-enabled for `service_role` only; no browser grants |
+| `private` | Stripe projection and accounting support | API-enabled for `service_role` only; no browser grants |
 
 ## Billing and plans
 
@@ -25,9 +25,9 @@ normally equal.
 | `billing_subscriptions` | `stripe_subscription_id`: Stripe lifecycle object; `billing_account_id`, `customer_id`: local ownership; `status`: Stripe status; `billing_cycle_anchor`: stable cycle reference; `cancel_at_period_end`, `cancel_at`, `canceled_at`, `ended_at`: cancellation semantics; `trial_start`, `trial_end`: trial window; `pause_collection_behavior`, `pause_collection_resumes_at`: payment-collection pause state, distinct from Stripe's `paused` status. |
 | `billing_subscription_items` | `stripe_subscription_item_id`: item identity; `subscription_id`: parent; `price_id`: selected billing variant; `quantity`: future seat-compatible quantity; `current_period_start`, `current_period_end`: access/billing period, held at Stripe item level. |
 | `billing_invoices` | `stripe_invoice_id`: invoice identity; `billing_account_id`, `subscription_id`: association; `status`, `amount_due`, `amount_paid`, `currency`, `paid_at`, `next_payment_attempt`: dunning/support information. No payment-method details are copied. |
-| `billing_webhook_events` | `stripe_event_id`: idempotency key; `event_type`, `object_type`, `object_id`: routing; `livemode`: environment boundary; `stripe_event_created_at`: source ordering; `processing_state`, `attempts`, `last_error`, `processed_at`: durable processing state; `available_at`, `locked_at`, `locked_by`, `lease_expires_at`: retry scheduling and crash-safe worker lease. |
+| `billing_webhook_events` | `stripe_event_id`: idempotency key; `event_type`, `object_type`, `object_id`: routing; `livemode`: environment boundary; `stripe_event_created_at`: source ordering; `processing_state`, `attempts`, `last_error`, `processed_at`: durable delivery audit; `locked_at`, `locked_by`, `lease_expires_at`: short webhook-processing lease that prevents concurrent delivery from acknowledging uncommitted work. |
 | `account_entitlements` | `billing_account_id`: one current access record; `plan_id`: effective plan; `source_subscription_id`: Stripe-derived origin; `status`: active, grace, or read-only; `effective_from`, `paid_through`, `grace_until`: authorization timeline. |
-| `ai_allowance_periods` | `billing_account_id`: allowance owner; `plan_id`, `source_subscription_item_id`: plan basis; `period_start`, `period_end`: monthly window; `granted_units`, `consumed_units`: capacity accounting; `grant_reason`: initial, renewal, or adjustment; `grant_idempotency_key`: prevents duplicate grants when a worker retries. |
+| `ai_allowance_periods` | `billing_account_id`: allowance owner; `plan_id`, `source_subscription_item_id`: plan basis; `period_start`, `period_end`: monthly window; `granted_units`, `consumed_units`: capacity accounting; `grant_reason`: initial, renewal, or adjustment; `grant_idempotency_key`: prevents duplicate grants when an event is delivered again. |
 | `ai_usage_events` | `billing_account_id`: payer; `actor_user_id`: future Team member attribution; `allowance_period_id`: charged window; `idempotency_key`: idempotent application action; `kind`: reserve, settle, refund, or adjustment; `delta_units`: signed accounting change; `occurred_at`: business timestamp. Prompts and AI output are never stored. |
 
 ### Why `billing_account_id` exists

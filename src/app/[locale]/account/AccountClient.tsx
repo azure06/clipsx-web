@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
@@ -27,11 +28,13 @@ type Workspace = { id: string; name: string; kind: 'personal' | 'organization'; 
 export function AccountClient({ user }: AccountClientProps) {
   const t = useTranslations('AccountPage');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [billingLoading, setBillingLoading] = useState(false);
   const [signOutLoading, setSignOutLoading] = useState(false);
   const [summary, setSummary] = useState<BillingSummary | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspaceId, setWorkspaceId] = useState<string>('personal');
+  const [activating, setActivating] = useState(searchParams.get('checkout') === 'success');
 
   useEffect(() => {
     fetch('/api/billing/workspaces')
@@ -45,11 +48,22 @@ export function AccountClient({ user }: AccountClientProps) {
   }, []);
 
   useEffect(() => {
-    fetch(`/api/billing/summary?workspace=${encodeURIComponent(workspaceId)}`)
-      .then(async (response) => response.ok ? response.json() : null)
-      .then((value) => setSummary(value))
-      .catch(() => setSummary(null));
-  }, [workspaceId]);
+    let cancelled = false;
+    let attempt = 0;
+    const load = async () => {
+      const response = await fetch(`/api/billing/summary?workspace=${encodeURIComponent(workspaceId)}`);
+      const value = response.ok ? await response.json() as BillingSummary : null;
+      if (cancelled) return;
+      setSummary(value);
+      if (activating && value?.planCode !== 'pro' && attempt++ < 14) {
+        window.setTimeout(load, 2000);
+      } else if (value?.planCode === 'pro') {
+        setActivating(false);
+      }
+    };
+    void load().catch(() => setSummary(null));
+    return () => { cancelled = true; };
+  }, [workspaceId, activating]);
 
   async function handleManageBilling() {
     setBillingLoading(true);
@@ -105,6 +119,9 @@ export function AccountClient({ user }: AccountClientProps) {
           <div>
             <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">{t('plan_label')}</p>
             <Badge variant={plan === 'free' ? 'default' : 'cyan'}>{t(`plan_${plan}` as never)}</Badge>
+            {activating && plan === 'free' && (
+              <p className="mt-2 text-xs text-cyan-700 dark:text-cyan-300">Activating Pro…</p>
+            )}
             {summary?.entitlementStatus === 'read_only' && (
               <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">Read-only access</p>
             )}

@@ -13,7 +13,7 @@ flowchart LR
   Client -->|RLS reads and RPC writes| DB
   Client -->|Checkout / Portal launch| Webhook
   Stripe -->|signed events| Webhook
-  Webhook -->|private projection and reconciliation| DB
+  Webhook -->|atomic private projection| DB
   DB -->|local entitlement| Client
 ```
 
@@ -26,12 +26,11 @@ receive only intentionally designed RPC or view results.
 
 ## Billing flow
 
-The webhook endpoint is an **inbox**, not the billing engine. Its only
-time-critical responsibility is signature verification and durable,
-idempotent event capture. A worker then retrieves the canonical Stripe object
-and updates the local projection. This separation prevents an expensive or
-temporarily failing Stripe retrieval from losing an already authenticated
-event.
+The webhook endpoint is the billing processor for this low-volume v1. It
+verifies the raw signed payload, claims the event, retrieves the canonical
+Stripe object, and commits one atomic local projection. A `200` means that
+projection is committed, was already committed, or the event is intentionally
+ignored. A `500` means Stripe must retry.
 
 ```mermaid
 sequenceDiagram
@@ -42,7 +41,6 @@ sequenceDiagram
   participant Stripe
   participant Hook as /api/webhooks/stripe
   participant Inbox as private.billing_webhook_events
-  participant Worker as Billing projection worker
   participant Billing as private billing projection
 
   User->>App: Choose Pro monthly or annual
@@ -54,19 +52,20 @@ sequenceDiagram
   User->>Stripe: Complete payment
   Stripe-->>Hook: subscription / invoice event
   Hook->>Hook: Verify raw body and signature
-  Hook->>Inbox: Insert event ID once
+  Hook->>Inbox: Atomically claim event ID with a short lease
   alt event already processed
     Inbox-->>Hook: duplicate
     Hook-->>Stripe: 200
-  else new event
-    Inbox-->>Hook: durable pending event
-    Hook-->>Stripe: 200
-    Worker->>Inbox: Claim pending event
-    Worker->>Stripe: Retrieve canonical current object
-    Stripe-->>Worker: current object
-    Worker->>Billing: Transactional projection upsert
+  else new or retryable event
+    Hook->>Stripe: Retrieve canonical current object
+    Stripe-->>Hook: current object
+    Hook->>Billing: Transactional projection upsert
     Billing->>Billing: Recalculate entitlement and allowance
-    Worker->>Inbox: Mark processed or failed
+    Billing->>Inbox: Mark processed in the same transaction
+    Hook-->>Stripe: 200
+  else concurrent delivery
+    Inbox-->>Hook: processing lease is current
+    Hook-->>Stripe: 500 (Stripe retries)
   end
   App->>Checkout: Read safe billing summary
   Checkout->>Billing: Read local entitlement
@@ -77,17 +76,17 @@ sequenceDiagram
 Stripe events are not ordered and can be delivered more than once. The event
 inbox is therefore an idempotency boundary, and the processor retrieves the
 canonical Stripe object before changing the local projection. Failed events
-remain retryable and a scheduled reconciliation compares local state to Stripe.
+remain visible for support replay; Stripe delivery retry is the only automatic
+retry path.
 
 ### What happens if billing components fail?
 
 | Failure | What happens now | Recovery path |
 | --- | --- | --- |
 | Signature invalid | Webhook returns 400 and writes nothing. | Investigate endpoint secret or an invalid sender. |
-| Inbox insert fails | Webhook returns non-2xx, so Stripe retries. | Alert on repeated failures; Stripe retry/replay plus reconciliation. |
-| Projection worker fails | Event stays `failed` with error and attempt count. | Retry worker; reconcile canonical Stripe state later. |
-| Duplicate/out-of-order event | Inbox deduplicates event ID; worker retrieves canonical object. | No manual action unless reconciliation detects drift. |
-| Stripe API unavailable | Existing local entitlement remains in effect until its recorded deadline. | Worker retries; reconcile when Stripe is available. |
+| Claim or projection fails | Webhook returns 500 and the event is marked `failed` when possible. | Stripe retries; support can replay the event locally. |
+| Duplicate/out-of-order event | Inbox deduplicates event ID; webhook retrieves canonical object and rejects stale writes. | No manual action in the normal case. |
+| Stripe API unavailable | Existing local entitlement remains in effect until its recorded deadline. | Stripe retries the webhook when the request fails. |
 
 ## Encrypted vault flow
 
@@ -207,7 +206,7 @@ the explicit device revocation changes local authorization immediately.
 | --- | --- |
 | Duplicate Stripe event | Record once; return success without re-granting allowance. |
 | Events arrive out of order | Retrieve current Stripe object; use Stripe event timestamps to reject stale state. |
-| Webhook processing fails | Keep event pending, return an error for Stripe retry, alert, and reconcile later. |
+| Webhook processing fails | Mark the event failed when possible and return an error for Stripe retry; support can replay it. |
 | Stripe temporarily unavailable | Existing local entitlement remains usable until its recorded policy deadline. |
 | Payment becomes past due | Keep temporary grace access; show billing action required. |
 | Grace expires / unpaid / canceled | Switch to read-only cloud retention; do not delete ciphertext. |

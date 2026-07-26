@@ -57,7 +57,8 @@ npm run lint
 
 - Replaying a webhook event does not create a second entitlement or allowance.
 - A stale event after a newer update cannot overwrite newer local state.
-- A failed worker attempt remains visible and can be retried.
+- A failed webhook projection remains visible and Stripe can retry it; the
+  local replay command can also redeliver it through the signed endpoint.
 - Product/Price archival stops new checkout selection but preserves existing
   subscription history.
 
@@ -82,7 +83,7 @@ npm run lint
 2. Pinned local tooling and test harness.
 3. Shared SQL foundations and billing accounts.
 4. Stripe catalog/subscription projection.
-5. Webhook processor, bootstrap, and reconciliation.
+5. Direct webhook processor and catalog bootstrap.
 6. Entitlements and AI allowance ledger.
 7. Device/recovery schema and policies.
 8. Collections, key envelopes, sharing, item sync, and tombstones.

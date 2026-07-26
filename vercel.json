@@ -1,6 +1,0 @@
-{
-  "crons": [
-    { "path": "/api/internal/stripe/project", "schedule": "*/5 * * * *" },
-    { "path": "/api/internal/stripe/reconcile", "schedule": "17 3 * * *" }
-  ]
-}
