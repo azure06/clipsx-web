@@ -28,6 +28,7 @@ Expected commands will be pinned when tooling is added:
 npm run supabase:start
 npx supabase db reset --local
 npx supabase test db
+npm run stripe:bootstrap-catalog
 npm run supabase:generate-types
 npm run typecheck
 npm run lint

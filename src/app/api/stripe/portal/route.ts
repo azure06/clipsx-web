@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import { getStripe } from '@/lib/stripe';
-import { getPersonalBillingAccountId, getStripeLivemode } from '@/lib/stripe/billing-customer';
+import { resolveBillingWorkspace } from '@/lib/billing/workspace';
+import { getStripeLivemode } from '@/lib/stripe/billing-customer';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getUser } from '@/lib/supabase/server';
 
-export async function POST() {
+const body = z.object({ workspaceId: z.string().uuid().optional() }).optional();
+
+export async function POST(request: NextRequest) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -13,7 +17,10 @@ export async function POST() {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
     const stripe = getStripe();
     const supabase = createAdminClient();
-    const billingAccountId = await getPersonalBillingAccountId(supabase, user.id);
+    const parsed = body.safeParse(await request.json().catch(() => undefined));
+    if (!parsed.success) return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    const workspace = await resolveBillingWorkspace(supabase, user.id, parsed.data?.workspaceId, true);
+    const billingAccountId = workspace.billingAccountId;
     const { data: customer, error } = await supabase
       .schema('private')
       .from('billing_customers')

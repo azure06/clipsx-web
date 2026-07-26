@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
-import { getUser, createClient } from '@/lib/supabase/server';
+import { getUser } from '@/lib/supabase/server';
 import { AccountClient } from './AccountClient';
 
 export default async function AccountPage({

@@ -25,8 +25,10 @@ This means a price migration does not require changing entitlement code.
 
 ## Checkout and portal
 
-Checkout runs server-side after resolving the authenticated user's personal
-billing account. It creates or reuses the stored Stripe Customer ID, records
+Checkout runs server-side after resolving the authenticated user's selected,
+authorized billing workspace. Personal checkout is enabled now; a future Team
+checkout will require an organization owner or admin. It creates or reuses the
+stored Stripe Customer ID, records
 the local billing-account ID in Checkout metadata and client reference data,
 and uses the configured Price ID.
 
@@ -50,8 +52,9 @@ The implementation must:
    durable inbox, not the request lifetime, is the hand-off to processing.
 5. A worker claims one pending event, retrieves the canonical Stripe object,
    and never assumes event delivery order.
-6. In one database transaction, the worker upserts the relevant projection and
-   recomputes the account entitlement/allowance effect.
+6. The worker idempotently upserts the relevant projection and recomputes the
+   account entitlement. A failed event remains retryable, and reconciliation
+   reuses the same projection logic.
 7. The worker marks the event processed. On failure it records the error and
    attempt count, leaving the event available for retry and reconciliation.
 
@@ -107,6 +110,22 @@ Webhooks only observe delivery attempts; they are not the only recovery path.
   Stripe delivery failures, and records the resolution.
 - Test and live rows never share unique identities: every projected object has
   `livemode` and all worker commands require an explicit environment.
+
+### Runtime configuration
+
+- `npm run stripe:bootstrap-catalog` creates or reuses the sandbox Product and
+  monthly/annual Prices. It requires `STRIPE_PRO_CURRENCY`,
+  `STRIPE_PRO_MONTHLY_AMOUNT_CENTS`, and `STRIPE_PRO_YEARLY_AMOUNT_CENTS`, and
+  prints the two Price IDs to place in local configuration. It also sets the
+  Product description, pricing-page URL, and monthly default Price. A product
+  image is intentionally optional for sandbox testing and can be added later
+  as a stable public HTTPS URL.
+- Vercel calls `/api/internal/stripe/project` every five minutes and
+  `/api/internal/stripe/reconcile` daily. Both routes require
+  `CRON_SECRET`; configure the same value in Vercel and local development.
+- The browser never receives Stripe secret keys, webhook secrets, Price IDs as
+  authority, or raw private billing rows. It receives only workspace and
+  billing-summary APIs authorized from the Supabase user ID.
 
 ## Tax decision
 

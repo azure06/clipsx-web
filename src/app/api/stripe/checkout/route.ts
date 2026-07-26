@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { getStripe } from '@/lib/stripe';
+import { resolveBillingWorkspace } from '@/lib/billing/workspace';
 import {
   BILLING_ACCOUNT_METADATA_KEY,
   createCheckoutIntegrationIdentifier,
   getOrCreateStripeCustomer,
-  getPersonalBillingAccountId,
   getStripeLivemode,
 } from '@/lib/stripe/billing-customer';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -15,6 +15,7 @@ import { getUser } from '@/lib/supabase/server';
 const body = z.object({
   plan: z.literal('pro'),
   interval: z.enum(['monthly', 'yearly']),
+  workspaceId: z.string().uuid().optional(),
 });
 
 function getProPriceId(interval: 'monthly' | 'yearly') {
@@ -39,7 +40,16 @@ export async function POST(request: NextRequest) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
     const stripe = getStripe();
     const supabase = createAdminClient();
-    const billingAccountId = await getPersonalBillingAccountId(supabase, user.id);
+    const workspace = await resolveBillingWorkspace(
+      supabase,
+      user.id,
+      parsed.data.workspaceId,
+      true,
+    );
+    if (workspace.kind !== 'personal') {
+      return NextResponse.json({ error: 'Team subscriptions are not available yet' }, { status: 409 });
+    }
+    const billingAccountId = workspace.billingAccountId;
     const customerId = await getOrCreateStripeCustomer({
       supabase,
       stripe,

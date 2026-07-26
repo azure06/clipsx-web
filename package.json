@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "postbuild": "next-sitemap",
     "stripe:listen": "stripe listen --forward-to=localhost:3000/api/webhooks/stripe",
+    "stripe:bootstrap-catalog": "node --env-file=.env.local scripts/bootstrap-stripe-catalog.mjs",
     "stripe:fixtures": "stripe fixtures fixtures/stripe-fixtures.json",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
