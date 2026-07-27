@@ -2,6 +2,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { use } from 'react';
 import type { Metadata } from 'next';
+import { Link } from '@/i18n/routing';
 
 export const metadata: Metadata = { title: 'Terms of Service' };
 
@@ -53,7 +54,7 @@ export default function TermsPage({
 
         <h2 className="text-gray-900 dark:text-white">5. Disclaimer of Warranties</h2>
         <p className="text-gray-700 dark:text-gray-400">
-          ClipsX is provided "as is" without warranty of any kind. We do not warrant that the
+          ClipsX is provided &quot;as is&quot; without warranty of any kind. We do not warrant that the
           software will be error-free or uninterrupted.
         </p>
 
@@ -65,7 +66,7 @@ export default function TermsPage({
 
         <h2 className="text-gray-900 dark:text-white">7. Contact</h2>
         <p className="text-gray-700 dark:text-gray-400">
-          Questions? Use the <a href="/contact" className="text-cyan-400">contact form</a>.
+          Questions? Use the <Link href="/contact" className="text-cyan-400">contact form</Link>.
         </p>
       </div>
     </div>

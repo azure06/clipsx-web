@@ -2,6 +2,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { useTranslations } from 'next-intl';
 import { use } from 'react';
 import type { Metadata } from 'next';
+import { Link } from '@/i18n/routing';
 
 export const metadata: Metadata = { title: 'Privacy Policy' };
 
@@ -63,7 +64,7 @@ export default function PrivacyPage({
 
         <h2 className="text-gray-900 dark:text-white">6. Contact</h2>
         <p className="text-gray-700 dark:text-gray-400">
-          Questions about this policy? Use the <a href="/contact" className="text-cyan-400">contact form</a>.
+          Questions about this policy? Use the <Link href="/contact" className="text-cyan-400">contact form</Link>.
         </p>
       </div>
     </div>

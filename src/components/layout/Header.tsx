@@ -17,6 +17,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const t = useTranslations();
+  const translate = (key: string) => t(key as Parameters<typeof t>[0]);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [signOutLoading, setSignOutLoading] = useState(false);
@@ -63,7 +64,7 @@ export function Header({ user }: HeaderProps) {
               href={item.href}
               className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-md transition-colors dark:text-gray-400 dark:hover:text-white"
             >
-              {t(item.labelKey as any)}
+              {translate(item.labelKey)}
             </Link>
           ))}
         </nav>
@@ -101,7 +102,7 @@ export function Header({ user }: HeaderProps) {
                 href="/download"
                 className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-400 transition-colors"
               >
-                {t('Nav.download' as any)}
+                {t('Nav.download')}
               </Link>
             </>
           )}
@@ -134,7 +135,7 @@ export function Header({ user }: HeaderProps) {
                 onClick={() => setOpen(false)}
                 className="px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 rounded-md transition-colors dark:text-gray-300 dark:hover:text-white"
               >
-                {t(item.labelKey as any)}
+                {translate(item.labelKey)}
               </Link>
             ))}
           </nav>
@@ -166,7 +167,7 @@ export function Header({ user }: HeaderProps) {
                   onClick={() => setOpen(false)}
                   className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-400"
                 >
-                  {t('Nav.download' as any)}
+                  {t('Nav.download')}
                 </Link>
               </div>
             )}

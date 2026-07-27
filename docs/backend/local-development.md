@@ -7,6 +7,9 @@
 - Project-pinned Supabase CLI, Stripe SDK, and test tooling.
 - Separate Stripe sandbox keys, webhook secret, and catalog from live mode.
 
+The project has no local seed data. Database tests create their own fixtures,
+so `supabase db reset --local` applies migrations only.
+
 No secret is committed. Local environment examples use variable names only.
 Stripe secret/restricted keys, webhook signing secrets, and Supabase service
 keys are server-only and never prefixed `NEXT_PUBLIC_`.
@@ -92,3 +95,10 @@ npm run lint
 Each commit must leave the repository buildable and its applicable test suite
 passing. Hosted Supabase migrations and live Stripe catalog changes occur only
 after local verification and explicit review.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on pull requests and pushes to `develop` and
+`main`. It uses a clean `npm ci` installation, then checks unit tests,
+typecheck, lint, and production build. A separate job starts local Supabase,
+resets migrations, and runs the pgTAP/RLS suite.

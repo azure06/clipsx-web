@@ -21,6 +21,7 @@ export default function DownloadPage({
   const { locale } = use(params);
   setRequestLocale(locale);
   const t = useTranslations('DownloadPage');
+  const translate = (key: string) => t(key as Parameters<typeof t>[0]);
 
   return (
     <div className="py-24 px-4 sm:px-6">
@@ -45,9 +46,9 @@ export default function DownloadPage({
                   <Icon size={28} />
                 </div>
                 <h2 className="font-heading font-bold text-gray-900 text-xl mb-1 dark:text-white">
-                  {t(target.titleKey as any)}
+                  {translate(target.titleKey)}
                 </h2>
-                <p className="text-xs text-gray-600 mb-6 dark:text-gray-500">{t(target.reqKey as any)}</p>
+                <p className="text-xs text-gray-600 mb-6 dark:text-gray-500">{translate(target.reqKey)}</p>
                 <a
                   href={target.url}
                   className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-6 py-3 text-sm font-bold text-white hover:bg-cyan-400 transition-colors"
@@ -71,7 +72,7 @@ export default function DownloadPage({
                 <span className="shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500/15 text-cyan-400 text-xs font-bold">
                   {i + 1}
                 </span>
-                <span className="text-sm text-gray-600 pt-0.5 dark:text-gray-400">{t(k as any)}</span>
+                <span className="text-sm text-gray-600 pt-0.5 dark:text-gray-400">{translate(k)}</span>
               </li>
             ))}
           </ol>

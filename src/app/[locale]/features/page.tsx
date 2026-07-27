@@ -14,6 +14,7 @@ export default function FeaturesPage({
   const { locale } = use(params);
   setRequestLocale(locale);
   const t = useTranslations('FeaturesPage');
+  const translate = (key: string) => t(key as Parameters<typeof t>[0]);
 
   const features = [
     { icon: Search, key: 'search' },
@@ -47,10 +48,10 @@ export default function FeaturesPage({
               </div>
               <div>
                 <h3 className="font-heading font-bold text-gray-900 mb-1.5 dark:text-white">
-                  {t(`${key}_title` as any)}
+                  {translate(`${key}_title`)}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed dark:text-gray-500">
-                  {t(`${key}_body` as any)}
+                  {translate(`${key}_body`)}
                 </p>
               </div>
             </div>

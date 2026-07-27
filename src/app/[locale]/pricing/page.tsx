@@ -24,6 +24,7 @@ function Availability({ value }: { value: FeatureAvailability }) {
 
 export default function PricingPage() {
   const t = useTranslations('PricingPage');
+  const translate = (key: string) => t(key as Parameters<typeof t>[0]);
   const router = useRouter();
   const [interval, setInterval] = useState<BillingInterval>('monthly');
   const [loading, setLoading] = useState(false);
@@ -78,15 +79,15 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
           {pricingPlans.map((plan) => {
-            const price = interval === 'monthly' ? t(plan.priceMonthlyKey as any) : t(plan.priceYearlyKey as any);
-            const period = interval === 'monthly' ? t(plan.periodMonthlyKey as any) : t(plan.periodYearlyKey as any);
+            const price = interval === 'monthly' ? translate(plan.priceMonthlyKey) : translate(plan.priceYearlyKey);
+            const period = interval === 'monthly' ? translate(plan.periodMonthlyKey) : translate(plan.periodYearlyKey);
             return (
               <section key={plan.id} className={cn('relative flex flex-col rounded-2xl border p-8', plan.highlighted ? 'border-cyan-500/50 bg-gradient-to-b from-cyan-100 to-blue-100 shadow-xl shadow-cyan-500/10 dark:from-cyan-950/30 dark:to-gray-950' : 'border-gray-200 bg-white dark:border-white/8 dark:bg-white/3')}>
                 {plan.highlighted && <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Badge variant="cyan">{t('popular_badge')}</Badge></div>}
-                <h2 className="font-heading font-black text-gray-900 text-xl mb-1 dark:text-white">{t(plan.nameKey as any)}</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 min-h-10">{t(plan.descKey as any)}</p>
+                <h2 className="font-heading font-black text-gray-900 text-xl mb-1 dark:text-white">{translate(plan.nameKey)}</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 min-h-10">{translate(plan.descKey)}</p>
                 <div className="my-7"><span className="font-heading text-5xl font-black text-gray-900 dark:text-white">{price}</span><span className="text-sm text-gray-600 ml-1 dark:text-gray-400">{period}</span></div>
-                <Button variant={plan.highlighted ? 'primary' : 'outline'} size="lg" loading={loading && plan.id === 'pro'} onClick={() => handlePlanCta(plan.id)} className="w-full">{t(plan.ctaKey as any)}</Button>
+                <Button variant={plan.highlighted ? 'primary' : 'outline'} size="lg" loading={loading && plan.id === 'pro'} onClick={() => handlePlanCta(plan.id)} className="w-full">{translate(plan.ctaKey)}</Button>
               </section>
             );
           })}
@@ -109,8 +110,8 @@ export default function PricingPage() {
               <tbody>
                 {pricingFeatureGroups.map((group) => (
                   <Fragment key={group.titleKey}>
-                    <tr key={group.titleKey} className="border-t border-gray-200 bg-gray-50/70 dark:border-white/8 dark:bg-white/[0.02]"><th colSpan={3} scope="colgroup" className="px-6 py-3 text-xs font-semibold uppercase tracking-widest text-gray-500">{t(group.titleKey as any)}</th></tr>
-                    {group.features.map((feature) => <tr key={feature.labelKey} className="border-t border-gray-100 dark:border-white/5"><th scope="row" className="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">{t(feature.labelKey as any)}</th><td className="px-6 py-4 text-center"><Availability value={feature.free} /></td><td className="px-6 py-4 text-center"><Availability value={feature.pro} /></td></tr>)}
+                    <tr key={group.titleKey} className="border-t border-gray-200 bg-gray-50/70 dark:border-white/8 dark:bg-white/[0.02]"><th colSpan={3} scope="colgroup" className="px-6 py-3 text-xs font-semibold uppercase tracking-widest text-gray-500">{translate(group.titleKey)}</th></tr>
+                    {group.features.map((feature) => <tr key={feature.labelKey} className="border-t border-gray-100 dark:border-white/5"><th scope="row" className="px-6 py-4 text-sm font-medium text-gray-800 dark:text-gray-200">{translate(feature.labelKey)}</th><td className="px-6 py-4 text-center"><Availability value={feature.free} /></td><td className="px-6 py-4 text-center"><Availability value={feature.pro} /></td></tr>)}
                   </Fragment>
                 ))}
               </tbody>
@@ -120,7 +121,7 @@ export default function PricingPage() {
 
         <section className="mx-auto max-w-2xl mt-16">
           <h2 className="font-heading text-2xl font-bold text-gray-900 mb-8 text-center dark:text-white">{t('faq_title')}</h2>
-          {['faq_switch', 'faq_refund', 'faq_trial'].map((key) => <div key={key} className="border-b border-gray-200 py-6 dark:border-white/8"><h3 className="font-semibold text-gray-900 mb-2 dark:text-white">{t(`${key}_q` as any)}</h3><p className="text-sm text-gray-600 leading-relaxed dark:text-gray-400">{t(`${key}_a` as any)}</p></div>)}
+          {['faq_switch', 'faq_refund', 'faq_trial'].map((key) => <div key={key} className="border-b border-gray-200 py-6 dark:border-white/8"><h3 className="font-semibold text-gray-900 mb-2 dark:text-white">{translate(`${key}_q`)}</h3><p className="text-sm text-gray-600 leading-relaxed dark:text-gray-400">{translate(`${key}_a`)}</p></div>)}
         </section>
       </div>
     </div>

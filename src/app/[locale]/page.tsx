@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { use } from 'react';
 import { Link } from '@/i18n/routing';
 import { Badge } from '@/components/ui/Badge';
-import { Search, ScanText, Lock, Zap, Globe, Tag } from 'lucide-react';
+import { Search, ScanText, Lock, Zap } from 'lucide-react';
 
 export default function HomePage({
   params,

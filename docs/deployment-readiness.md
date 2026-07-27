@@ -4,6 +4,10 @@ This is the working checklist for taking the ClipsX website to a public paid
 launch. Mark items complete only after the code, documentation, and relevant
 production verification are complete.
 
+For the dependency-aware implementation order, exit conditions, and parallel
+work, use [launch-plan.md](launch-plan.md). This remains the final launch
+acceptance checklist.
+
 ## Launch scope
 
 - Public paid launch on Vercel with hosted Supabase and Stripe.

@@ -6,6 +6,7 @@ import { siteConfig } from '@/config/site';
 
 export function Footer() {
   const t = useTranslations();
+  const translate = (key: string) => t(key as Parameters<typeof t>[0]);
 
   return (
     <footer className="border-t border-gray-200/70 bg-white dark:border-white/5 dark:bg-gray-950">
@@ -39,7 +40,7 @@ export function Footer() {
               {footerNav.product.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white">
-                    {t(item.labelKey as any)}
+                    {translate(item.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -55,7 +56,7 @@ export function Footer() {
               {footerNav.company.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white">
-                    {t(item.labelKey as any)}
+                    {translate(item.labelKey)}
                   </Link>
                 </li>
               ))}
@@ -71,7 +72,7 @@ export function Footer() {
               {footerNav.legal.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="text-sm text-gray-600 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:text-white">
-                    {t(item.labelKey as any)}
+                    {translate(item.labelKey)}
                   </Link>
                 </li>
               ))}

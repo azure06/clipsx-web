@@ -45,4 +45,8 @@ on Windows, macOS, and Linux.
 
 ## Known project-wide check
 
-`npm run typecheck` and `npm run build` pass. `npm run lint` still reports pre-existing, unrelated lint errors outside the web-auth changes.
+As of 2026-07-27, a clean local install passes typecheck, unit tests, the local
+Supabase pgTAP/RLS suite, lint, and production build. The GitHub Actions
+workflow now runs the applicable checks on pull requests and pushes; its first
+remote run remains a deployment-gate verification item in
+[`../launch-plan.md`](launch-plan.md).
