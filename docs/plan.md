@@ -12,7 +12,7 @@ step is complete.
 
 | Step | Target | Status | Next work |
 | --- | --- | --- | --- |
-| 1. Reliable starting point | The project installs and passes its checks consistently. | Done locally. | Confirm the first GitHub Actions run passes. |
+| 1. Reliable starting point | The project installs and passes its checks consistently. | Done. | Move to Step 2: create the test environment. |
 | 2. Test environment | A safe test version of Supabase, Google sign-in, Stripe, email, and Vercel. | Not started. | Create the staging setup and verify web/desktop sign-in, test payments, and email delivery. |
 | 3. Private browser vault | Users can safely view their own saved passwords and notes in the browser. | Not started. | Build encrypted storage, device approval, recovery, sign-out, and lost-device access removal. |
 | 4. Subscription safety | Customers cannot create duplicate subscriptions or lose access because of a failed payment update. | Partly built. | Add the missing checks, then test purchase, cancellation, refund, payment failure, and retry cases. |
@@ -28,9 +28,11 @@ step is complete.
 - [x] Run the local checks: unit tests, database tests, type checking, linting,
   and production build.
 - [x] Add the GitHub Actions workflow.
-- [ ] Open the latest GitHub Actions run for `develop` and confirm both jobs
+- [x] Open the latest GitHub Actions run for `develop` and confirm both jobs
   pass: website checks and database checks.
-- [ ] Fix any GitHub-only failure before moving on.
+- [x] Fix any GitHub-only failure before moving on.
+
+The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/actions/runs/30242126783).
 
 **Done when:** local and GitHub checks are green.
 
