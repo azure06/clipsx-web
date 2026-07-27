@@ -13,7 +13,7 @@ step is complete.
 | Step | Target | Status | Next work |
 | --- | --- | --- | --- |
 | 1. Reliable starting point | The project installs and passes its checks consistently. | Done. | Move to Step 2: create the test environment. |
-| 2. Test environment | A safe test version of Supabase, Google sign-in, Stripe, email, and Vercel. | Not started. | Create the staging setup and verify web/desktop sign-in, test payments, and email delivery. |
+| 2. Test environment | A safe test version of Supabase, Google sign-in, Stripe, email, and Vercel. | Done. | Move to Step 3: build the private browser vault. |
 | 3. Private browser vault | Users can safely view their own saved passwords and notes in the browser. | Not started. | Build encrypted storage, device approval, recovery, sign-out, and lost-device access removal. |
 | 4. Subscription safety | Customers cannot create duplicate subscriptions or lose access because of a failed payment update. | Partly built. | Add the missing checks, then test purchase, cancellation, refund, payment failure, and retry cases. |
 | 5. Public website | The download, legal, help, blog, and contact pages are complete and accurate. | Partly built. | Connect real downloads, send contact messages to support, publish articles, and finish both English and Japanese pages. |
@@ -38,17 +38,18 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 
 ### 2. Create the test environment
 
-- [ ] Create a separate Supabase project for testing; do not use production.
-- [ ] Apply the current database changes to that project.
-- [ ] Set up Google sign-in for the website and desktop app.
-- [ ] Create Stripe test products and prices, then add the signed webhook.
-- [ ] Choose and connect a support email service.
-- [ ] Create a Vercel preview or staging site with test-only settings.
-- [ ] Set `NEXT_PUBLIC_SITE_URL` with `https://` included.
-- [ ] Test website sign-in, desktop sign-in, one Stripe test event, and one
+- [x] Create a separate Supabase project for testing; do not use production.
+- [x] Apply the current database changes to that project.
+- [x] Set up Google sign-in for the website and desktop app.
+- [x] Create Stripe test products and prices, then add the signed webhook.
+- [x] Choose Resend and add support-message delivery in the website.
+- [x] Add `RESEND_API_KEY`, `RESEND_FROM`, and `RESEND_CONTACT_TO` in Vercel.
+- [x] Create a Vercel preview or staging site with test-only settings.
+- [x] Set `NEXT_PUBLIC_SITE_URL` with `https://` included.
+- [x] Test website sign-in, desktop sign-in, one Stripe test event, and one
   contact message.
 
-**Done when:** all four tests work in the test environment.
+**Done:** the test environment is configured and the checks above have passed.
 
 ### 3. Build the private browser vault
 

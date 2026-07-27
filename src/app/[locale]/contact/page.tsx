@@ -26,11 +26,12 @@ export default function ContactPage() {
 
   async function onSubmit(data: FormValues) {
     try {
-      await fetch('/api/contact', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Contact message was not accepted');
       setStatus('success');
       reset();
     } catch {

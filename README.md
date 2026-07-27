@@ -38,7 +38,14 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_key
 STRIPE_SECRET_KEY=your_stripe_key
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_public_key
+RESEND_API_KEY=re_replace_with_your_resend_api_key
+RESEND_FROM="ClipsX <onboarding@resend.dev>"
+RESEND_CONTACT_TO=support@example.com
 ```
+
+`RESEND_API_KEY` is server-only. For local testing, Resend permits the
+`onboarding@resend.dev` sender; replace it with an address on a verified domain
+before public launch. `RESEND_CONTACT_TO` is the monitored support inbox.
 
 3. Install dependencies:
 ```bash

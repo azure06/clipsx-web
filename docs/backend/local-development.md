@@ -14,6 +14,23 @@ No secret is committed. Local environment examples use variable names only.
 Stripe secret/restricted keys, webhook signing secrets, and Supabase service
 keys are server-only and never prefixed `NEXT_PUBLIC_`.
 
+## Support email
+
+The contact form sends messages through Resend. Set these server-only variables
+in the ignored root `.env` file for local work and in Vercel for the matching
+deployment environment:
+
+```text
+RESEND_API_KEY=re_replace_with_your_resend_api_key
+RESEND_FROM="ClipsX <onboarding@resend.dev>"
+RESEND_CONTACT_TO=support@example.com
+```
+
+Use `onboarding@resend.dev` only for local testing. Before public launch,
+verify a ClipsX sending domain in Resend, replace `RESEND_FROM`, and set
+`RESEND_CONTACT_TO` to the monitored support inbox. The browser never receives
+the Resend API key.
+
 ## Migration workflow
 
 1. Start the local stack.
