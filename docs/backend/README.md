@@ -7,7 +7,8 @@ subscriptions.
 
 ## Reading order
 
-1. [Product goal](product-goal.md) explains what ClipsX will and will not do.
+1. [Execution plan](../plan.md) is the plain-language launch plan
+   and current progress tracker.
 2. [Architecture](architecture.md) describes the trust boundaries and flows.
 3. [Data model](data-model.md) is the implementation-facing table and column
    dictionary.
@@ -26,9 +27,8 @@ subscriptions.
   point to it rather than directly to `auth.users`.
 - A future Team plan can introduce organization billing accounts without
   rewriting personal billing or AI-usage history.
-- AI allowance is included with plans. There are no credit packs or usage
-  overages in v1.
-- Annual plans receive allowance on each monthly anniversary, not upfront.
+- Hosted AI, AI credits, allowances, and usage overages are inactive in v1.
+  The schema remains reserved for a future product decision.
 - All application-owned tables have `created_at` and `updated_at`.
 - User ciphertext is end-to-end encrypted and is deleted immediately on item
   deletion; a non-secret tombstone remains for sync.

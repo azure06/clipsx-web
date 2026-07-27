@@ -73,7 +73,7 @@ src/
 └── types/           # TypeScript type definitions
 ```
 
-## Deployment Readiness
+## Execution plan
 
 The v1 target is a public paid launch using Vercel, hosted Supabase, Stripe,
 and desktop installers published by the separate ClipsX GitHub Releases
@@ -115,12 +115,10 @@ Before deployment, complete this checklist:
 - Run the final acceptance pass for web login, desktop login, downloads,
   account billing, localized pages, contact delivery, and webhook recovery.
 
-Use [`docs/launch-plan.md`](docs/launch-plan.md) for the ordered launch plan
-and [`docs/deployment-readiness.md`](docs/deployment-readiness.md) as the final
-acceptance checklist. See [`docs/backend/`](docs/backend/) for backend
+Use [`docs/plan.md`](docs/plan.md) for the ordered launch
+plan and current progress. See [`docs/backend/`](docs/backend/) for backend
 architecture, billing, security, migration, and recovery procedures, and
-[`docs/web-auth-todo.md`](docs/web-auth-todo.md) for hosted authentication and
-desktop OAuth configuration.
+the hosted-authentication and desktop OAuth configuration in the backend docs.
 
 ## Known Limitations
 
