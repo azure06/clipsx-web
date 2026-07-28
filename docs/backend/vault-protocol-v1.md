@@ -28,9 +28,12 @@ and obtains its 32-byte output only in browser memory. Recovery-phrase
 confirmation UI is implemented at `/[locale]/vault`: it shows and confirms the
 mandatory phrase, selects a PRF/passphrase local protection profile, obtains a
 challenge, signs/submits the bootstrap command, and only then saves the local
-encrypted device bundle. Browser vault unlock, remaining command transactions,
-and the encrypted-item UI remain pending. Cross-runtime fixture files remain a
-required follow-up before desktop compatibility is claimed.
+encrypted device bundle. The same route discovers this account's local device
+record and unlocks its device keys in page memory using the dedicated PRF
+credential or passphrase; locking releases the page's reference to those keys.
+Remaining command transactions and the encrypted-item UI remain pending.
+Cross-runtime fixture files remain a required follow-up before desktop
+compatibility is claimed.
 
 V1 supports encrypted notes and login/password records, personal and shared
 collections, device approval, recovery, revocation, conflicts, and browser

@@ -52,6 +52,14 @@ export async function loadBrowserDeviceRecord(accountId: string, deviceId: strin
   } finally { db.close(); }
 }
 
+export async function listBrowserDeviceRecords(accountId: string): Promise<BrowserDeviceRecord[]> {
+  const db = await database();
+  try {
+    const records = await requestResult(db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll());
+    return records.filter((record) => record.accountId === accountId);
+  } finally { db.close(); }
+}
+
 export async function forgetBrowserDeviceRecord(accountId: string, deviceId: string): Promise<void> {
   const db = await database();
   try {
