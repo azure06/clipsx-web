@@ -4,8 +4,9 @@
 
 The billing tables in this document are implemented. The browser encrypted
 vault tables and local IndexedDB records are the target model required by
-[the E2EE architecture](architecture.md); they are not yet authoritative
-migrations. Table and column names below use `snake_case`. Cryptographic
+[the E2EE architecture](architecture.md) and [Vault protocol
+v1](vault-protocol-v1.md); they are not yet authoritative migrations. Table
+and column names below use `snake_case`. Cryptographic
 protocol names in the architecture use `camelCase` where they describe
 canonical wire structures.
 
@@ -31,7 +32,7 @@ documented separately and are not Supabase tables.
 
 | Schema | Purpose | Browser access |
 | --- | --- | --- |
-| `public` | Encrypted vault rows and narrow user-facing RPCs | Explicit grants plus RLS |
+| `public` | Encrypted vault rows exposed for authorized reads | Explicit select grants plus RLS; no browser mutation grants |
 | `private` | Stripe projection and accounting support | API-enabled for `service_role` only; no browser grants |
 
 ## Browser-local IndexedDB records
@@ -50,8 +51,8 @@ One record protects the persistent identity for one browser device:
 | --- | --- |
 | `device_id` | Matches the server `devices.id`; included in AEAD context. |
 | `schema_version`, `bundle_format_version` | IndexedDB and canonical bundle decoder versions. |
-| `protection_profile` | `webauthn-prf-wrapped`, `vault-passphrase-wrapped`, or explicitly allowed `indexeddb-nonextractable`. |
-| `encrypted_device_key_bundle` | AEAD ciphertext containing the serialized device private-key bundle; absent only for the direct non-extractable compatibility profile. |
+| `protection_profile` | `webauthn-prf-wrapped` or `vault-passphrase-wrapped`. |
+| `encrypted_device_key_bundle` | AEAD ciphertext containing the serialized device private-key bundle. |
 | `bundle_nonce` | Nonce for the selected bundle AEAD. |
 | `wrapping_algorithm`, `kdf_algorithm`, `kdf_version` | Complete local unlock/decoder profile. |
 | `webauthn_credential_id`, `webauthn_rp_id`, `prf_input` | Non-secret local inputs for the WebAuthn PRF profile; never copied into the server device row. |
@@ -65,8 +66,9 @@ must be present together. A profile may change only by decrypting in an already
 unlocked session and atomically writing a newly encrypted bundle; interruption
 must leave the prior record recoverable. The record is never synced, backed up
 to Supabase, placed in Cache Storage, or copied to another browser device.
-The relying-party ID must equal the approved dedicated vault host; changing it
-requires new-device enrollment rather than local record mutation.
+The relying-party ID is `clipsx.app`, with vault operations confined to the
+approved `/[locale]/vault` route. Changing it requires new-device enrollment
+rather than local record mutation.
 
 The decrypted canonical `BrowserDeviceKeyBundle` exists only transiently in
 memory and contains `deviceId`, the separate encryption/signing private key
@@ -111,7 +113,7 @@ rather than overwriting public keys.
 | `client_type` | `browser` for this architecture. |
 | `platform` | Browser/OS compatibility label used for support, not trust. |
 | `enrollment_origin` | Canonical vault origin that created the device; informational and signature-bound, not proof that future JavaScript is trusted. |
-| `key_protection_profile` | Claimed local profile: `webauthn-prf-wrapped`, `vault-passphrase-wrapped`, or `indexeddb-nonextractable`; non-secret capability metadata, not a server-enforced guarantee. |
+| `key_protection_profile` | Claimed local profile: `webauthn-prf-wrapped` or `vault-passphrase-wrapped`; non-secret capability metadata, not a server-enforced guarantee. |
 | `client_crypto_capabilities` | Versioned non-secret set of supported protocol suites and browser features; its canonical hash is bound into `DeviceAuthorization`. |
 | `encryption_public_key` | Device envelope recipient public key. |
 | `signing_public_key` | Separate operation-signing public key. |
@@ -148,16 +150,15 @@ Append-only certificate record that activates a pending device.
 | `account_id`, `device_id` | Account and exact pending device being authorized. |
 | `authorized_by_device_id` | Active authorizing device, when device-authorized. |
 | `recovery_key_id` | Active recovery signing key, when recovery-authorized. |
-| `authorization_method` | `account-bootstrap`, `qr`, `short-auth-string`, `out-of-band`, or `recovery`. |
+| `authorization_method` | `qr`, `short-auth-string`, `out-of-band`, or `recovery`. |
 | `authorization_payload` | Exact deterministic-CBOR `DeviceAuthorization` payload defined in `architecture.md`. |
 | `authorization_payload_hash` | Domain-separated hash used in log/checkpoint structures. |
 | `proof_of_possession_payload` | Canonical signing/encryption possession transcript or its protocol-defined non-secret representation. |
 | `signature` | Authorizer signature over the canonical authorization payload. |
 | `created_at` | Signed creation time and append time. |
 
-Exactly one authorizer type is required except for the single self-signed
-`account-bootstrap` allowed when recovery was explicitly disabled. Bootstrap
-is unique per account. The authorizer must be active at the preceding
+Exactly one authorizer type is required. V1 requires a recovery-root signature
+for the first device. Thereafter, the authorizer must be active at the preceding
 authorization-log position, or the recovery key must be active. A unique
 `device_id` prevents multiple ambiguous activation certificates. Authorization
 is accepted only after both private-key possession proofs verify.
@@ -181,6 +182,41 @@ There is at most one active recovery key per account, unique
 `(account_id, key_version)`, and key versions never decrease. The initial
 public-key fingerprint is confirmed/pinned by the creating browser. Revocation
 is terminal and cannot erase epochs already decrypted with the old secret.
+
+### `passkey_recovery_wrappers`
+
+Optional convenience recovery ciphertext. It never contains an unlock key,
+PRF result, or plaintext recovery material.
+
+| Column | Meaning |
+| --- | --- |
+| `id`, `account_id`, `recovery_key_id` | Wrapper identity, owner, and covered active recovery version. |
+| `webauthn_credential_id`, `webauthn_rp_id`, `prf_input`, `bundle_salt` | Non-secret credential/context data required to request the local PRF result. |
+| `encrypted_recovery_secret`, `nonce` | Recovery secret encrypted under the domain-separated PRF-derived key. |
+| `algorithm`, `key_version`, `protocol_version` | Exact decoder and protocol profile. |
+| `created_at`, `revoked_at` | Enrollment and terminal revocation audit values. |
+
+The browser may create one active wrapper per PRF-capable vault credential.
+The wrapper is fetched only after account authentication, must be bound to the
+current recovery key version, and is never accepted as proof that recovery is
+available. Recovery always falls back to the mandatory offline phrase.
+
+### `account_operations`
+
+Append-only signed account trust history for device authorization, device
+revocation, recovery-root rotation, and passkey-recovery wrapper lifecycle.
+
+| Column | Meaning |
+| --- | --- |
+| `operation_id`, `account_id`, `sequence_number` | Idempotent operation identity and monotonic account-log position. |
+| `operation_type`, `canonical_payload` | V1 command type and deterministic-CBOR bytes. |
+| `previous_operation_hash`, `operation_hash` | Hash-linked account trust history. |
+| `author_device_id`, `recovery_key_id`, `signature` | Exactly one signing authority and its signature. |
+| `protocol_version`, `created_at` | Protocol selection and append time. |
+
+Unique `(account_id, sequence_number)`, unique `operation_id`, and unique
+`operation_hash` apply. The row is inserted only by the private vault-command
+transaction after route-handler signature verification.
 
 ### `collections`
 
@@ -421,9 +457,10 @@ collection epoch.
 ## Cross-table constraints and transaction boundaries
 
 Some security invariants span tables and cannot be expressed as simple check
-constraints. Narrow security-definer RPCs, with pinned `search_path`, explicit
-caller checks, restricted execution grants, row locks, and one transaction,
-must enforce:
+constraints. `POST /api/vault/commands` verifies canonical CBOR and Ed25519
+signatures, then calls narrow private transaction functions with pinned
+`search_path`, restricted execution grants, row locks, and one transaction. The
+transactions must enforce:
 
 - authorization activation only after possession proofs and authorizer
   signature verification;
@@ -439,9 +476,10 @@ must enforce:
 - idempotency by signed operation ID.
 
 RLS still checks account, active device, live Auth session, membership, and
-role. RLS and TLS are server access controls, not cryptographic public-key
-authentication or browser-vault unlock. The server never receives enough data
-to reconstruct the browser device-key bundle.
+role for all browser-readable data. Browser mutation grants are revoked. RLS
+and TLS are server access controls, not cryptographic public-key authentication
+or browser-vault unlock. The server never receives enough data to reconstruct
+the browser device-key bundle.
 
 Indexes include active device/account lookup, active
 collection-membership/account lookup, current epoch per collection, envelope
@@ -460,7 +498,9 @@ keys, envelopes, public keys, commitments, and non-secret indexes.
 
 The schema has no plaintext fields for device private keys, recovery secrets or
 private keys, collection epoch keys, note revision keys, note bodies, decrypted
-attachments, or avoidable sensitive metadata. These values must also be
+attachments, or avoidable sensitive metadata. `passkey_recovery_wrappers` may
+contain ciphertext of recovery entropy but never the secret itself. These
+values must also be
 excluded from database errors, logs, analytics, telemetry, and crash reports.
 It also has no fields for the browser device-key bundle, WebAuthn PRF output,
 browser unlock key, vault passphrase, or decrypted local draft/cache key.
@@ -517,27 +557,25 @@ Only an unlocked authorized browser device performs migration. No server column
 or job requires plaintext, and deleting the legacy envelope is not described as
 erasing a key from old browser devices.
 
-## Data-model open questions
+## V1 data-model decisions and deferred work
 
-- Decide the ciphertext retention period for deleted notes and superseded
-  revisions; the default tombstone behavior does not promise cryptographic
-  erasure.
-- Decide whether rejected concurrent drafts need a server-synchronized,
-  separately encrypted candidate table. The conservative launch model keeps
-  them local until merge.
-- Select exact cryptographic suites and maximum compatibility window before
-  freezing enum/check constraints.
-- Decide whether security checkpoints are only account/device records or are
-  also submitted to an independently witnessed transparency service.
-- Define the planned attachment tables before enabling object storage: immutable
-  attachment revisions, fresh attachment content keys, authenticated encrypted
-  manifests, collection-epoch wrapping, and non-secret object metadata.
-- Establish the supported WebAuthn-PRF browser/authenticator matrix, password
-  KDF performance budgets, and policy for the lower-assurance direct
-  non-extractable `CryptoKey` profile.
-- Decide whether WebAuthn vault unlock uses a dedicated local credential or may
-  share a credential with account sign-in. Any shared ceremony must strip PRF
-  results before serializing a response to the server.
-- Define IndexedDB quota/eviction UX, atomic bundle-rewrap tests, multi-tab
-  lock coordination, and service-worker update behavior before browser-vault
-  launch.
+- Signed deletion removes primary revision ciphertext/wrapped keys immediately
+  and retains a non-secret tombstone. Superseded revisions remain until note or
+  collection deletion; neither policy claims cryptographic erasure from backups
+  or recipients.
+- Rejected concurrent drafts remain encrypted and local until the user merges
+  them; there is no server-side candidate table.
+- The exact cryptographic suite, deterministic-CBOR profile, and compatibility
+  behavior are frozen in [Vault protocol v1](vault-protocol-v1.md).
+- V1 stores signed local/device checkpoints and compares them during device or
+  invitation verification. An independently witnessed transparency service is
+  deferred.
+- Attachments and object-storage tables are deferred; no upload path is enabled.
+- V1 supports PRF-wrapped bundles and the scrypt passphrase fallback only. The
+  supported-browser matrix and PRF capability checks are part of the launch
+  test suite; direct non-extractable key persistence is excluded.
+- Vault unlock uses a dedicated local credential, separate from optional
+  Supabase account passkeys. PRF outputs are never serialized to a server.
+- IndexedDB eviction is a lost-device event; bundle rewrap is atomic, tabs use
+  a lock broadcast, and v1 has no service worker/background sync while the
+  vault can be unlocked.

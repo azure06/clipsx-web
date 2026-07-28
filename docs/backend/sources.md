@@ -26,4 +26,15 @@ upgrade or enabling a new billing/tax feature.
 - [Signing out](https://supabase.com/docs/guides/auth/signout): local, other-device, and global sign-out scopes and JWT-expiry limitation.
 - [Database testing](https://supabase.com/docs/guides/database/testing): local SQL/pgTAP workflow.
 - [Supabase CLI](https://supabase.com/docs/reference/cli/introduction): migration, reset, testing, and type-generation commands.
+- [Supabase passkeys](https://supabase.com/docs/guides/auth/passkeys): optional
+  account-passkey enrollment, relying-party configuration, and experimental API
+  status.
 - [PostgreSQL documentation](https://www.postgresql.org/docs/current/): database constraints, transaction isolation, indexes, and roles.
+
+## Vault protocol
+
+- [WebAuthn Level 3 PRF extension](https://www.w3.org/TR/webauthn-3/#sctn-prf-extension): local PRF output, required user verification, and the requirement not to serialize PRF results to a remote relying party.
+- [RFC 9180 HPKE](https://www.rfc-editor.org/rfc/rfc9180.html): X25519/HKDF/AES-GCM envelope profile.
+- [RFC 8949 CBOR](https://www.rfc-editor.org/rfc/rfc8949.html): deterministic CBOR encoding requirements.
+- [BIP-39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki): 24-word recovery phrase encoding.
+- [Supabase pgsodium deprecation notice](https://supabase.com/docs/guides/database/extensions/pgsodium): reason Ed25519 verification remains in the versioned application command route rather than a database crypto extension.

@@ -12,6 +12,11 @@ inside the browser. Pseudocode and example algorithm families in this document
 are protocol requirements and review aids, not production-ready cryptographic
 code.
 
+[Vault protocol v1](vault-protocol-v1.md) freezes the first implementation
+profile. It is authoritative for v1 cryptographic suites, recovery enrollment,
+browser unlock profiles, API transport, and deferred scope where this document
+contains an earlier example or open decision.
+
 ClipsX calls a deliberately saved clipboard item a **note** in the cryptographic
 model. A **collection** is the sharing and key-management boundary for notes.
 This preserves the product's existing encrypted-vault, saved-item, and
@@ -109,7 +114,7 @@ vault unlock obtains local device keys. Neither implies the other.
 | --- | --- | --- |
 | Browser-only cryptography | Prevents hosted services from decrypting vault content. | The vault origin, release process, CSP, dependencies, and extensions are critical security controls. A compromised unlocked browser can expose plaintext. |
 | Separate auth and vault unlock | A stolen or expired server session does not itself unlock private keys. | UI and APIs must never treat login/logout as cryptographic unlock/revocation. |
-| Per-device keys and signed authorization | Avoids trusting a server-returned public key and enables device-level removal. | New devices require possession proofs plus an authorization rooted in recovery or the bootstrap trust root. |
+| Per-device keys and signed authorization | Avoids trusting a server-returned public key and enables device-level removal. | New devices require possession proofs plus an authorization rooted in the recovery trust root. |
 | Collection epochs and per-revision keys | Limits future access after membership/device changes and avoids key reuse across revisions. | Revocation/removal requires an atomic epoch rotation; it protects future data only, never data already learned. |
 | Signed, hash-linked history and checkpoints | Makes tampering, rollback, and conflicting history detectable. | Availability and permanently isolated split views cannot be solved cryptographically; independent checkpoint comparison/transparency remains a product decision. |
 | Local encrypted device bundle | Avoids synchronizing device private keys. | Losing IndexedDB loses that device identity and its local rollback anchors; recovery or another authorized device is required. |
@@ -124,24 +129,19 @@ enabled, define immutable attachment revisions, a fresh attachment key,
 authenticated metadata, wrapping under the active collection epoch, retention,
 and deletion behavior. Never reuse a note revision key for attachment bytes.
 
-The remaining product decisions that require an explicit architectural choice
-are consolidated in [Open product decisions](#open-product-decisions).
+The v1 decisions and deferred work are consolidated in
+[Vault protocol v1](vault-protocol-v1.md).
 
 ## Cryptographic protocol
 
 ### Protocol profile and encoding
 
 Every key, ciphertext, envelope, signature, and signed operation carries a
-`protocolVersion`, algorithm identifier, and key version. Implementations must
-use Web Crypto where it provides the selected interoperable construction and
-an audited, pinned browser-compatible library where it does not. Example suites
-include
-[HPKE (RFC 9180)](https://www.rfc-editor.org/rfc/rfc9180.html) or an equivalent
-library-backed hybrid-encryption construction for device and recovery
-envelopes, Ed25519 or another reviewed signature scheme for signing, and
-AES-GCM, ChaCha20-Poly1305, or XChaCha20-Poly1305 for authenticated encryption.
-The final suite is a versioned implementation decision; browser builds must
-reject unknown or deprecated suites rather than guessing.
+`protocolVersion`, algorithm identifier, and key version. V1 uses the exact
+profile in [Vault protocol v1](vault-protocol-v1.md#algorithm-profile): RFC
+9180 X25519 HPKE, Ed25519 signatures, AES-256-GCM, SHA-256/HKDF-SHA-256,
+scrypt for the local passphrase fallback, and deterministic CBOR. Browser
+builds reject unknown or deprecated suites rather than guessing.
 
 All keys and nonces come from a cryptographically secure random number
 generator. The selected library's nonce-size and nonce-uniqueness requirements
@@ -240,20 +240,16 @@ are intentionally opaque to the browser application.
 
 When WebAuthn PRF is unavailable, the supported fallback is
 `vault-passphrase-wrapped`: a separate, user-entered vault passphrase is
-processed locally by a reviewed memory-hard password KDF such as Argon2id with
-stored salt, version, and calibrated parameters. This passphrase is distinct
+processed locally by the versioned scrypt profile in
+[Vault protocol v1](vault-protocol-v1.md#algorithm-profile). This passphrase is distinct
 from the Supabase login password and recovery secret and is never uploaded.
 Because an attacker who copies IndexedDB can test guesses offline, the UI must
 require an adequate passphrase and disclose the weaker phishing/offline-guessing
 properties.
 
-An `indexeddb-nonextractable` compatibility profile may persist non-extractable
-`CryptoKey` objects directly, as permitted by
-[Web Crypto key serialization](https://www.w3.org/TR/WebCryptoAPI/#concepts-key-storage).
-It has no cryptographically enforced user-unlock boundary: same-origin
-JavaScript can use the keys whenever it can load them. It is lower assurance
-and must not be silently substituted when WebAuthn PRF or the passphrase
-profile was selected.
+The lower-assurance direct `indexeddb-nonextractable` compatibility profile is
+not supported in v1. It has no cryptographically enforced user-unlock boundary
+because same-origin JavaScript can use the keys whenever it can load them.
 
 The encrypted bundle is local-only and is never synchronized to the server.
 Losing IndexedDB creates a lost device, not a reason to upload or reuse its
@@ -275,19 +271,22 @@ must say that locking releases application access rather than proving memory
 forensics erasure. Decrypted keys must not be retained in a service worker or
 background sync task.
 
-The vault runs on a dedicated origin with a strict nonce/hash-based CSP, no
-third-party scripts, no unsafe inline/eval execution, Trusted Types where
-supported, dependency pinning, and no plaintext telemetry. Service-worker and
-release updates must not activate while the vault is unlocked; update
-provenance and rollback behavior require explicit operational tests. These
-controls reduce XSS and supply-chain exposure but cannot make server-delivered
-JavaScript independent of the server.
+V1 runs at `clipsx.app/[locale]/vault` on the existing origin so it can reuse
+the account session. This deliberately broadens the same-origin trust boundary
+from the vault page to the web application. Vault routes therefore require a
+strict nonce-based CSP, no third-party scripts, no unsafe inline/eval execution,
+Trusted Types where supported, `Cache-Control: no-store`, no service worker,
+dependency pinning, and no plaintext telemetry. Release updates must not
+activate while the vault is unlocked; update provenance and rollback behavior
+require explicit operational tests. These controls reduce XSS and supply-chain
+exposure but cannot make server-delivered JavaScript independent of the server.
 
-The WebAuthn relying-party ID should be the exact dedicated vault host rather
-than a broad parent domain, so unrelated sibling subdomains cannot request the
-unlock credential. The origin and relying-party ID are versioned,
-security-critical configuration. An origin/domain migration enrolls a new
-browser device through an unlocked old-origin device or recovery; it must not
+V1 uses `clipsx.app` as its WebAuthn relying-party ID, with vault operations
+confined to `/[locale]/vault`. Because the vault shares the primary origin,
+sibling same-origin code remains inside its trust boundary. The origin and
+relying-party ID are versioned, security-critical configuration. An
+origin/domain migration enrolls a new browser device through an unlocked
+old-origin device or recovery; it must not
 silently copy or reinterpret the old IndexedDB bundle.
 
 #### Collection epoch keys
@@ -387,17 +386,15 @@ returns it. The canonical `DeviceAuthorization` payload is:
   clientCryptoCapabilitiesHash,
   keyVersion,
   createdAt,
-  authorizedBy: { deviceId | recoveryKeyId | "account-bootstrap" },
+  authorizedBy: { deviceId | recoveryKeyId },
   authorizationMethod,
   proofOfPossessionHash
 }
 ```
 
 The authorizing active device signs with its device signing key; recovery signs
-with the recovery signing key. The first device is normally authorized by the
-newly generated recovery credential. If recovery is explicitly disabled, it
-creates a self-signed `account-bootstrap` record and pins its hash locally as
-the account trust root. No later device may create another bootstrap record.
+with the recovery signing key. The mandatory recovery credential authorizes the
+first device and is the initial account trust root.
 The browser protection fields are authenticated metadata, not remote proof that
 the browser actually followed the claimed local-storage policy.
 
@@ -410,7 +407,7 @@ those canonical proofs. This proves possession of both private keys.
 For an existing trusted device authorization, users verify the new-device key
 using a QR code, a short authentication string derived from the full
 transcript, or an authenticated out-of-band channel. Device certificates form
-a signed chain back to the recovery key or pinned bootstrap. Clients cache the
+a signed chain back to the recovery key. Clients cache the
 highest authorization-log checkpoint. An append-only transparency service or
 cross-device checkpoint comparison is recommended to expose server
 equivocation.
@@ -609,20 +606,21 @@ Rollback and reactivation require a new epoch and new key material.
 
 ## Recovery
 
-Recovery is a root-level E2EE capability, not a harmless backup code.
-At onboarding, the browser generates a `RecoverySecret` with a CSPRNG using at
-least 128 bits of entropy (a 256-bit profile is preferred), encodes it for
-offline storage with a version and checksum, and requires the user either to
-confirm storage or explicitly disable cloud-assisted recovery. It is not a
-user-selected password. It never reaches the server, logs, telemetry, crash
-reports, support tooling, or analytics.
+Recovery is a root-level E2EE capability, not a harmless backup code. At every
+v1 onboarding, the browser generates the mandatory 256-bit `RecoverySecret`,
+encodes it as the checksummed 24-word recovery phrase, and requires user
+confirmation before device enrollment completes. It is not a user-selected
+password and has no additional passphrase. It never reaches the server, logs,
+telemetry, crash reports, support tooling, or analytics in plaintext.
 
 Using a standard reviewed KDF, the browser derives independent recovery
 encryption and signing seeds with protocol-versioned, domain-separated
 contexts. Library key-import/derivation APIs produce the corresponding key
-pairs; ClipsX does not implement scalar arithmetic. The server stores only the
-versioned recovery public keys and encrypted recovery envelopes. Every covered
-collection epoch has:
+pairs; ClipsX does not implement scalar arithmetic. The server stores versioned
+recovery public keys, encrypted recovery envelopes, and optionally an encrypted
+passkey-recovery wrapper. The wrapper is ciphertext of the recovery secret
+under a vault credential's local PRF-derived key; it is convenience recovery,
+never the sole recovery root. Every covered collection epoch has:
 
 ```text
 RecoveryEpochEnvelope {
@@ -660,9 +658,9 @@ Compromise of the recovery secret can expose every collection epoch for which
 a recovery envelope exists and can authorize replacement devices. Recovery-key
 rotation therefore creates a new signed recovery-key version, new recovery
 envelopes as policy requires, and revokes the old version; it cannot erase old
-epoch keys already recovered. Users may disable cloud-assisted recovery. If
-they then lose every authorized device, their ciphertext is permanently
-unrecoverable by design.
+epoch keys already recovered. Because v1 requires recovery enrollment, a user
+who loses every authorized device uses the recovery phrase or an available
+passkey-recovery wrapper.
 
 ## End-to-end flows
 
@@ -674,9 +672,9 @@ decisions, rather than a second system-design description.
 
 | Flow | Browser-owned action | Hosted-service role | Approval condition |
 | --- | --- | --- | --- |
-| Create account | Select local protection and create recovery material unless explicitly disabled. | Store only recovery public keys and non-secret metadata. | E2EE onboarding requires confirmed offline recovery storage or an explicit no-recovery choice. |
-| Enroll device | Generate new encryption/signing keys, protect the local bundle, and prove possession. | Authenticate and store public authorization records. | Trust is rooted in recovery or the one pinned bootstrap; the server never adds a trusted device. |
-| Read/write note | Unlock locally; verify state; encrypt/sign each revision with a fresh key. | Return/append ciphertext and signed records under RLS/RPC rules. | Readers verify signatures, checkpoints, context, and AEAD; writes extend one expected head only. |
+| Create account | Select local protection and create recovery material. | Store public recovery keys, non-secret metadata, and optional passkey-recovery ciphertext. | E2EE onboarding requires confirmed offline recovery storage. |
+| Enroll device | Generate new encryption/signing keys, protect the local bundle, and prove possession. | Authenticate and store public authorization records. | Trust is rooted in recovery; the server never adds a trusted device. |
+| Read/write note | Unlock locally; verify state; encrypt/sign each revision with a fresh key. | Return/append ciphertext and signed records through bounded sync and command routes. | Readers verify signatures, checkpoints, context, and AEAD; writes extend one expected head only. |
 | Add device/member | Verify identity, authorize keys, and distribute only authorized epoch envelopes. | Store public commitments, membership state, and ciphertext envelopes. | No local bundle copying, no envelopes while pending, and no implicit historical access. |
 | Revoke/remove | Sign removal and rotate every affected collection to a fresh epoch. | Atomically commit removal, epoch transition, envelopes, and future-write restrictions. | Rotation completes before later writes; it protects future data only. |
 | Recover/migrate | Recover/enroll a new device locally, or create signed version/epoch transitions. | Retain ciphertext/public state during documented compatibility windows. | Secrets never leave the browser; reject downgrades; no independent checkpoint means recovery freshness is not provable. |
@@ -694,12 +692,12 @@ verification, and abort conditions for implementation and test planning.
 ### 1. Account creation
 
 The browser creates the authenticated ClipsX account, selects and verifies a
-supported local key-protection profile, generates the recovery secret locally
-unless the user explicitly disables recovery, derives recovery public keys, and
-uploads only the public keys and signed version record. The server sees account
-identifiers, public keys, algorithm/version, and timing. The browser displays
-the checksummed offline secret and aborts E2EE onboarding until storage is
-confirmed or recovery is explicitly disabled.
+supported local key-protection profile, generates the mandatory recovery secret
+locally, derives recovery public keys, and uploads only public keys, optional
+passkey-recovery ciphertext, and signed version records. The server sees
+account identifiers, public keys, algorithm/version, and timing. The browser
+displays the checksummed offline secret and aborts E2EE onboarding until storage
+is confirmed.
 
 ### 2. First-device enrollment
 
@@ -709,13 +707,12 @@ creates its canonical device-key bundle, encrypts that bundle using the chosen
 the encrypted record in IndexedDB. It then imports the unlocked private keys as
 non-extractable `CryptoKey` objects where supported and signs/decrypts fresh
 proof-of-possession challenges. Recovery signs the canonical device
-authorization; without recovery, the browser creates and pins the one allowed
-self-signed bootstrap record. It uploads public keys, proofs, authorization,
+authorization. It uploads public keys, proofs, authorization,
 and non-secret device/protection metadata. The server sees no private key,
 bundle ciphertext, PRF output, or unlock secret. Unsupported PRF after profile
 selection, failed user verification, bundle self-check failure, invalid proofs,
-a second bootstrap root, mismatched account/session, unsupported algorithms,
-or a changed pinned root aborts.
+mismatched account/session, unsupported algorithms, or a changed recovery root
+aborts.
 
 ### 3. Creating an encrypted collection
 
@@ -870,14 +867,17 @@ The server must never receive in plaintext:
   it inside encrypted content.
 
 Public-schema vault tables require RLS and explicit grants. Browser reads use
-RLS; state-changing vault operations use narrow RPCs that atomically enforce
-membership, active-device, current-epoch, append-only, and optimistic
-concurrency constraints. Vault requests require account ownership, an active
-device, a matching JWT `session_id`, and a live Auth session. These server
-checks improve access control and availability behavior but are not substitutes
-for signature or ciphertext verification. The browser performs all vault
-plaintext and private-key operations locally; no server endpoint performs
-decrypt/sign operations on its behalf.
+RLS or the bounded vault sync route; browser clients have no direct mutation
+grants. State-changing vault operations use `POST /api/vault/commands`: its
+Next.js route handler verifies the canonical command, signature, account,
+active-device/recovery authority, and matching JWT `session_id`, then invokes a
+private transaction that enforces membership, current epoch, append-only, and
+optimistic concurrency constraints. This avoids relying on a deprecated
+database crypto extension for Ed25519 verification. These server checks improve
+access control and availability behavior but are not substitutes for browser
+signature or ciphertext verification. The browser performs all vault plaintext
+and private-key operations locally; no server endpoint performs decrypt/sign
+operations on its behalf.
 
 ## Enforceable invariants
 
@@ -904,7 +904,7 @@ decrypt/sign operations on its behalf.
   algorithm, and key versions.
 - Ciphertext and wrapped keys are authenticated with canonical contextual data.
 - The server cannot add a trusted device without valid possession proofs and a
-  device-authorization signature rooted in recovery or the pinned bootstrap.
+  device-authorization signature rooted in recovery.
 - Logout is never treated as cryptographic revocation.
 - Lock and logout release in-memory browser key references; neither is claimed
   to erase ciphertext, learned keys, or prior plaintext copies.
@@ -1036,36 +1036,24 @@ retry path. Billing tables live in `private` and are exposed only to
 | Duplicate Stripe event | Record once and return success without re-granting allowance. |
 | Stripe projection fails | Return an error for Stripe retry and retain support-replay state. |
 
-## Open product decisions
+## V1 decisions and deferred work
 
-The conservative defaults above apply until product owners decide otherwise:
-
-- **Recovery enrollment:** require explicit confirmation of offline storage or
-  explicit no-recovery choice. Decide whether recovery should be opt-in or
-  recommended-by-default in UX.
-- **Invitation UX:** verified invitations are the security default. Decide
-  whether TOFU is acceptable for initial launch and which warning/upgrade path
-  it requires.
-- **History retention:** new members receive no pre-invitation history by
-  default. Decide which roles may grant selected/full history and whether
-  deleted revision ciphertext is retained.
-- **Transparency:** signed local checkpoints are required. Decide whether
-  launch also requires an independently witnessed transparency log or only
-  cross-device/out-of-band checkpoint comparison.
-- **Browser unlock compatibility:** WebAuthn PRF is the preferred persistent
-  profile. Decide the supported browser/authenticator matrix, whether
-  `vault-passphrase-wrapped` is mandatory fallback, and whether the
-  lower-assurance direct `CryptoKey` profile is allowed at launch.
-- **Vault deployment:** the browser-delivery trust tradeoff is accepted for
-  this product. Finalize the dedicated vault origin, CSP/Trusted Types policy,
-  service-worker update policy, dependency review, and release provenance
-  controls before vault launch.
-- **Attachments:** object storage is a planned extension. Define attachment
-  revisions, fresh attachment keys, encrypted manifests, download authorization,
-  object retention, and deletion behavior before enabling uploads.
-- **Cryptographic suites:** select reviewed libraries and exact HPKE, signature,
-  AEAD, hash, KDF, and deterministic-CBOR profiles, then publish cross-platform
-  test vectors before implementation.
+- Recovery phrase enrollment is mandatory; passkey recovery is optional
+  convenience, not the only recovery route.
+- Verified invitations are required. V1 does not offer TOFU invitations.
+- New members receive no pre-invitation history by default; owners may grant
+  selected or all retained history explicitly.
+- Signed local checkpoints and cross-device comparison ship in v1. An
+  independently witnessed transparency service is deferred.
+- WebAuthn PRF is the preferred unlock profile; the scrypt vault-passphrase
+  profile is the explicit fallback; direct `CryptoKey` persistence is excluded.
+- The vault shares `clipsx.app` with the web app and therefore requires the
+  compensating same-origin CSP, release, telemetry, and service-worker controls
+  stated above.
+- Attachments are deferred. They require their own immutable revision, fresh
+  attachment key, encrypted manifest, retention, and deletion design.
+- The v1 cryptographic suite, CBOR profile, command transport, and test-vector
+  contract are frozen in [Vault protocol v1](vault-protocol-v1.md).
 
 ## Glossary
 

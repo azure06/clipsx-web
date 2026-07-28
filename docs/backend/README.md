@@ -10,13 +10,15 @@ subscriptions.
 1. [Execution plan](../plan.md) is the plain-language launch plan
    and current progress tracker.
 2. [Architecture](architecture.md) describes the trust boundaries and flows.
-3. [Data model](data-model.md) is the implementation-facing table and column
+3. [Vault protocol v1](vault-protocol-v1.md) freezes the browser/server wire
+   protocol, cryptographic profile, and test-vector contract.
+4. [Data model](data-model.md) is the implementation-facing table and column
    dictionary.
-4. [Stripe billing](billing-stripe.md) defines the Stripe projection,
+5. [Stripe billing](billing-stripe.md) defines the Stripe projection,
    entitlement rules, reconciliation, and operational scenarios.
-5. [Local development](local-development.md) defines the migration and test
+6. [Local development](local-development.md) defines the migration and test
    workflow.
-6. [Sources](sources.md) lists the primary documentation behind the design.
+7. [Sources](sources.md) lists the primary documentation behind the design.
 
 ## Locked v1 decisions
 

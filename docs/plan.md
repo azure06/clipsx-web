@@ -53,6 +53,8 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 
 ### 3. Build the private browser vault
 
+- [ ] Implement the frozen [vault protocol v1](backend/vault-protocol-v1.md),
+  including its cross-runtime test vectors and browser compatibility checks.
 - [ ] Add database tables and access rules for devices, collections, encrypted
   items, keys, invitations, and deleted-item markers.
 - [ ] Add tests proving a user cannot see another user's vault or use a removed
@@ -63,6 +65,8 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 - [ ] Add recovery using a recovery code without sending that code to the
   server.
 - [ ] Build a read-only browser page for passwords and encrypted notes.
+- [ ] Expand the browser vault from read-only access to encrypted create,
+  update, delete, conflict merge, and verified collection-sharing flows.
 - [ ] Clear opened content when the user locks or signs out.
 - [ ] Add a way to remove a lost browser device.
 - [ ] Test normal setup, recovery, sign-out, lost-device removal, and blocked
@@ -160,6 +164,7 @@ the browser vault safely.
 ## Detailed technical references
 
 - [Architecture](backend/architecture.md)
+- [Vault protocol v1](backend/vault-protocol-v1.md)
 - [Data model](backend/data-model.md)
 - [Billing](backend/billing-stripe.md)
 - [Local development and tests](backend/local-development.md)
