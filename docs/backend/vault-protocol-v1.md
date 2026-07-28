@@ -13,8 +13,11 @@ The browser-safe primitive layer is implemented in
 `src/lib/vault/protocol.ts` and covered by `src/lib/vault/protocol.test.ts`.
 It supplies deterministic-CBOR validation, strict v1 command decoding, HKDF
 domain separation, AES-GCM, Ed25519 signing, X25519 HPKE envelopes, and BIP-39
-recovery encoding. It does not yet expose vault routes, IndexedDB storage,
-WebAuthn ceremonies, database transactions, or a user interface. Cross-runtime fixture files remain a
+recovery encoding. `POST /api/vault/commands` now performs admission only:
+CBOR/content-size, account binding, active-author lookup, and Ed25519 signature
+verification. It enables no mutation until command-specific private database
+transactions exist. IndexedDB storage, WebAuthn ceremonies, those transactions,
+and a user interface remain pending. Cross-runtime fixture files remain a
 required follow-up before desktop compatibility is claimed.
 
 V1 supports encrypted notes and login/password records, personal and shared
