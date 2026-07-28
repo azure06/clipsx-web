@@ -19,7 +19,9 @@ executes the separately verified `device-register` bootstrap transaction.
 deterministically derives recovery keys, creates fresh device keys, and wraps a
 device bundle with domain-separated AEAD context. The browser-only IndexedDB
 store persists only that encrypted bundle and non-secret unlock metadata.
-WebAuthn ceremonies, recovery-phrase confirmation UI, remaining command
+The browser WebAuthn helper creates a dedicated user-verifying PRF credential
+and obtains its 32-byte output only in browser memory. Recovery-phrase
+confirmation UI, remaining command
 transactions, and a user interface remain pending. Cross-runtime fixture files remain a
 required follow-up before desktop compatibility is claimed.
 
