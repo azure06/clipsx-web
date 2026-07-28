@@ -63,6 +63,8 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 - [x] Add core browser-readable vault tables, RLS, and direct-browser mutation
   revocation. Signed write transactions, invitations, tombstones, and
   recovery-wrapper tables follow with the command-route feature.
+- [x] Add the recovery-root, device-authorization, account-operation, and
+  recovery-envelope trust ledgers required before accepting signed writes.
 - [ ] Add tests proving a user cannot see another user's vault or use a removed
   device.
 - [ ] Add browser-device setup. The browser keeps its private key locally and

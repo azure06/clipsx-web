@@ -1,0 +1,15 @@
+begin;
+select plan(11);
+select has_table('public', 'vault_device_authorizations', 'device authorization ledger exists');
+select has_table('public', 'vault_account_operations', 'account operation ledger exists');
+select has_table('public', 'vault_passkey_recovery_wrappers', 'optional recovery wrapper table exists');
+select has_table('public', 'vault_recovery_epoch_envelopes', 'recovery envelope table exists');
+select col_not_null('public', 'vault_device_authorizations', 'signature', 'device authorizations require a signature');
+select col_not_null('public', 'vault_account_operations', 'operation_hash', 'account operations are hash-linked');
+select has_index('public', 'vault_passkey_recovery_wrappers', 'vault_passkey_recovery_wrappers_one_active_credential', 'one active recovery wrapper per credential');
+select ok(row_security_active('public', 'vault_device_authorizations'), 'device authorization rows use RLS');
+select ok(row_security_active('public', 'vault_account_operations'), 'account operation rows use RLS');
+select ok(not has_table_privilege('authenticated', 'public.vault_account_operations', 'insert'), 'browser cannot append trust operations directly');
+select ok(not has_table_privilege('authenticated', 'public.vault_passkey_recovery_wrappers', 'update'), 'browser cannot alter recovery wrappers directly');
+select * from finish();
+rollback;

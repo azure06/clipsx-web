@@ -3,13 +3,14 @@
 ## Status and conventions
 
 The billing tables are implemented. Migration
-`20260728064659_add_vault_read_schema.sql` now implements core
-browser-readable vault tables as `public.vault_*` rows with RLS and no browser
-mutation grants. Device authorization, recovery-wrapper, invitation,
-operation, checkpoint, and tombstone tables remain planned until the signed
-command transaction is implemented. Browser IndexedDB records remain local-only
-target records. The descriptions below use logical names; implemented database
-names carry the `vault_` prefix. Cryptographic
+`20260728064659_add_vault_read_schema.sql` and
+`20260728073117_add_vault_trust_ledger.sql` implement core browser-readable
+vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
+mutation grants. Invitation, collection-operation, checkpoint, and tombstone
+tables remain planned until the signed command transaction is implemented.
+Browser IndexedDB records remain local-only target records. The descriptions
+below use logical names; implemented database names carry the `vault_` prefix.
+Cryptographic
 protocol names in the architecture use `camelCase` where they describe
 canonical wire structures.
 
