@@ -267,3 +267,8 @@ export async function importHpkePublicKey(bytes: Uint8Array): Promise<CryptoKey>
   assertLength(bytes, 32, 'HPKE X25519 public key');
   return hpkeSuite().kem.importKey('raw', asArrayBuffer(bytes), true);
 }
+
+export async function importHpkePrivateKey(bytes: Uint8Array): Promise<CryptoKey> {
+  assertLength(bytes, 32, 'HPKE X25519 private key');
+  return hpkeSuite().kem.importKey('raw', asArrayBuffer(bytes), false);
+}
