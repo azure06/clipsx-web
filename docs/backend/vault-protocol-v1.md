@@ -17,7 +17,8 @@ recovery encoding. `POST /api/vault/commands` admits ordinary commands and
 executes the separately verified `device-register` bootstrap transaction.
 `src/lib/vault/browser-onboarding.ts` now creates the recovery phrase,
 deterministically derives recovery keys, creates fresh device keys, and wraps a
-device bundle with domain-separated AEAD context. IndexedDB persistence,
+device bundle with domain-separated AEAD context. The browser-only IndexedDB
+store persists only that encrypted bundle and non-secret unlock metadata.
 WebAuthn ceremonies, recovery-phrase confirmation UI, remaining command
 transactions, and a user interface remain pending. Cross-runtime fixture files remain a
 required follow-up before desktop compatibility is claimed.
