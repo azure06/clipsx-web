@@ -8,6 +8,9 @@ The billing tables are implemented. Migration
 vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
 mutation grants. Invitation, collection-operation, checkpoint, and tombstone
 tables remain planned until the signed command transaction is implemented.
+`20260728143159_add_vault_device_register_transaction.sql` adds the private,
+all-or-nothing first-device registration transaction; the HTTP dispatcher that
+performs its command-specific proof validation remains pending.
 Browser IndexedDB records remain local-only target records. The descriptions
 below use logical names; implemented database names carry the `vault_` prefix.
 Cryptographic
