@@ -118,6 +118,40 @@ operations in v1 are `device-register`, `device-authorize`, `device-revoke`,
 `checkpoint-append`, `invitation-create`, `invitation-accept`,
 `invitation-confirm`, `member-add`, `member-remove`, and `epoch-rotate`.
 
+### First-device registration payload
+
+`device-register` is the sole bootstrap command. Its author field is
+`recovery:<recoveryKeyId>`; the recovery signing public key is carried in its
+payload because no root exists yet. The server requires an authenticated account
+session and a short-lived, single-use device challenge before accepting it.
+
+Its `payload` is a deterministic-CBOR map with these contiguous labels:
+
+1. `deviceId`
+2. `recoveryKeyId`
+3. `displayName`
+4. `platform`
+5. `enrollmentOrigin` (`https://clipsx.app`)
+6. `protectionProfile` (`webauthn-prf-wrapped` or `vault-passphrase-wrapped`)
+7. `clientCryptoCapabilitiesHash`
+8. `deviceEncryptionPublicKey` (32 bytes)
+9. `deviceSigningPublicKey` (32 bytes)
+10. `recoveryEncryptionPublicKey` (32 bytes)
+11. `recoverySigningPublicKey` (32 bytes)
+12. `keyVersion` (`1`)
+13. `challengeId`
+14. `challengeResponseHash` (SHA-256 of the HPKE-decrypted server challenge)
+15. `deviceProofSignature` (Ed25519 device-signing-key signature over labels
+    1--14 using `clipsx/vault/v1/device-register-proof`)
+
+The recovery signing key signs the enclosing command. This self-signature is
+the initial recovery root; it is accepted only when the account has no recovery
+root or active device. The device proof and HPKE challenge response prove
+possession of both newly supplied device private keys. The one transaction then
+creates the recovery root, active device, device authorization, and account
+operation sequence `1`. No recovery phrase, private key, passphrase, PRF
+output, or decrypted challenge is transmitted.
+
 The browser sends commands to `POST /api/vault/commands` as
 `application/cbor`. Successful results and sync pages are also canonical CBOR.
 Responses use HTTP `401`, `403`, `409`, `413`, or `422` with a stable,
