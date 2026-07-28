@@ -14,7 +14,9 @@ The browser-safe primitive layer is implemented in
 It supplies deterministic-CBOR validation, strict v1 command decoding, HKDF
 domain separation, AES-GCM, Ed25519 signing, X25519 HPKE envelopes, and BIP-39
 recovery encoding. `POST /api/vault/commands` admits ordinary commands and
-executes the separately verified `device-register` bootstrap transaction.
+executes the separately verified `device-register` bootstrap transaction. That
+transaction retains both the recovery authorization signature and the proposed
+device's possession-proof signature in its authorization evidence.
 `src/lib/vault/browser-onboarding.ts` now creates the recovery phrase,
 deterministically derives recovery keys, creates fresh device keys, serializes
 only the device private-key pair, and wraps that bundle with domain-separated

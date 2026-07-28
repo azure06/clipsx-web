@@ -170,7 +170,7 @@ Append-only certificate record that activates a pending device.
 | `authorization_method` | `qr`, `short-auth-string`, `out-of-band`, or `recovery`. |
 | `authorization_payload` | Exact deterministic-CBOR `DeviceAuthorization` payload defined in `architecture.md`. |
 | `authorization_payload_hash` | Domain-separated hash used in log/checkpoint structures. |
-| `proof_of_possession_payload` | Canonical signing/encryption possession transcript or its protocol-defined non-secret representation. |
+| `proof_of_possession_payload`, `proof_of_possession_signature` | Canonical signing/encryption possession transcript and the new device's Ed25519 signature over it. The signature is nullable only for legacy rows created before this evidence column existed. |
 | `signature` | Authorizer signature over the canonical authorization payload. |
 | `created_at` | Signed creation time and append time. |
 
