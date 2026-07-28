@@ -16,9 +16,11 @@ domain separation, AES-GCM, Ed25519 signing, X25519 HPKE envelopes, and BIP-39
 recovery encoding. `POST /api/vault/commands` admits ordinary commands and
 executes the separately verified `device-register` bootstrap transaction.
 `src/lib/vault/browser-onboarding.ts` now creates the recovery phrase,
-deterministically derives recovery keys, creates fresh device keys, and wraps a
-device bundle with domain-separated AEAD context. The browser-only IndexedDB
-store persists only that encrypted bundle and non-secret unlock metadata.
+deterministically derives recovery keys, creates fresh device keys, serializes
+only the device private-key pair, and wraps that bundle with domain-separated
+AEAD context. The browser-only IndexedDB store persists only that encrypted
+bundle and non-secret unlock metadata; the recovery phrase and recovery private
+keys are not included in the local bundle.
 The browser WebAuthn helper creates a dedicated user-verifying PRF credential
 and obtains its 32-byte output only in browser memory. Recovery-phrase
 confirmation UI, remaining command

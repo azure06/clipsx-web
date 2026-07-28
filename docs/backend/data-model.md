@@ -77,13 +77,14 @@ The relying-party ID is `clipsx.app`, with vault operations confined to the
 approved `/[locale]/vault` route. Changing it requires new-device enrollment
 rather than local record mutation.
 
-The decrypted canonical `BrowserDeviceKeyBundle` exists only transiently in
-memory and contains `deviceId`, the separate encryption/signing private key
-material with algorithm/version, independent local draft/cache keys, a
-checkpoint-authentication key, corresponding public-key commitments, bundle
-creation time, and format version. It contains no account password or recovery
-secret. After validation, private keys are imported as non-extractable
-`CryptoKey` objects where supported and the serialized bytes are released.
+The currently implemented canonical `BrowserDeviceKeyBundle` exists only
+transiently in memory and contains the separate X25519 encryption and Ed25519
+signing private key bytes plus its format version. It contains no account
+password, recovery phrase, or recovery private key. Draft/cache keys,
+checkpoint-authentication keys, public-key commitments, and lifecycle metadata
+are planned additions before those browser features are enabled. After
+validation, private keys will be imported as non-extractable `CryptoKey`
+objects where supported and the serialized bytes released.
 
 ### `browser_security_checkpoints` — local only
 
