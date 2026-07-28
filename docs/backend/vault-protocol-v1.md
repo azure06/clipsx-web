@@ -206,6 +206,12 @@ with the revision key; the revision key is encrypted with the collection epoch
 key. The signed operation binds both ciphertext hashes, the parent revision
 hash, the collection epoch, and the author device.
 
+`src/lib/vault/encrypted-revision.ts` implements this browser-side envelope
+with separate contextual AAD for content and revision-key wrapping. It supports
+the fixed note/login content maps and validates that a ciphertext cannot be
+replayed under a different note identity. Persisting these revisions remains
+pending on the command-specific transaction.
+
 ## Sharing, recovery, deletion, and locking
 
 Verified invitations are mandatory. An invitation link contains its
