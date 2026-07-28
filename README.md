@@ -100,10 +100,13 @@ Before deployment, complete this checklist:
   encrypted notes. Supabase stores only ciphertext and key envelopes; the
   browser decrypts locally with Web Crypto.
 - Treat the browser as a separately enrolled trusted device: generate a
-  non-extractable private `CryptoKey`, persist it in IndexedDB, and obtain
-  collection-key envelopes through either trusted-device approval or recovery
-  code. Never send plaintext, the recovery code, or a private key to the
-  server.
+  separate encryption and signing identity, persist only an
+  AEAD-encrypted device-key bundle in IndexedDB, and unlock it locally
+  with WebAuthn PRF or a separate vault passphrase. Direct persistence of a
+  non-extractable `CryptoKey` is a lower-assurance compatibility profile, not
+  the default. Obtain collection-key envelopes through trusted-device approval
+  or recovery. Never send plaintext, recovery material, browser-unlock
+  material, or a private key to the server.
 - Secure the browser vault as a high-risk surface: use a strict CSP, avoid
   third-party scripts on vault routes, prevent XSS, avoid sensitive logging,
   clear local session state on sign-out, and test revocation/recovery. A
