@@ -7,6 +7,16 @@ It applies to browser, Next.js route-handler, Supabase, and future desktop
 implementations. Where it differs from an earlier illustrative algorithm or
 open question in [architecture.md](architecture.md), this document wins.
 
+### Implementation progress
+
+The browser-safe primitive layer is implemented in
+`src/lib/vault/protocol.ts` and covered by `src/lib/vault/protocol.test.ts`.
+It supplies deterministic-CBOR validation, HKDF domain separation, AES-GCM,
+Ed25519 signing, X25519 HPKE envelopes, and BIP-39 recovery encoding. It does
+not yet expose vault routes, IndexedDB storage, WebAuthn ceremonies, database
+transactions, or a user interface. Cross-runtime fixture files remain a
+required follow-up before desktop compatibility is claimed.
+
 V1 supports encrypted notes and login/password records, personal and shared
 collections, device approval, recovery, revocation, conflicts, and browser
 sync. File attachments and an independently witnessed transparency log are

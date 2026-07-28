@@ -55,6 +55,9 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 
 - [ ] Implement the frozen [vault protocol v1](backend/vault-protocol-v1.md),
   including its cross-runtime test vectors and browser compatibility checks.
+- [x] Add the browser-safe v1 cryptographic primitives and unit coverage for
+  deterministic CBOR, AES-GCM, HKDF, Ed25519, HPKE, and BIP-39 recovery
+  encoding. Route, storage, and WebAuthn integration remain pending.
 - [ ] Add database tables and access rules for devices, collections, encrypted
   items, keys, invitations, and deleted-item markers.
 - [ ] Add tests proving a user cannot see another user's vault or use a removed
