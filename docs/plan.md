@@ -60,6 +60,9 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
   encoding. Route, storage, and WebAuthn integration remain pending.
 - [ ] Add database tables and access rules for devices, collections, encrypted
   items, keys, invitations, and deleted-item markers.
+- [x] Add core browser-readable vault tables, RLS, and direct-browser mutation
+  revocation. Signed write transactions, invitations, tombstones, and
+  recovery-wrapper tables follow with the command-route feature.
 - [ ] Add tests proving a user cannot see another user's vault or use a removed
   device.
 - [ ] Add browser-device setup. The browser keeps its private key locally and

@@ -2,11 +2,14 @@
 
 ## Status and conventions
 
-The billing tables in this document are implemented. The browser encrypted
-vault tables and local IndexedDB records are the target model required by
-[the E2EE architecture](architecture.md) and [Vault protocol
-v1](vault-protocol-v1.md); they are not yet authoritative migrations. Table
-and column names below use `snake_case`. Cryptographic
+The billing tables are implemented. Migration
+`20260728064659_add_vault_read_schema.sql` now implements core
+browser-readable vault tables as `public.vault_*` rows with RLS and no browser
+mutation grants. Device authorization, recovery-wrapper, invitation,
+operation, checkpoint, and tombstone tables remain planned until the signed
+command transaction is implemented. Browser IndexedDB records remain local-only
+target records. The descriptions below use logical names; implemented database
+names carry the `vault_` prefix. Cryptographic
 protocol names in the architecture use `camelCase` where they describe
 canonical wire structures.
 
