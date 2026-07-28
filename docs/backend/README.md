@@ -12,13 +12,15 @@ subscriptions.
 2. [Architecture](architecture.md) describes the trust boundaries and flows.
 3. [Vault protocol v1](vault-protocol-v1.md) freezes the browser/server wire
    protocol, cryptographic profile, and test-vector contract.
-4. [Data model](data-model.md) is the implementation-facing table and column
+4. [Vault key lifecycle](vault-key-lifecycle.md) is the visual guide to vault
+   keys, recovery, encryption, and revocation flows.
+5. [Data model](data-model.md) is the implementation-facing table and column
    dictionary.
-5. [Stripe billing](billing-stripe.md) defines the Stripe projection,
+6. [Stripe billing](billing-stripe.md) defines the Stripe projection,
    entitlement rules, reconciliation, and operational scenarios.
-6. [Local development](local-development.md) defines the migration and test
+7. [Local development](local-development.md) defines the migration and test
    workflow.
-7. [Sources](sources.md) lists the primary documentation behind the design.
+8. [Sources](sources.md) lists the primary documentation behind the design.
 
 ## Locked v1 decisions
 
