@@ -43,6 +43,21 @@ export type HpkeCiphertext = {
   ciphertext: Uint8Array;
 };
 
+export const VAULT_COMMAND_TYPES = [
+  'device-register', 'device-authorize', 'device-revoke', 'recovery-rotate',
+  'collection-create', 'note-append', 'note-delete', 'checkpoint-append',
+  'invitation-create', 'invitation-accept', 'invitation-confirm', 'member-add',
+  'member-remove', 'epoch-rotate',
+] as const;
+
+export type VaultCommandType = (typeof VAULT_COMMAND_TYPES)[number];
+export type VaultCommand = {
+  operationId: string; operationType: VaultCommandType; accountId: string;
+  authorDeviceId?: string; recoveryKeyId?: string; collectionId?: string;
+  expectedAccountHead?: Uint8Array; expectedCollectionHead?: Uint8Array;
+  payload: Uint8Array; signature: Uint8Array; signedBytes: Uint8Array;
+};
+
 function asArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return bytes.slice().buffer;
 }
@@ -180,6 +195,38 @@ export function decodeCanonicalCbor(bytes: Uint8Array): Map<number, CborValue> {
   const record = decoded as Map<number, CborValue>;
   if (!equalBytes(bytes, encodeCanonicalCbor(record))) throw new Error('Protocol CBOR is not deterministic.');
   return record;
+}
+
+function requiredText(record: Map<number, CborValue>, label: number, name: string): string {
+  const value = record.get(label);
+  if (typeof value !== 'string' || value.length === 0) throw new Error(`${name} is required.`);
+  return value;
+}
+
+export function decodeVaultCommand(bytes: Uint8Array): VaultCommand {
+  const record = decodeCanonicalCbor(bytes);
+  if (record.size < 7 || record.size > 10 || record.get(1) !== VAULT_PROTOCOL_VERSION) throw new Error('Unsupported vault command.');
+  const operationType = requiredText(record, 3, 'Operation type');
+  if (!VAULT_COMMAND_TYPES.includes(operationType as VaultCommandType)) throw new Error('Unsupported vault operation.');
+  const author = record.get(5);
+  if (typeof author !== 'string' || author.length === 0) throw new Error('Command author is required.');
+  const payload = record.get(9);
+  const signature = record.get(10);
+  if (!(payload instanceof Uint8Array) || !(signature instanceof Uint8Array) || signature.byteLength !== 64) throw new Error('Invalid command payload or signature.');
+  const unsigned = new Map(record);
+  unsigned.delete(10);
+  const signedBytes = encodeCanonicalCbor(unsigned);
+  const accountHead = record.get(7); const collectionHead = record.get(8);
+  if (accountHead !== undefined && !(accountHead instanceof Uint8Array)) throw new Error('Invalid account head.');
+  if (collectionHead !== undefined && !(collectionHead instanceof Uint8Array)) throw new Error('Invalid collection head.');
+  return {
+    operationId: requiredText(record, 2, 'Operation ID'), operationType: operationType as VaultCommandType,
+    accountId: requiredText(record, 4, 'Account ID'),
+    ...(author.startsWith('device:') ? { authorDeviceId: author.slice(7) } : author.startsWith('recovery:') ? { recoveryKeyId: author.slice(9) } : (() => { throw new Error('Invalid command author.'); })()),
+    ...(typeof record.get(6) === 'string' ? { collectionId: record.get(6) as string } : {}),
+    ...(accountHead ? { expectedAccountHead: accountHead } : {}), ...(collectionHead ? { expectedCollectionHead: collectionHead } : {}),
+    payload, signature, signedBytes,
+  };
 }
 
 export async function signProtocolRecord(

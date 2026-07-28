@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AES_GCM_NONCE_BYTES,
   createRecoveryPhrase,
+  decodeVaultCommand,
   decodeCanonicalCbor,
   decodeUtf8,
   decryptAesGcm,
@@ -68,6 +69,18 @@ describe('vault protocol v1 primitives', () => {
 
     await expect(verifyProtocolRecord('clipsx/vault/v1/command/note-append', payload, signature, publicKey)).resolves.toBe(true);
     await expect(verifyProtocolRecord('clipsx/vault/v1/command/note-delete', payload, signature, publicKey)).resolves.toBe(false);
+  });
+
+  it('accepts only a canonical v1 command shape', () => {
+    const command = new Map<number, number | string | Uint8Array>([
+      [1, 1], [2, 'operation-1'], [3, 'note-append'], [4, 'account-1'],
+      [5, 'device:device-1'], [9, new Uint8Array([1])], [10, new Uint8Array(64)],
+    ]);
+    const parsed = decodeVaultCommand(encodeCanonicalCbor(command));
+
+    expect(parsed.authorDeviceId).toBe('device-1');
+    expect(parsed.operationType).toBe('note-append');
+    expect(parsed.signedBytes).toEqual(encodeCanonicalCbor(new Map([...command].slice(0, -1))));
   });
 
   it('uses the X25519 HPKE profile for encrypted envelopes', async () => {
