@@ -25,11 +25,12 @@ bundle and non-secret unlock metadata; the recovery phrase and recovery private
 keys are not included in the local bundle.
 The browser WebAuthn helper creates a dedicated user-verifying PRF credential
 and obtains its 32-byte output only in browser memory. Recovery-phrase
-confirmation UI and remaining command transactions remain pending. The browser
-registration builder decrypts and validates the one-time HPKE challenge, creates
-the device possession proof, and returns the recovery-signed bootstrap command;
-the UI still must obtain and submit that challenge. Cross-runtime fixture files
-remain a required follow-up before desktop compatibility is claimed.
+confirmation UI is implemented at `/[locale]/vault`: it shows and confirms the
+mandatory phrase, selects a PRF/passphrase local protection profile, obtains a
+challenge, signs/submits the bootstrap command, and only then saves the local
+encrypted device bundle. Browser vault unlock, remaining command transactions,
+and the encrypted-item UI remain pending. Cross-runtime fixture files remain a
+required follow-up before desktop compatibility is claimed.
 
 V1 supports encrypted notes and login/password records, personal and shared
 collections, device approval, recovery, revocation, conflicts, and browser

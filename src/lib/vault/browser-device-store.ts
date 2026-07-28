@@ -6,6 +6,7 @@ export type BrowserDeviceRecord = {
   encryptedBundle: Uint8Array;
   bundleNonce: Uint8Array;
   bundleSalt: Uint8Array;
+  passphraseKdfSalt?: Uint8Array;
   webauthnCredentialId?: Uint8Array;
   webauthnRpId?: 'clipsx.app';
   prfInput?: Uint8Array;
