@@ -125,6 +125,12 @@ operations in v1 are `device-register`, `device-authorize`, `device-revoke`,
 payload because no root exists yet. The server requires an authenticated account
 session and a short-lived, single-use device challenge before accepting it.
 
+The authenticated browser first sends `POST /api/vault/device-challenges` as a
+two-field CBOR map: `1: protocolVersion` and `2: deviceEncryptionPublicKey`.
+The response contains challenge ID, HPKE encapsulation, ciphertext, and expiry.
+Its AAD binds protocol, account ID, and challenge ID. The server retains only a
+SHA-256 challenge hash for five minutes; it never stores the raw challenge.
+
 Its `payload` is a deterministic-CBOR map with these contiguous labels:
 
 1. `deviceId`

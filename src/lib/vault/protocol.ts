@@ -262,3 +262,8 @@ export async function openHpke(recipientPrivateKey: CryptoKey, encrypted: HpkeCi
 export async function generateHpkeKeyPair() {
   return hpkeSuite().kem.generateKeyPair();
 }
+
+export async function importHpkePublicKey(bytes: Uint8Array): Promise<CryptoKey> {
+  assertLength(bytes, 32, 'HPKE X25519 public key');
+  return hpkeSuite().kem.importKey('raw', asArrayBuffer(bytes), true);
+}
