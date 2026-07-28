@@ -103,6 +103,15 @@ signed note revision is accepted by the server.
 
 ## Server encrypted-vault entities
 
+### `private.vault_device_registration_challenges`
+
+Server-only, short-lived enrollment proof state. It binds an authenticated
+account to a proposed device encryption public key and stores only the SHA-256
+hash of a random challenge, expiry, and consumption time. The server returns
+the challenge only as an HPKE ciphertext addressed to the proposed device; the
+client returns its hash after local decryption. This is not a vault secret and
+expires after the one-time enrollment attempt.
+
 ### `devices` — Device
 
 One immutable cryptographic device identity. Reinstallation or cryptographic
