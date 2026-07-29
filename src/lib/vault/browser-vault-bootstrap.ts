@@ -48,11 +48,11 @@ export async function openVaultBootstrap(input: {
   accountId: string;
   deviceEncryptionSecretKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array;
-}): Promise<{ collections: Array<{ id: string; title: string }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array }> {
+}): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochKey: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array }> {
   const bootstrap = decodeVaultBootstrap(input.bytes);
   const signingPublicKey = ed25519.getPublicKey(input.deviceSigningSecretKey);
   if (!signingPublicKey.every((value, index) => value === bootstrap.deviceSigningPublicKey[index])) throw new Error('Vault device key mismatch.');
-  const collections = await Promise.all(bootstrap.collections.map(async (collection) => {
+  const opened = await Promise.all(bootstrap.collections.map(async (collection) => {
     if (collection.senderDeviceId !== bootstrap.deviceId
       || !(await verifyProtocolRecord('clipsx/vault/v1/epoch-transition', collection.transitionPayload, collection.transitionSignature, signingPublicKey))
       || !(await verifyProtocolRecord('clipsx/vault/v1/epoch-envelope', collection.envelopePayload, collection.envelopeSignature, signingPublicKey))) {
@@ -78,12 +78,18 @@ export async function openVaultBootstrap(input: {
       const decoded = decodeCanonicalCbor(metadata);
       const title = decoded.get(2);
       if (decoded.size !== 2 || decoded.get(1) !== 1 || typeof title !== 'string' || !title) throw new Error('Invalid encrypted collection metadata.');
-      return { id: collection.id, title };
-    } finally {
+      return { id: collection.id, title, epochKey };
+    } catch (error) {
       epochKey.fill(0);
+      throw error;
     }
   }));
-  return { collections, recoveryKeyId: bootstrap.recoveryKeyId, recoveryEncryptionPublicKey: bootstrap.recoveryEncryptionPublicKey };
+  return {
+    collections: opened.map(({ id, title }) => ({ id, title })),
+    epochKeys: opened.map(({ id, epochKey }) => ({ collectionId: id, epochKey })),
+    recoveryKeyId: bootstrap.recoveryKeyId,
+    recoveryEncryptionPublicKey: bootstrap.recoveryEncryptionPublicKey,
+  };
 }
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {

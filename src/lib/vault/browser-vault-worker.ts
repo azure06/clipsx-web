@@ -103,6 +103,9 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         });
         recoveryKey?.encryptionPublicKey.fill(0);
         recoveryKey = { id: opened.recoveryKeyId, encryptionPublicKey: opened.recoveryEncryptionPublicKey.slice() };
+        for (const epochKey of epochKeys.values()) wipe(epochKey);
+        epochKeys.clear();
+        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, entry.epochKey);
         respond({
           id: request.id,
           type: 'bootstrap-opened',
