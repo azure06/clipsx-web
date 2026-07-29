@@ -3,6 +3,7 @@
 import { unwrapDeviceBundle, type BrowserDeviceBundle } from './browser-onboarding';
 import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
+import { openVaultBootstrap } from './browser-vault-bootstrap';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 let bundle: BrowserDeviceBundle | null = null;
@@ -80,7 +81,7 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           recoveryKeyId: request.recoveryKeyId,
           recoveryEncryptionPublicKey: request.recoveryEncryptionPublicKey,
           deviceSigningSecretKey: bundle.deviceSigningSecretKey,
-          encryptedMetadata: request.encryptedMetadata,
+          metadataTitle: request.metadataTitle,
           collectionId: request.collectionId,
           operationId: request.operationId,
         });
@@ -88,6 +89,19 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         respond({ id: request.id, type: 'collection-created', collectionId: result.collectionId, command: result.command });
         return;
       }
+      case 'open-bootstrap':
+        if (!bundle) throw new Error('Vault is locked.');
+        respond({
+          id: request.id,
+          type: 'bootstrap-opened',
+          collections: await openVaultBootstrap({
+            bytes: request.bootstrap,
+            accountId: request.accountId,
+            deviceEncryptionSecretKey: bundle.deviceEncryptionSecretKey,
+            deviceSigningSecretKey: bundle.deviceSigningSecretKey,
+          }),
+        });
+        return;
     }
   } catch (error) {
     respond({ id: request.id, type: 'error', message: error instanceof Error ? error.message : 'Vault worker request failed.' });

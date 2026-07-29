@@ -325,7 +325,7 @@ device.
 | `ciphertext` | Authenticated encrypted epoch key. |
 | `nonce` | Present only when required by the selected construction. |
 | `algorithm`, `key_version`, `protocol_version` | Complete decoder/suite selection. |
-| `envelope_payload_hash`, `signature` | Hash of canonical context/ciphertext and sender-device signature. |
+| `envelope_payload`, `envelope_payload_hash`, `signature` | Exact canonical envelope bytes, their hash, and sender-device signature. The payload is retained so recipients verify the precise signed bytes rather than reconstructing them. |
 | `created_at` | Append time included in signed context where protocol-defined. |
 
 Unique `(collection_id, epoch_number, recipient_device_id, key_version)`
@@ -346,7 +346,7 @@ recovery key.
 | `sender_device_id` | Active epoch creator. |
 | `encapsulation`, `ciphertext`, `nonce` | Standard hybrid-encryption output. |
 | `algorithm`, `key_version`, `protocol_version` | Complete suite/profile selection. |
-| `envelope_payload_hash`, `signature` | Canonical envelope hash and creator signature, also covered by the epoch recipient-set commitment. |
+| `envelope_payload`, `envelope_payload_hash`, `signature` | Exact canonical envelope bytes, their hash, and creator signature, also covered by the epoch recipient-set commitment. |
 | `created_at` | Append time. |
 
 Unique `(collection_id, epoch_number, recovery_key_id, key_version)` applies.

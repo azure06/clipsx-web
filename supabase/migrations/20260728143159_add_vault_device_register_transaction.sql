@@ -242,17 +242,17 @@ begin
   );
   insert into public.vault_device_epoch_envelopes (
     collection_id, epoch_number, recipient_device_id, sender_device_id, encapsulation, ciphertext,
-    algorithm, key_version, protocol_version, envelope_payload_hash, signature
+    algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature
   ) values (
     p_collection_id, 1, p_device_id, p_device_id, p_device_envelope_enc, p_device_envelope_ciphertext,
-    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, digest(p_device_envelope_payload, 'sha256'), p_device_envelope_signature
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, p_device_envelope_payload, digest(p_device_envelope_payload, 'sha256'), p_device_envelope_signature
   );
   insert into public.vault_recovery_epoch_envelopes (
     collection_id, epoch_number, recovery_key_id, sender_device_id, encapsulation, ciphertext,
-    algorithm, key_version, protocol_version, envelope_payload_hash, signature
+    algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature
   ) values (
     p_collection_id, 1, p_recovery_key_id, p_device_id, p_recovery_envelope_enc, p_recovery_envelope_ciphertext,
-    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, digest(p_recovery_envelope_payload, 'sha256'), p_recovery_envelope_signature
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, p_recovery_envelope_payload, digest(p_recovery_envelope_payload, 'sha256'), p_recovery_envelope_signature
   );
   insert into public.vault_collection_operations (
     operation_id, collection_id, sequence_number, operation_type, canonical_payload, operation_hash,

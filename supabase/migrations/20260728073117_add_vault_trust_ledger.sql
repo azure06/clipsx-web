@@ -65,6 +65,7 @@ create table public.vault_recovery_epoch_envelopes (
   algorithm text not null,
   key_version integer not null check (key_version >= 1),
   protocol_version integer not null check (protocol_version = 1),
+  envelope_payload bytea not null,
   envelope_payload_hash bytea not null,
   signature bytea not null check (octet_length(signature) = 64),
   created_at timestamptz not null default now(),

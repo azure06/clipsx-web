@@ -28,10 +28,11 @@ export type VaultWorkerRequest =
     deviceEncryptionPublicKey: Uint8Array;
     recoveryKeyId: string;
     recoveryEncryptionPublicKey: Uint8Array;
-    encryptedMetadata: Uint8Array;
+    metadataTitle: string;
     collectionId?: string;
     operationId?: string;
-  };
+  }
+  | { id: string; type: 'open-bootstrap'; accountId: string; bootstrap: Uint8Array };
 
 export type VaultWorkerResponse =
   | { id: string; type: 'unlocked' }
@@ -39,4 +40,5 @@ export type VaultWorkerResponse =
   | { id: string; type: 'status'; unlocked: boolean }
   | { id: string; type: 'signed-session-bind'; command: Uint8Array }
   | { id: string; type: 'collection-created'; collectionId: string; command: Uint8Array }
+  | { id: string; type: 'bootstrap-opened'; collections: Array<{ id: string; title: string }> }
   | { id: string; type: 'error'; message: string };

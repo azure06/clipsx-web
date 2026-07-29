@@ -40,6 +40,10 @@ module worker, which unwraps and retains the device keys without returning them
 to React. Lock, page exit, and a same-account cross-tab lock event zeroize the
 worker-held key buffers and terminate the worker. The worker can also create a
 signed session-binding command without releasing the device signing key.
+`GET /api/vault/bootstrap` now returns the bound device's current collection
+records, epoch transitions, and device envelope bytes as canonical CBOR. The
+worker verifies their signatures and hashes, opens its own HPKE envelopes, and
+decrypts collection metadata before returning collection labels to the UI.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 
@@ -217,12 +221,13 @@ the epoch key nor metadata plaintext. The private transaction inserts the
 collection, active owner membership, current epoch, both envelopes, and the
 first collection-log entry atomically.
 
-The planned `GET /api/vault/bootstrap` and `GET
-/api/vault/collections/{id}/sync?after=<sequence>` endpoints will return
-account/device/recovery heads and authorized collection operations, ciphertext,
-envelopes, and tombstones in bounded CBOR pages. The sequence is an
-availability cursor only; clients will trust only verified signed heads and
-local checkpoints. Neither sync endpoint is implemented yet.
+`GET /api/vault/bootstrap` returns the bound device and its current authorized
+collection records, transitions, and device envelopes in canonical CBOR. The
+planned `GET /api/vault/collections/{id}/sync?after=<sequence>` endpoint will
+return authorized collection operations, ciphertext, envelopes, and tombstones
+in bounded CBOR pages. The sequence is an availability cursor only; clients
+trust only verified signed heads and local checkpoints. Collection sync is not
+implemented yet.
 
 ## Encrypted item payloads
 

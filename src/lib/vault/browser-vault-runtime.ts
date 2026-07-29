@@ -84,7 +84,7 @@ export class BrowserVaultRuntime {
     deviceEncryptionPublicKey: Uint8Array;
     recoveryKeyId: string;
     recoveryEncryptionPublicKey: Uint8Array;
-    encryptedMetadata: Uint8Array;
+    metadataTitle: string;
     collectionId?: string;
     operationId?: string;
   }): Promise<{ collectionId: string; command: Uint8Array }> {
@@ -92,10 +92,16 @@ export class BrowserVaultRuntime {
       id: crypto.randomUUID(), type: 'create-collection', accountId: this.accountId,
       deviceId: input.deviceId, deviceEncryptionPublicKey: copy(input.deviceEncryptionPublicKey),
       recoveryKeyId: input.recoveryKeyId, recoveryEncryptionPublicKey: copy(input.recoveryEncryptionPublicKey),
-      encryptedMetadata: copy(input.encryptedMetadata), collectionId: input.collectionId, operationId: input.operationId,
+      metadataTitle: input.metadataTitle, collectionId: input.collectionId, operationId: input.operationId,
     });
     if (response.type !== 'collection-created') throw new Error('Vault worker rejected collection creation.');
     return { collectionId: response.collectionId, command: response.command };
+  }
+
+  async openBootstrap(bootstrap: Uint8Array): Promise<Array<{ id: string; title: string }>> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'open-bootstrap', accountId: this.accountId, bootstrap: copy(bootstrap) });
+    if (response.type !== 'bootstrap-opened') throw new Error('Vault worker rejected bootstrap.');
+    return response.collections;
   }
 
   dispose() {

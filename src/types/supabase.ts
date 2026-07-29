@@ -1361,6 +1361,7 @@ export type Database = {
           collection_id: string
           created_at: string
           encapsulation: string
+          envelope_payload: string
           envelope_payload_hash: string
           epoch_number: number
           id: string
@@ -1377,6 +1378,7 @@ export type Database = {
           collection_id: string
           created_at?: string
           encapsulation: string
+          envelope_payload: string
           envelope_payload_hash: string
           epoch_number: number
           id?: string
@@ -1393,6 +1395,7 @@ export type Database = {
           collection_id?: string
           created_at?: string
           encapsulation?: string
+          envelope_payload?: string
           envelope_payload_hash?: string
           epoch_number?: number
           id?: string
@@ -1721,6 +1724,7 @@ export type Database = {
           collection_id: string
           created_at: string
           encapsulation: string
+          envelope_payload: string
           envelope_payload_hash: string
           epoch_number: number
           id: string
@@ -1737,6 +1741,7 @@ export type Database = {
           collection_id: string
           created_at?: string
           encapsulation: string
+          envelope_payload: string
           envelope_payload_hash: string
           epoch_number: number
           id?: string
@@ -1753,6 +1758,7 @@ export type Database = {
           collection_id?: string
           created_at?: string
           encapsulation?: string
+          envelope_payload?: string
           envelope_payload_hash?: string
           epoch_number?: number
           id?: string

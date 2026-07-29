@@ -13,7 +13,7 @@ describe('collection creation command', () => {
     const result = await createCollectionCommand({
       accountId: 'account-1', deviceId: 'device-1', deviceEncryptionPublicKey: deviceEncryption.publicKey,
       recoveryKeyId: 'recovery-1', recoveryEncryptionPublicKey: recoveryEncryption.publicKey,
-      deviceSigningSecretKey: signing.secretKey, encryptedMetadata: utf8('Personal vault'),
+      deviceSigningSecretKey: signing.secretKey, metadataTitle: 'Personal vault',
       collectionId: 'collection-1', operationId: 'operation-1',
     });
     const command = decodeVaultCommand(result.command);
