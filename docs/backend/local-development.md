@@ -105,6 +105,10 @@ npm run lint
 - Recovery authorization tests must prove that the recovery command is signed by
   the phrase-derived key, that its device envelopes have a recovery sender, and
   that browser roles cannot invoke the private transaction directly.
+- Device revocation must fail atomically unless every personal collection has
+  its next epoch and exactly the remaining active-device and recovery-root
+  envelope recipients; a revoked device receives no new envelope and cannot
+  bind or submit a later command.
 - A tombstoned item never returns ciphertext during sync.
 - A signed note deletion requires both the collection and current revision
   heads, atomically removes revision ciphertext/key wraps, and emits an

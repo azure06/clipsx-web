@@ -380,6 +380,20 @@ termination. Lock releases application references and clears rendered secrets;
 it does not claim physical memory erasure. Offline cache and conflict drafts
 remain locally encrypted. V1 has no service worker or background sync task.
 
+## Device revocation and epoch rotation
+
+`device-revoke` is signed by a bound active device and names the terminal
+device ID, non-secret reason, and one next-epoch rotation per current personal
+collection. Every rotation carries the new epoch number, membership and
+recipient commitments, signed transition, plus device and recovery envelope
+sets. The server atomically revokes the target and clears its session binding,
+supersedes each old epoch, inserts the fresh current epoch and envelope sets,
+then appends the account operation. The recipient sets must contain exactly all
+remaining active devices and recovery roots, never the revoked device.
+
+Rotation protects future data only. It cannot erase keys, ciphertext, or
+plaintext already copied by the lost device.
+
 ## Compatibility and test vectors
 
 The protocol fixture directory must contain deterministic fixtures for each

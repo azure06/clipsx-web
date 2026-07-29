@@ -52,6 +52,7 @@ export type NoteAppend = {
 };
 
 export type NoteDelete = { noteId: string; expectedRevisionHash: Uint8Array };
+export type DeviceRevocation = { deviceId: string; reason: string; rotations: Array<{ collectionId: string; epochNumber: number; membershipHash: Uint8Array; recipientCommitment: Uint8Array; transitionPayload: Uint8Array; transitionSignature: Uint8Array; transitionHash: Uint8Array; deviceEnvelopes: Map<number, unknown>[]; recoveryEnvelopes: Map<number, unknown>[] }> };
 
 function text(record: Map<number, unknown>, label: number): string {
   const value = record.get(label); if (typeof value !== 'string' || !value) throw new Error('invalid-registration'); return value;
@@ -122,6 +123,17 @@ export function admitNoteDelete(command: VaultCommand): NoteDelete {
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
   if (payload.size !== 2) throw new Error('invalid-note-delete');
   return { noteId: text(payload, 1), expectedRevisionHash: bytes(payload, 2, 32) };
+}
+
+export function admitDeviceRevocation(command: VaultCommand): DeviceRevocation {
+  if (command.operationType !== 'device-revoke' || !command.authorDeviceId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-device-revocation');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>; const rotations = payload.get(3);
+  if (payload.size !== 3 || !Array.isArray(rotations)) throw new Error('invalid-device-revocation');
+  return { deviceId: text(payload, 1), reason: text(payload, 2), rotations: rotations.map((entry) => {
+    const epochNumber = entry instanceof Map ? entry.get(9) : null;
+    if (!(entry instanceof Map) || entry.size !== 9 || !Array.isArray(entry.get(7)) || !Array.isArray(entry.get(8)) || typeof epochNumber !== 'number' || !Number.isSafeInteger(epochNumber) || epochNumber < 2) throw new Error('invalid-device-revocation');
+    return { collectionId: text(entry, 1), epochNumber, membershipHash: bytes(entry, 2, 32), recipientCommitment: bytes(entry, 3, 32), transitionPayload: payloadBytes(entry, 4, 1), transitionSignature: bytes(entry, 5, 64), transitionHash: bytes(entry, 6, 32), deviceEnvelopes: entry.get(7) as Map<number, unknown>[], recoveryEnvelopes: entry.get(8) as Map<number, unknown>[] };
+  }) };
 }
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {

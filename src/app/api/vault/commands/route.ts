@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitDeviceAuthorization, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -117,6 +117,18 @@ export async function POST(request: NextRequest) {
       });
       if (error || !data) return cborError(409, 'device-authorization-rejected');
       const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, authorization.deviceId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'device-revoke') {
+      const { command } = admission; const revoked = admitDeviceRevocation(command);
+      const encodeEnvelope = (entry: Map<number, unknown>) => ({ recipient_id: entry.get(1), encapsulation: Buffer.from(entry.get(2) as Uint8Array).toString('base64'), ciphertext: Buffer.from(entry.get(3) as Uint8Array).toString('base64'), payload: Buffer.from(entry.get(4) as Uint8Array).toString('base64'), signature: Buffer.from(entry.get(5) as Uint8Array).toString('base64') });
+      const rotations = revoked.rotations.map((rotation) => ({ collection_id: rotation.collectionId, epoch_number: rotation.epochNumber, membership_hash: Buffer.from(rotation.membershipHash).toString('base64'), recipient_commitment: Buffer.from(rotation.recipientCommitment).toString('base64'), transition_payload: Buffer.from(rotation.transitionPayload).toString('base64'), transition_signature: Buffer.from(rotation.transitionSignature).toString('base64'), transition_hash: Buffer.from(rotation.transitionHash).toString('base64'), device_envelopes: rotation.deviceEnvelopes.map(encodeEnvelope), recovery_envelopes: rotation.recoveryEnvelopes.map(encodeEnvelope) }));
+      const { data, error } = await admin.schema('private').rpc('revoke_vault_device_and_rotate_epochs', {
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_author_device_id: command.authorDeviceId!, p_revoked_device_id: revoked.deviceId, p_reason: revoked.reason, p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'), p_rotations: rotations, p_operation_id: command.operationId, p_command_payload: Buffer.from(command.signedBytes).toString('base64'), p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'device-revocation-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, revoked.deviceId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 

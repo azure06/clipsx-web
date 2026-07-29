@@ -602,6 +602,10 @@ the following transaction for every affected collection:
 7. Use the new epoch for every later note revision and reject operations from
    revoked devices or removed members.
 
+The implemented private transaction makes this a single database commit. It
+rejects a missing, stale, or incomplete collection rotation; clears the revoked
+device's server session binding; and rejects it as an author before returning.
+
 The removed endpoint can still decrypt epochs it knows. It cannot decrypt a
 future epoch unless a remaining authorized endpoint or recovery secret leaks
 the new key. Re-encrypting historical revisions under new keys is an optional,

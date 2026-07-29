@@ -124,6 +124,48 @@ begin
 end; $$;
 revoke all on function private.authorize_pending_vault_device_with_recovery(uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, jsonb, uuid, bytea, bytea) from public, anon, authenticated;
 
+create function private.revoke_vault_device_and_rotate_epochs(
+  p_account_id uuid, p_session_id uuid, p_author_device_id uuid, p_revoked_device_id uuid, p_reason text,
+  p_expected_previous_operation_hash bytea, p_rotations jsonb, p_operation_id uuid,
+  p_command_payload bytea, p_command_hash bytea, p_signature bytea
+) returns boolean language plpgsql security definer set search_path = '' as $$
+declare current_operation public.vault_account_operations%rowtype; rotation jsonb; device_envelope jsonb; recovery_envelope jsonb; next_epoch integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
+  select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
+  if not found or current_operation.operation_hash <> p_expected_previous_operation_hash or p_author_device_id = p_revoked_device_id
+    or not exists (select 1 from auth.sessions s join public.vault_devices d on d.auth_session_id = s.id where s.id = p_session_id and s.user_id = p_account_id and d.id = p_author_device_id and d.status = 'active')
+    or not exists (select 1 from public.vault_devices where id = p_revoked_device_id and account_id = p_account_id and status = 'active')
+    or jsonb_typeof(p_rotations) <> 'array' or jsonb_array_length(p_rotations) <> (select count(*) from public.vault_collections where owner_account_id = p_account_id and deleted_at is null)
+    or exists (select 1 from jsonb_array_elements(p_rotations) r where not exists (select 1 from public.vault_collections c where c.id::text = r->>'collection_id' and c.owner_account_id = p_account_id and c.deleted_at is null)) then return false; end if;
+  update public.vault_devices set status = 'revoked', revoked_at = now(), revocation_reason = p_reason, auth_session_id = null where id = p_revoked_device_id;
+  for rotation in select * from jsonb_array_elements(p_rotations) loop
+    select current_epoch_number + 1 into next_epoch from public.vault_collections where id = (rotation->>'collection_id')::uuid for update;
+    if next_epoch is null or (rotation->>'epoch_number')::integer <> next_epoch then return false; end if;
+    if jsonb_array_length(rotation->'device_envelopes') <> (select count(*) from public.vault_devices where account_id = p_account_id and status = 'active' and id <> p_revoked_device_id)
+      or jsonb_array_length(rotation->'recovery_envelopes') <> (select count(*) from public.vault_recovery_keys where account_id = p_account_id and status = 'active')
+      or exists (select 1 from jsonb_array_elements(rotation->'device_envelopes') e where not exists (select 1 from public.vault_devices d where d.id::text = e->>'recipient_id' and d.account_id = p_account_id and d.status = 'active' and d.id <> p_revoked_device_id))
+      or exists (select 1 from jsonb_array_elements(rotation->'recovery_envelopes') e where not exists (select 1 from public.vault_recovery_keys k where k.id::text = e->>'recipient_id' and k.account_id = p_account_id and k.status = 'active')) then return false; end if;
+    update public.vault_collection_epochs set state = 'superseded' where collection_id = (rotation->>'collection_id')::uuid and state = 'current';
+    insert into public.vault_collection_epochs (collection_id, epoch_number, created_by_device_id, rotation_reason, previous_epoch_hash, membership_state_hash, recipient_set_commitment, transition_payload, transition_signature, transition_hash, state)
+    values ((rotation->>'collection_id')::uuid, next_epoch, p_author_device_id, 'device-revoked', (select current_epoch_transition_hash from public.vault_collections where id = (rotation->>'collection_id')::uuid), decode(rotation->>'membership_hash','base64'), decode(rotation->>'recipient_commitment','base64'), decode(rotation->>'transition_payload','base64'), decode(rotation->>'transition_signature','base64'), decode(rotation->>'transition_hash','base64'), 'current');
+    update public.vault_collections set current_epoch_number = next_epoch, current_epoch_transition_hash = decode(rotation->>'transition_hash','base64'), membership_log_head_hash = decode(rotation->>'membership_hash','base64') where id = (rotation->>'collection_id')::uuid;
+    for device_envelope in select * from jsonb_array_elements(rotation->'device_envelopes') loop
+      if (device_envelope->>'recipient_id')::uuid = p_revoked_device_id then return false; end if;
+      insert into public.vault_device_epoch_envelopes (collection_id, epoch_number, recipient_device_id, sender_device_id, encapsulation, ciphertext, algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature)
+      values ((rotation->>'collection_id')::uuid, next_epoch, (device_envelope->>'recipient_id')::uuid, p_author_device_id, decode(device_envelope->>'encapsulation','base64'), decode(device_envelope->>'ciphertext','base64'), 'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, decode(device_envelope->>'payload','base64'), digest(decode(device_envelope->>'payload','base64'),'sha256'), decode(device_envelope->>'signature','base64'));
+    end loop;
+    for recovery_envelope in select * from jsonb_array_elements(rotation->'recovery_envelopes') loop
+      insert into public.vault_recovery_epoch_envelopes (collection_id, epoch_number, recovery_key_id, sender_device_id, encapsulation, ciphertext, algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature)
+      values ((rotation->>'collection_id')::uuid, next_epoch, (recovery_envelope->>'recipient_id')::uuid, p_author_device_id, decode(recovery_envelope->>'encapsulation','base64'), decode(recovery_envelope->>'ciphertext','base64'), 'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, decode(recovery_envelope->>'payload','base64'), digest(decode(recovery_envelope->>'payload','base64'),'sha256'), decode(recovery_envelope->>'signature','base64'));
+    end loop;
+  end loop;
+  insert into public.vault_account_operations (operation_id, account_id, sequence_number, operation_type, canonical_payload, previous_operation_hash, operation_hash, author_device_id, signature, protocol_version)
+  values (p_operation_id, p_account_id, current_operation.sequence_number + 1, 'device-revoke', p_command_payload, current_operation.operation_hash, p_command_hash, p_author_device_id, p_signature, 1);
+  return true;
+end; $$;
+revoke all on function private.revoke_vault_device_and_rotate_epochs(uuid, uuid, uuid, uuid, text, bytea, jsonb, uuid, bytea, bytea, bytea) from public, anon, authenticated;
+
 create or replace function private.register_initial_vault_device(
   p_account_id uuid,
   p_auth_session_id uuid,
