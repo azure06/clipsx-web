@@ -465,6 +465,16 @@ is terminal: re-enrollment creates a new device ID and new keys. A server-side
 status change without a valid signed authorization or revocation operation is
 not a trusted cryptographic transition.
 
+The implemented pending-registration transaction retains the proposed device's
+signed `device-register` bytes and HPKE challenge-response commitment in the
+private schema for 15 minutes. Existing-device activation is only through a
+bound active author's `device-authorize` command after QR plus SAS comparison.
+That transaction checks the account-log head and delivers one signed current
+personal-collection envelope per collection while it creates the authorization
+evidence and active device row. The browser flow protects the pending bundle
+before upload, renders and locally restores the QR/SAS exchange, and keeps
+authorizer signing and epoch keys inside the dedicated worker.
+
 Five concepts remain distinct:
 
 ```text

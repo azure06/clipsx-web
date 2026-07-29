@@ -34,6 +34,11 @@ export type InitialDeviceRegistration = {
   recoveryEncryptionPublicKey: Uint8Array; recoverySigningPublicKey: Uint8Array;
   challengeId: string; challengeResponseHash: Uint8Array; deviceProofPayload: Uint8Array; deviceProofSignature: Uint8Array;
 };
+export type PendingDeviceRegistration = Omit<InitialDeviceRegistration, 'recoveryKeyId' | 'recoveryEncryptionPublicKey' | 'recoverySigningPublicKey'> & { sasCommitment: Uint8Array };
+export type DeviceAuthorization = {
+  deviceId: string; method: 'qr-sas'; sasHash: Uint8Array; pendingCommandHash: Uint8Array;
+  envelopes: Array<{ collectionId: string; epochNumber: number; encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array }>;
+};
 export type NoteAppend = {
   noteId: string; collectionEpoch: number; revisionNumber: number; encryptedContent: Uint8Array;
   contentNonce: Uint8Array; wrappedRevisionKey: Uint8Array; keyWrapNonce: Uint8Array;
@@ -139,6 +144,43 @@ export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, use
   if (!await verifyProtocolRecord('clipsx/vault/v1/device-register-proof', registration.deviceProofPayload, proof, registration.deviceSigningPublicKey)) throw new Error('invalid-device-proof');
   if (!await verifyProtocolRecord(`clipsx/vault/v1/command/${command.operationType}`, command.signedBytes, command.signature, registration.recoverySigningPublicKey)) throw new Error('invalid-signature');
   return { command, registration };
+}
+
+/** A non-bootstrap device-register is signed by the proposed device itself.
+ * Its HPKE challenge response proves encryption-key possession independently
+ * from the outer Ed25519 command signature.  It remains unusable while pending.
+ */
+export async function admitPendingDeviceRegistration(bytesInput: Uint8Array, user: Pick<User, 'id'>): Promise<{ command: VaultCommand; registration: PendingDeviceRegistration }> {
+  if (bytesInput.byteLength === 0 || bytesInput.byteLength > MAX_COMMAND_BYTES) throw new Error('command-size');
+  const command = decodeVaultCommand(bytesInput);
+  if (command.operationType !== 'device-register' || command.accountId !== user.id || !command.authorDeviceId) throw new Error('invalid-pending-registration');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  if (payload.size !== 12 || payload.get(9) !== 1) throw new Error('invalid-pending-registration');
+  const registration: PendingDeviceRegistration = {
+    deviceId: text(payload, 1), displayName: text(payload, 2), platform: text(payload, 3), enrollmentOrigin: text(payload, 4),
+    protectionProfile: text(payload, 5), capabilitiesHash: bytes(payload, 6, 32), deviceEncryptionPublicKey: bytes(payload, 7, 32),
+    deviceSigningPublicKey: bytes(payload, 8, 32), challengeId: text(payload, 10), challengeResponseHash: bytes(payload, 11, 32),
+    deviceProofPayload: command.signedBytes, deviceProofSignature: command.signature, sasCommitment: bytes(payload, 12, 32),
+  };
+  if (command.authorDeviceId !== registration.deviceId || registration.enrollmentOrigin !== 'https://clipsx.app'
+    || !['webauthn-prf-wrapped', 'vault-passphrase-wrapped'].includes(registration.protectionProfile)
+    || !await verifyProtocolRecord('clipsx/vault/v1/command/device-register', command.signedBytes, command.signature, registration.deviceSigningPublicKey)) throw new Error('invalid-pending-registration');
+  return { command, registration };
+}
+
+export function admitDeviceAuthorization(command: VaultCommand): DeviceAuthorization {
+  if (command.operationType !== 'device-authorize' || !command.authorDeviceId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-device-authorization');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  const rawEnvelopes = payload.get(5);
+  if (payload.size !== 5 || payload.get(2) !== 'qr-sas' || !Array.isArray(rawEnvelopes)) throw new Error('invalid-device-authorization');
+  const deviceId = text(payload, 1);
+  const envelopes = rawEnvelopes.map((value) => {
+    if (!(value instanceof Map) || value.size !== 6) throw new Error('invalid-device-authorization');
+    const epochNumber = value.get(2);
+    if (typeof epochNumber !== 'number' || !Number.isSafeInteger(epochNumber) || epochNumber < 1) throw new Error('invalid-device-authorization');
+    return { collectionId: text(value, 1), epochNumber, encapsulation: bytes(value, 3, 32), ciphertext: payloadBytes(value, 4, 16), payload: payloadBytes(value, 5, 1), signature: bytes(value, 6, 64) };
+  });
+  return { deviceId, method: 'qr-sas', sasHash: bytes(payload, 3, 32), pendingCommandHash: bytes(payload, 4, 32), envelopes };
 }
 
 export async function admitVaultCommand(

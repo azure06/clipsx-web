@@ -102,6 +102,12 @@ export class BrowserVaultRuntime {
     return response.collections;
   }
 
+  async authorizeDevice(input: { deviceId: string; offer: string; operationId?: string }) {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'authorize-device', accountId: this.accountId, ...input });
+    if (response.type !== 'device-authorized') throw new Error('Vault worker rejected device approval.');
+    return { deviceId: response.deviceId, sas: response.sas, command: response.command };
+  }
+
   async createNote(input: { deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }): Promise<{ noteId: string; command: Uint8Array }> {
     const response = await this.request({ id: crypto.randomUUID(), type: 'create-note', accountId: this.accountId, ...input });
     if (response.type !== 'note-created') throw new Error('Vault worker rejected note creation.');

@@ -27,12 +27,15 @@ export async function GET() {
   const { data: recoveryKeys } = await supabase.from('vault_recovery_keys').select('id, encryption_public_key').eq('account_id', principal.user.id).eq('status', 'active');
   const recovery = recoveryKeys?.[0]; const recoveryEncryptionPublicKey = bytes(recovery?.encryption_public_key ?? null);
   if (!device || !signingPublicKey || !encryptionPublicKey || !recovery || !recoveryEncryptionPublicKey) return response(403, new Map([[1, 'unbound-session']]));
+  const { data: accountOperations } = await supabase.from('vault_account_operations').select('operation_hash').eq('account_id', principal.user.id).order('sequence_number', { ascending: false }).limit(1);
+  const accountHead = bytes(accountOperations?.[0]?.operation_hash ?? null);
+  if (!accountHead) return response(422, new Map([[1, 'bootstrap-unavailable']]));
 
   const { data: collections, error: collectionsError } = await supabase.from('vault_collections')
     .select('id, encrypted_metadata, metadata_nonce, current_epoch_number, current_epoch_transition_hash');
   if (collectionsError) return response(422, new Map([[1, 'bootstrap-unavailable']]));
   const collectionIds = collections?.map((collection) => collection.id) ?? [];
-  if (collectionIds.length === 0) return response(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, []]]));
+  if (collectionIds.length === 0) return response(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, []], [8, accountHead]]));
 
   const [{ data: epochs }, { data: envelopes }, { data: operations }] = await Promise.all([
     supabase.from('vault_collection_epochs').select('collection_id, epoch_number, transition_payload, transition_signature, transition_hash, created_by_device_id').in('collection_id', collectionIds).eq('state', 'current'),
@@ -57,5 +60,5 @@ export async function GET() {
     if (!epoch || !envelope || !metadata || !nonce || !transitionPayload || !transitionSignature || !transitionHash || !encapsulation || !ciphertext || !envelopePayload || !envelopeHash || !envelopeSignature || !operationHead) continue;
     records.push(new Map([[1, collection.id], [2, metadata], [3, nonce], [4, epoch.epoch_number], [5, transitionPayload], [6, transitionSignature], [7, transitionHash], [8, encapsulation], [9, ciphertext], [10, envelopePayload], [11, envelopeHash], [12, envelopeSignature], [13, envelope.sender_device_id], [14, operationHead.hash], [15, operationHead.payload], [16, operationHead.signature], [17, operationHead.authorDeviceId]]));
   }
-  return response(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, records]]));
+  return response(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, records], [8, accountHead]]));
 }

@@ -7,13 +7,15 @@ import { openVaultBootstrap } from './browser-vault-bootstrap';
 import { createNoteAppendCommand } from './browser-note-append';
 import { createNoteDeleteCommand } from './browser-note-delete';
 import { openVaultCollectionSync } from './browser-vault-sync';
+import { createDeviceAuthorizationCommand } from './browser-device-approval';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import { x25519 } from '@noble/curves/ed25519.js';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 let bundle: BrowserDeviceBundle | null = null;
-const epochKeys = new Map<string, { key: Uint8Array; operationHead?: Uint8Array }>();
+const epochKeys = new Map<string, { key: Uint8Array; operationHead?: Uint8Array; epochNumber?: number }>();
 let recoveryKey: { id: string; encryptionPublicKey: Uint8Array } | null = null;
+let accountHead: Uint8Array | null = null;
 
 function wipe(bytes: Uint8Array | undefined) {
   bytes?.fill(0);
@@ -28,10 +30,11 @@ function lock() {
   epochKeys.clear();
   recoveryKey?.encryptionPublicKey.fill(0);
   recoveryKey = null;
+  wipe(accountHead ?? undefined); accountHead = null;
 }
 
 function respond(message: VaultWorkerResponse) {
-  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'note-created' || message.type === 'note-deleted') {
+  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'note-created' || message.type === 'note-deleted' || message.type === 'device-authorized') {
     self.postMessage(message, [message.command.buffer]);
     return;
   }
@@ -107,15 +110,26 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         });
         recoveryKey?.encryptionPublicKey.fill(0);
         recoveryKey = { id: opened.recoveryKeyId, encryptionPublicKey: opened.recoveryEncryptionPublicKey.slice() };
+        wipe(accountHead ?? undefined); accountHead = opened.accountHead.slice();
         for (const epochKey of epochKeys.values()) { wipe(epochKey.key); wipe(epochKey.operationHead); }
         epochKeys.clear();
-        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, { key: entry.epochKey, operationHead: entry.operationHead });
+        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, { key: entry.epochKey, operationHead: entry.operationHead, epochNumber: entry.epochNumber });
         respond({
           id: request.id,
           type: 'bootstrap-opened',
           collections: opened.collections,
         });
         return;
+      case 'authorize-device': {
+        if (!bundle || !accountHead) throw new Error('Verified vault bootstrap is required before device approval.');
+        const authorized = await createDeviceAuthorizationCommand({
+          accountId: request.accountId, authorDeviceId: request.deviceId, expectedAccountHead: accountHead,
+          deviceSigningSecretKey: bundle.deviceSigningSecretKey, offer: request.offer, operationId: request.operationId,
+          epochs: [...epochKeys].map(([collectionId, value]) => ({ collectionId, epochNumber: value.epochNumber ?? 1, key: value.key })),
+        });
+        respond({ id: request.id, type: 'device-authorized', ...authorized });
+        return;
+      }
       case 'create-note': {
         if (!bundle) throw new Error('Vault is locked.');
         const epoch = epochKeys.get(request.collectionId);

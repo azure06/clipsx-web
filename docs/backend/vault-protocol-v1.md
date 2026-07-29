@@ -213,6 +213,28 @@ creates the recovery root, active device, device authorization, and account
 operation sequence `1`. No recovery phrase, private key, passphrase, PRF
 output, or decrypted challenge is transmitted.
 
+### Existing-device approval payload
+
+A non-bootstrap `device-register` command is signed by the proposed device.
+Its deterministic payload carries the proposed public keys, protection metadata,
+registration-challenge ID, and hash of the decrypted HPKE challenge. The outer
+Ed25519 signature and HPKE response are independent possession proofs. The
+server retains this as a private, 15-minute pending registration; pending
+devices have neither a public device row nor any bootstrap, sync, envelope, or
+session-binding access.
+
+After QR exchange and a local comparison of the displayed SAS, a bound active
+device signs `device-authorize`. Its payload is: pending device ID, literal
+`qr-sas` method, SHA-256 SAS commitment, pending-command hash, and one signed
+HPKE envelope per current personal collection. The private transaction checks
+the account head, authorizer binding, retained proof, and exact envelope set;
+it atomically creates the active device, evidence row, envelopes, and linked
+account operation, then deletes the pending registration. There is no
+unauthenticated or account-session-only approval fallback. The browser protects
+the proposed bundle before registration, renders the QR, restores it only after
+local unlock, compares the SAS, and asks the unlocked authorizer worker to
+create the signed current-epoch envelopes.
+
 The browser sends commands to `POST /api/vault/commands` as
 `application/cbor`. Successful results and sync pages are also canonical CBOR.
 Responses use HTTP `401`, `403`, `409`, `413`, or `422` with a stable,

@@ -95,6 +95,13 @@ npm run lint
 - A recipient cannot access a collection before accepting an invitation.
 - A removed member loses server-side access immediately.
 - A revoked device session cannot call vault RPCs.
+- A pending device cannot bootstrap, bind a session, or receive envelopes;
+  `device-authorize` requires a bound active authorizer, the expected account
+  head, matching retained proof, QR/SAS commitment, and exactly the current
+  personal-collection envelope set in one transaction.
+- Exercise pending enrollment with both PRF and passphrase protection. Reloading
+  the pending browser must require local unlock before its QR can be restored;
+  the SAS secret is stored only inside authenticated ciphertext.
 - A tombstoned item never returns ciphertext during sync.
 - A signed note deletion requires both the collection and current revision
   heads, atomically removes revision ciphertext/key wraps, and emits an

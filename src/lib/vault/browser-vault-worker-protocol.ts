@@ -30,6 +30,7 @@ export type VaultWorkerRequest =
     operationId?: string;
   }
   | { id: string; type: 'open-bootstrap'; accountId: string; bootstrap: Uint8Array }
+  | { id: string; type: 'authorize-device'; accountId: string; deviceId: string; offer: string; operationId?: string }
   | { id: string; type: 'open-sync'; accountId: string; deviceId: string; collectionId: string; sync: Uint8Array }
   | { id: string; type: 'create-note'; accountId: string; deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
   | { id: string; type: 'update-note'; accountId: string; deviceId: string; collectionId: string; noteId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
@@ -42,6 +43,7 @@ export type VaultWorkerResponse =
   | { id: string; type: 'signed-session-bind'; command: Uint8Array }
   | { id: string; type: 'collection-created'; collectionId: string; command: Uint8Array }
   | { id: string; type: 'bootstrap-opened'; collections: Array<{ id: string; title: string }> }
+  | { id: string; type: 'device-authorized'; deviceId: string; sas: string; command: Uint8Array }
   | { id: string; type: 'sync-opened'; items: Array<{ id: string; revisionNumber: number; revisionHash: Uint8Array; type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] }> }
   | { id: string; type: 'note-created'; noteId: string; command: Uint8Array }
   | { id: string; type: 'note-deleted'; noteId: string; command: Uint8Array }

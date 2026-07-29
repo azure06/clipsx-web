@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitDeviceAuthorization, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -46,6 +46,22 @@ export async function POST(request: NextRequest) {
       const result = encodeCanonicalCbor(new Map([[1, initial.command.operationId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
+    const pending = await admitPendingDeviceRegistration(body, principal.user).catch(() => null);
+    if (pending) {
+      const registration = pending.registration;
+      const { data, error } = await admin.schema('private').rpc('register_pending_vault_device', {
+        p_account_id: principal.user.id, p_auth_session_id: principal.sessionId, p_challenge_id: registration.challengeId,
+        p_challenge_response_hash: Buffer.from(registration.challengeResponseHash).toString('base64'), p_device_id: registration.deviceId,
+        p_display_name: registration.displayName, p_platform: registration.platform, p_enrollment_origin: registration.enrollmentOrigin,
+        p_protection_profile: registration.protectionProfile, p_capabilities: { hash: Buffer.from(registration.capabilitiesHash).toString('base64') },
+        p_device_encryption_public_key: Buffer.from(registration.deviceEncryptionPublicKey).toString('base64'), p_device_signing_public_key: Buffer.from(registration.deviceSigningPublicKey).toString('base64'),
+        p_proof_payload: Buffer.from(registration.deviceProofPayload).toString('base64'), p_proof_signature: Buffer.from(registration.deviceProofSignature).toString('base64'),
+        p_proof_hash: Buffer.from(await sha256(pending.command.signedBytes)).toString('base64'), p_sas_commitment: Buffer.from(registration.sasCommitment).toString('base64'),
+      });
+      if (error || !data) return cborError(422, 'pending-device-registration-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, pending.command.operationId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
     const admission = await admitVaultCommand(body, { id: principal.user.id, sessionId: principal.sessionId }, {
       async findActiveDevice(id, accountId) {
         const { data } = await admin.from('vault_devices').select('signing_public_key, auth_session_id').eq('id', id).eq('account_id', accountId).eq('status', 'active').maybeSingle();
@@ -72,6 +88,21 @@ export async function POST(request: NextRequest) {
       if (error || !data) return cborError(409, 'device-session-bind-rejected');
       const result = encodeCanonicalCbor(new Map([[1, command.operationId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'device-authorize') {
+      const authorization = admitDeviceAuthorization(admission.command); const { command } = admission;
+      const { data, error } = await admin.schema('private').rpc('authorize_pending_vault_device', {
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_authorizer_device_id: command.authorDeviceId!,
+        p_device_id: authorization.deviceId, p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'),
+        p_authorization_payload: Buffer.from(command.signedBytes).toString('base64'), p_authorization_payload_hash: Buffer.from(await sha256(command.signedBytes)).toString('base64'),
+        p_pending_command_hash: Buffer.from(authorization.pendingCommandHash).toString('base64'), p_sas_hash: Buffer.from(authorization.sasHash).toString('base64'),
+        p_envelopes: authorization.envelopes.map((envelope) => ({ collection_id: envelope.collectionId, epoch_number: envelope.epochNumber, encapsulation: Buffer.from(envelope.encapsulation).toString('base64'), ciphertext: Buffer.from(envelope.ciphertext).toString('base64'), payload: Buffer.from(envelope.payload).toString('base64'), signature: Buffer.from(envelope.signature).toString('base64') })),
+        p_operation_id: command.operationId, p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'device-authorization-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, authorization.deviceId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 
     if (admission.command.operationType === 'collection-create') {

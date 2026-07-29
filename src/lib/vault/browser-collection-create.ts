@@ -12,8 +12,9 @@ import {
 
 export type CollectionCreateCommand = { collectionId: string; command: Uint8Array; epochKey: Uint8Array };
 
-async function envelope(input: {
+export async function createEpochEnvelope(input: {
   collectionId: string;
+  epochNumber?: number;
   recipientKind: 'device' | 'recovery';
   recipientId: string;
   senderDeviceId: string;
@@ -21,10 +22,11 @@ async function envelope(input: {
   epochKey: Uint8Array;
   signingSecretKey: Uint8Array;
 }) {
-  const aad = utf8(`clipsx/vault/v1/epoch-envelope\0${input.collectionId}\0${1}\0${input.recipientKind}\0${input.recipientId}`);
+  const epochNumber = input.epochNumber ?? 1;
+  const aad = utf8(`clipsx/vault/v1/epoch-envelope\0${input.collectionId}\0${epochNumber}\0${input.recipientKind}\0${input.recipientId}`);
   const sealed = await sealHpke(await importHpkePublicKey(input.recipientEncryptionPublicKey), input.epochKey, aad);
   const payload = encodeCanonicalCbor(new Map<number, CborValue>([
-    [1, 1], [2, input.collectionId], [3, 1], [4, input.recipientKind], [5, input.recipientId],
+    [1, 1], [2, input.collectionId], [3, epochNumber], [4, input.recipientKind], [5, input.recipientId],
     [6, input.senderDeviceId], [7, sealed.enc], [8, sealed.ciphertext],
   ]));
   return {
@@ -51,11 +53,11 @@ export async function createCollectionCommand(input: {
   const membershipStateHash = await sha256(encodeCanonicalCbor(new Map<number, CborValue>([
     [1, 1], [2, collectionId], [3, input.accountId], [4, input.deviceId], [5, 'owner'], [6, 'active'],
   ])));
-  const deviceEnvelope = await envelope({
+  const deviceEnvelope = await createEpochEnvelope({
     collectionId, recipientKind: 'device', recipientId: input.deviceId, senderDeviceId: input.deviceId,
     recipientEncryptionPublicKey: input.deviceEncryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey,
   });
-  const recoveryEnvelope = await envelope({
+  const recoveryEnvelope = await createEpochEnvelope({
     collectionId, recipientKind: 'recovery', recipientId: input.recoveryKeyId, senderDeviceId: input.deviceId,
     recipientEncryptionPublicKey: input.recoveryEncryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey,
   });

@@ -10,9 +10,11 @@ mutation grants. The first signed collection-create, immutable revision, and
 item-deletion transactions are implemented. Invitations and checkpoints remain
 planned.
 `20260728143159_add_vault_device_register_transaction.sql` adds private,
-all-or-nothing first-device registration, collection-create, immutable-revision,
-and item-deletion transactions. The HTTP dispatcher validates and executes all
-four command types; other command transactions remain pending.
+all-or-nothing first-device registration, pending-device registration, QR/SAS
+device authorization plus current personal-epoch delivery, collection-create,
+immutable-revision, and item-deletion transactions. The HTTP dispatcher
+validates and executes those command types; other command transactions remain
+pending.
 Browser IndexedDB records remain local-only target records. The descriptions
 below use logical names; implemented database names carry the `vault_` prefix.
 Cryptographic
@@ -43,6 +45,13 @@ documented separately and are not Supabase tables.
 | --- | --- | --- |
 | `public` | Encrypted vault rows exposed for authorized reads | Explicit select grants plus RLS; no browser mutation grants |
 | `private` | Stripe projection and accounting support | API-enabled for `service_role` only; no browser grants |
+
+`private.vault_pending_device_registrations` is an expiring, non-readable
+staging table. It holds public device metadata and the device-register proof
+only; it never holds a private key, recovery secret, decrypted challenge, or
+epoch ciphertext. `private.authorize_pending_vault_device` consumes the row in
+the same transaction that creates the active public device authorization,
+account-log operation, and recipient envelopes.
 
 ## Browser-local IndexedDB records
 

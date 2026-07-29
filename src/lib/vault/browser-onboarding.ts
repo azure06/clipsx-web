@@ -27,6 +27,10 @@ export type BrowserDeviceBundle = {
   deviceSigningSecretKey: Uint8Array;
 };
 
+export function createBrowserDeviceIdentity(): Pick<BrowserVaultIdentity, 'deviceEncryption' | 'deviceSigning'> {
+  return { deviceEncryption: x25519.keygen(randomBytes(32)), deviceSigning: ed25519.keygen(randomBytes(32)) };
+}
+
 export async function createBrowserVaultIdentity(accountId: string, deviceId: string): Promise<BrowserVaultIdentity> {
   const recovery = createRecoveryPhrase();
   const entropy = recoveryPhraseToEntropy(recovery.phrase);
@@ -49,7 +53,7 @@ export async function wrapDeviceBundle(
   return { salt, encrypted: await encryptAesGcm(key, bundle, new TextEncoder().encode(`clipsx/vault/v1/device-bundle\0${accountId}\0${deviceId}`)) };
 }
 
-export function encodeBrowserDeviceBundle(identity: BrowserVaultIdentity): Uint8Array {
+export function encodeBrowserDeviceBundle(identity: Pick<BrowserVaultIdentity, 'deviceEncryption' | 'deviceSigning'>): Uint8Array {
   return encodeCanonicalCbor(new Map<number, number | Uint8Array>([
     [1, 1],
     [2, identity.deviceEncryption.secretKey],

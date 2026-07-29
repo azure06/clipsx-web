@@ -29,12 +29,12 @@ function bytes(record: Map<number, CborValue>, label: number, length?: number): 
   const value = record.get(label); if (!(value instanceof Uint8Array) || (length !== undefined && value.byteLength !== length)) throw new Error('Invalid vault bootstrap.'); return value;
 }
 
-export function decodeVaultBootstrap(input: Uint8Array): { deviceId: string; deviceSigningPublicKey: Uint8Array; deviceEncryptionPublicKey: Uint8Array; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array; collections: BootstrapCollection[] } {
+export function decodeVaultBootstrap(input: Uint8Array): { deviceId: string; deviceSigningPublicKey: Uint8Array; deviceEncryptionPublicKey: Uint8Array; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array; accountHead: Uint8Array; collections: BootstrapCollection[] } {
   const record = decodeCanonicalCbor(input);
   const collections = record.get(7);
-  if (record.size !== 7 || record.get(1) !== 1 || !Array.isArray(collections)) throw new Error('Invalid vault bootstrap.');
+  if (record.size !== 8 || record.get(1) !== 1 || !Array.isArray(collections)) throw new Error('Invalid vault bootstrap.');
   return {
-    deviceId: text(record, 2), deviceSigningPublicKey: bytes(record, 3, 32), deviceEncryptionPublicKey: bytes(record, 4, 32), recoveryKeyId: text(record, 5), recoveryEncryptionPublicKey: bytes(record, 6, 32),
+    deviceId: text(record, 2), deviceSigningPublicKey: bytes(record, 3, 32), deviceEncryptionPublicKey: bytes(record, 4, 32), recoveryKeyId: text(record, 5), recoveryEncryptionPublicKey: bytes(record, 6, 32), accountHead: bytes(record, 8, 32),
     collections: collections.map((entry) => {
       if (!(entry instanceof Map) || entry.size !== 17 || entry.get(4) !== 1) throw new Error('Invalid vault bootstrap.');
       return {
@@ -53,7 +53,7 @@ export async function openVaultBootstrap(input: {
   accountId: string;
   deviceEncryptionSecretKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array;
-}): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochKey: Uint8Array; operationHead: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array }> {
+}): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochNumber: number; epochKey: Uint8Array; operationHead: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array; accountHead: Uint8Array }> {
   const bootstrap = decodeVaultBootstrap(input.bytes);
   const signingPublicKey = ed25519.getPublicKey(input.deviceSigningSecretKey);
   if (!signingPublicKey.every((value, index) => value === bootstrap.deviceSigningPublicKey[index])) throw new Error('Vault device key mismatch.');
@@ -101,9 +101,10 @@ export async function openVaultBootstrap(input: {
   }));
   return {
     collections: opened.map(({ id, title }) => ({ id, title })),
-    epochKeys: opened.map(({ id, epochKey, operationHead }) => ({ collectionId: id, epochKey, operationHead })),
+    epochKeys: opened.map(({ id, epochKey, operationHead }) => ({ collectionId: id, epochNumber: 1, epochKey, operationHead })),
     recoveryKeyId: bootstrap.recoveryKeyId,
     recoveryEncryptionPublicKey: bootstrap.recoveryEncryptionPublicKey,
+    accountHead: bootstrap.accountHead,
   };
 }
 

@@ -12,6 +12,9 @@ export type BrowserDeviceRecord = {
   prfInput?: Uint8Array;
   createdAt: string;
   updatedAt: string;
+  enrollmentStatus?: 'pending' | 'active';
+  pendingOfferCiphertext?: Uint8Array;
+  pendingOfferNonce?: Uint8Array;
 };
 
 const DATABASE_NAME = 'clipsx-vault-v1';
