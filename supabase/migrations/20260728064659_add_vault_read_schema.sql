@@ -116,13 +116,15 @@ create table public.vault_device_epoch_envelopes (
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   epoch_number integer not null,
   recipient_device_id uuid not null references public.vault_devices(id) on delete restrict,
-  sender_device_id uuid not null references public.vault_devices(id) on delete restrict,
+  sender_device_id uuid references public.vault_devices(id) on delete restrict,
+  sender_recovery_key_id uuid references public.vault_recovery_keys(id) on delete restrict,
   encapsulation bytea not null, ciphertext bytea not null, nonce bytea,
   algorithm text not null, key_version integer not null check (key_version >= 1), protocol_version integer not null check (protocol_version = 1),
   envelope_payload bytea not null, envelope_payload_hash bytea not null, signature bytea not null check (octet_length(signature) = 64),
   created_at timestamptz not null default now(),
   foreign key (collection_id, epoch_number) references public.vault_collection_epochs(collection_id, epoch_number) on delete cascade,
-  unique (collection_id, epoch_number, recipient_device_id, key_version)
+  unique (collection_id, epoch_number, recipient_device_id, key_version),
+  check ((sender_device_id is null) <> (sender_recovery_key_id is null))
 );
 
 create table public.vault_collection_operations (

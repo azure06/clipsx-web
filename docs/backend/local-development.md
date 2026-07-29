@@ -102,6 +102,9 @@ npm run lint
 - Exercise pending enrollment with both PRF and passphrase protection. Reloading
   the pending browser must require local unlock before its QR can be restored;
   the SAS secret is stored only inside authenticated ciphertext.
+- Recovery authorization tests must prove that the recovery command is signed by
+  the phrase-derived key, that its device envelopes have a recovery sender, and
+  that browser roles cannot invoke the private transaction directly.
 - A tombstoned item never returns ciphertext during sync.
 - A signed note deletion requires both the collection and current revision
   heads, atomically removes revision ciphertext/key wraps, and emits an

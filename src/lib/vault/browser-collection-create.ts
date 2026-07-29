@@ -17,7 +17,7 @@ export async function createEpochEnvelope(input: {
   epochNumber?: number;
   recipientKind: 'device' | 'recovery';
   recipientId: string;
-  senderDeviceId: string;
+  senderId: string;
   recipientEncryptionPublicKey: Uint8Array;
   epochKey: Uint8Array;
   signingSecretKey: Uint8Array;
@@ -27,7 +27,7 @@ export async function createEpochEnvelope(input: {
   const sealed = await sealHpke(await importHpkePublicKey(input.recipientEncryptionPublicKey), input.epochKey, aad);
   const payload = encodeCanonicalCbor(new Map<number, CborValue>([
     [1, 1], [2, input.collectionId], [3, epochNumber], [4, input.recipientKind], [5, input.recipientId],
-    [6, input.senderDeviceId], [7, sealed.enc], [8, sealed.ciphertext],
+    [6, input.senderId], [7, sealed.enc], [8, sealed.ciphertext],
   ]));
   return {
     payload,
@@ -54,11 +54,11 @@ export async function createCollectionCommand(input: {
     [1, 1], [2, collectionId], [3, input.accountId], [4, input.deviceId], [5, 'owner'], [6, 'active'],
   ])));
   const deviceEnvelope = await createEpochEnvelope({
-    collectionId, recipientKind: 'device', recipientId: input.deviceId, senderDeviceId: input.deviceId,
+    collectionId, recipientKind: 'device', recipientId: input.deviceId, senderId: input.deviceId,
     recipientEncryptionPublicKey: input.deviceEncryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey,
   });
   const recoveryEnvelope = await createEpochEnvelope({
-    collectionId, recipientKind: 'recovery', recipientId: input.recoveryKeyId, senderDeviceId: input.deviceId,
+    collectionId, recipientKind: 'recovery', recipientId: input.recoveryKeyId, senderId: input.deviceId,
     recipientEncryptionPublicKey: input.recoveryEncryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey,
   });
   const recipientSetCommitment = await sha256(encodeCanonicalCbor(new Map<number, CborValue>([

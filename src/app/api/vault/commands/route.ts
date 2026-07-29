@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitDeviceAuthorization, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitDeviceAuthorization, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -91,7 +91,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (admission.command.operationType === 'device-authorize') {
-      const authorization = admitDeviceAuthorization(admission.command); const { command } = admission;
+      const { command } = admission;
+      if (command.recoveryKeyId) {
+        const authorization = admitRecoveryDeviceAuthorization(command);
+        const { data, error } = await admin.schema('private').rpc('authorize_pending_vault_device_with_recovery', {
+          p_account_id: principal.user.id, p_session_id: principal.sessionId, p_recovery_key_id: command.recoveryKeyId,
+          p_device_id: authorization.deviceId, p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'),
+          p_authorization_payload: Buffer.from(command.signedBytes).toString('base64'), p_authorization_payload_hash: Buffer.from(await sha256(command.signedBytes)).toString('base64'),
+          p_pending_command_hash: Buffer.from(authorization.pendingCommandHash).toString('base64'),
+          p_envelopes: authorization.envelopes.map((envelope) => ({ collection_id: envelope.collectionId, epoch_number: envelope.epochNumber, encapsulation: Buffer.from(envelope.encapsulation).toString('base64'), ciphertext: Buffer.from(envelope.ciphertext).toString('base64'), payload: Buffer.from(envelope.payload).toString('base64'), signature: Buffer.from(envelope.signature).toString('base64') })),
+          p_operation_id: command.operationId, p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_signature: Buffer.from(command.signature).toString('base64'),
+        });
+        if (error || !data) return cborError(409, 'recovery-device-authorization-rejected');
+        const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, authorization.deviceId]])).slice();
+        return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+      }
+      const authorization = admitDeviceAuthorization(command);
       const { data, error } = await admin.schema('private').rpc('authorize_pending_vault_device', {
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_authorizer_device_id: command.authorDeviceId!,
         p_device_id: authorization.deviceId, p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'),

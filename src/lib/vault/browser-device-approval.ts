@@ -58,7 +58,7 @@ export async function createDeviceAuthorizationCommand(input: {
   const envelopes = await Promise.all(input.epochs.map(async (epoch) => {
     const envelope = await createEpochEnvelope({
       collectionId: epoch.collectionId, epochNumber: epoch.epochNumber, recipientKind: 'device',
-      recipientId: target.deviceId, senderDeviceId: input.authorDeviceId,
+      recipientId: target.deviceId, senderId: input.authorDeviceId,
       recipientEncryptionPublicKey: target.encryptionPublicKey, epochKey: epoch.key,
       signingSecretKey: input.deviceSigningSecretKey,
     });

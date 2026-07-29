@@ -39,6 +39,10 @@ export type DeviceAuthorization = {
   deviceId: string; method: 'qr-sas'; sasHash: Uint8Array; pendingCommandHash: Uint8Array;
   envelopes: Array<{ collectionId: string; epochNumber: number; encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array }>;
 };
+export type RecoveryDeviceAuthorization = {
+  deviceId: string; pendingCommandHash: Uint8Array;
+  envelopes: DeviceAuthorization['envelopes'];
+};
 export type NoteAppend = {
   noteId: string; collectionEpoch: number; revisionNumber: number; encryptedContent: Uint8Array;
   contentNonce: Uint8Array; wrappedRevisionKey: Uint8Array; keyWrapNonce: Uint8Array;
@@ -181,6 +185,19 @@ export function admitDeviceAuthorization(command: VaultCommand): DeviceAuthoriza
     return { collectionId: text(value, 1), epochNumber, encapsulation: bytes(value, 3, 32), ciphertext: payloadBytes(value, 4, 16), payload: payloadBytes(value, 5, 1), signature: bytes(value, 6, 64) };
   });
   return { deviceId, method: 'qr-sas', sasHash: bytes(payload, 3, 32), pendingCommandHash: bytes(payload, 4, 32), envelopes };
+}
+
+export function admitRecoveryDeviceAuthorization(command: VaultCommand): RecoveryDeviceAuthorization {
+  if (command.operationType !== 'device-authorize' || !command.recoveryKeyId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-device-authorization');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>; const rawEnvelopes = payload.get(4);
+  if (payload.size !== 4 || payload.get(2) !== 'recovery' || !Array.isArray(rawEnvelopes)) throw new Error('invalid-device-authorization');
+  const envelopes = rawEnvelopes.map((value) => {
+    if (!(value instanceof Map) || value.size !== 6) throw new Error('invalid-device-authorization');
+    const epochNumber = value.get(2);
+    if (typeof epochNumber !== 'number' || !Number.isSafeInteger(epochNumber) || epochNumber < 1) throw new Error('invalid-device-authorization');
+    return { collectionId: text(value, 1), epochNumber, encapsulation: bytes(value, 3, 32), ciphertext: payloadBytes(value, 4, 16), payload: payloadBytes(value, 5, 1), signature: bytes(value, 6, 64) };
+  });
+  return { deviceId: text(payload, 1), pendingCommandHash: bytes(payload, 3, 32), envelopes };
 }
 
 export async function admitVaultCommand(

@@ -53,6 +53,12 @@ epoch ciphertext. `private.authorize_pending_vault_device` consumes the row in
 the same transaction that creates the active public device authorization,
 account-log operation, and recipient envelopes.
 
+`vault_device_epoch_envelopes` has exactly one sender: either an active browser
+device or an active recovery key. Recovery-origin envelopes set
+`sender_recovery_key_id`; device-origin envelopes set `sender_device_id`.
+The mutually exclusive database check preserves the sender identity that the
+recipient must verify.
+
 ## Browser-local IndexedDB records
 
 IndexedDB is the browser device's persistence layer, not a server database and

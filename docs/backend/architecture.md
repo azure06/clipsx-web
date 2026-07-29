@@ -475,6 +475,12 @@ evidence and active device row. The browser flow protects the pending bundle
 before upload, renders and locally restores the QR/SAS exchange, and keeps
 authorizer signing and epoch keys inside the dedicated worker.
 
+Recovery enrollment derives the recovery signing and encryption keys locally
+from the confirmed phrase. The recovery root can authorize the same pending
+proof when no active browser is available. Its recipient envelopes are marked
+as recovery-signed records, and are never presented as if a lost browser device
+had authored them.
+
 Five concepts remain distinct:
 
 ```text

@@ -31,6 +31,14 @@ export function createBrowserDeviceIdentity(): Pick<BrowserVaultIdentity, 'devic
   return { deviceEncryption: x25519.keygen(randomBytes(32)), deviceSigning: ed25519.keygen(randomBytes(32)) };
 }
 
+export async function deriveRecoveryIdentity(accountId: string, phrase: string): Promise<Pick<BrowserVaultIdentity, 'recoveryEncryption' | 'recoverySigning'>> {
+  const entropy = recoveryPhraseToEntropy(phrase);
+  return {
+    recoveryEncryption: x25519.keygen(await deriveVaultKey(entropy, utf8(accountId), 'recoveryEncryptionKey', utf8(`${accountId}\0recovery:1`))),
+    recoverySigning: ed25519.keygen(await deriveVaultKey(entropy, utf8(accountId), 'recoverySigningKey', utf8(`${accountId}\0recovery:1`))),
+  };
+}
+
 export async function createBrowserVaultIdentity(accountId: string, deviceId: string): Promise<BrowserVaultIdentity> {
   const recovery = createRecoveryPhrase();
   const entropy = recoveryPhraseToEntropy(recovery.phrase);

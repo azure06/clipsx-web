@@ -235,6 +235,20 @@ the proposed bundle before registration, renders the QR, restores it only after
 local unlock, compares the SAS, and asks the unlocked authorizer worker to
 create the signed current-epoch envelopes.
 
+### Recovery-root device authorization
+
+The recovery phrase is decoded and expanded into the recovery X25519 and
+Ed25519 key pairs only in browser memory. The phrase, entropy, and private keys
+are never sent to the route handler. A recovery authorization reuses the same
+pending-device possession proof, but its command author is
+`recovery:<recoveryKeyId>` and its payload replaces the QR/SAS fields with the
+pending-command hash and a full current-personal-epoch envelope set. Each
+envelope names the recovery key as its sender and is signed by the recovery
+signing key; the database records that sender explicitly rather than attributing
+it to a browser device. The private transaction requires the active recovery
+root, authenticated account session, current account head, and exact envelope
+set before it activates the pending device and appends the account operation.
+
 The browser sends commands to `POST /api/vault/commands` as
 `application/cbor`. Successful results and sync pages are also canonical CBOR.
 Responses use HTTP `401`, `403`, `409`, `413`, or `422` with a stable,
