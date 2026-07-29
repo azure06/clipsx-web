@@ -96,6 +96,9 @@ npm run lint
 - A removed member loses server-side access immediately.
 - A revoked device session cannot call vault RPCs.
 - A tombstoned item never returns ciphertext during sync.
+- A signed note deletion requires both the collection and current revision
+  heads, atomically removes revision ciphertext/key wraps, and emits an
+  operation-linked tombstone that verified sync uses to remove the item.
 - A note append rejects stale collection heads, wrong epoch, inactive
   membership/session, duplicate IDs, and direct RPC execution; a rejection
   leaves no note, revision, or operation row.

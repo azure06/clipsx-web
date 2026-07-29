@@ -857,6 +857,7 @@ export type Database = {
           p_device_id: string
           p_encrypted_content: string
           p_expected_collection_head: string
+          p_expected_previous_revision_hash: string
           p_key_wrap_nonce: string
           p_note_id: string
           p_operation_id: string
@@ -943,6 +944,22 @@ export type Database = {
           p_transition_hash: string
           p_transition_payload: string
           p_transition_signature: string
+        }
+        Returns: boolean
+      }
+      delete_vault_note: {
+        Args: {
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_id: string
+          p_expected_collection_head: string
+          p_expected_revision_hash: string
+          p_note_id: string
+          p_operation_id: string
+          p_session_id: string
         }
         Returns: boolean
       }
@@ -1855,6 +1872,62 @@ export type Database = {
           status?: string
         }
         Relationships: []
+      }
+      vault_tombstones: {
+        Row: {
+          collection_id: string
+          delete_operation_id: string
+          deleted_at: string
+          deleted_by_device_id: string
+          last_revision_hash: string
+          note_id: string
+        }
+        Insert: {
+          collection_id: string
+          delete_operation_id: string
+          deleted_at?: string
+          deleted_by_device_id: string
+          last_revision_hash: string
+          note_id: string
+        }
+        Update: {
+          collection_id?: string
+          delete_operation_id?: string
+          deleted_at?: string
+          deleted_by_device_id?: string
+          last_revision_hash?: string
+          note_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_tombstones_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "vault_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_tombstones_delete_operation_id_fkey"
+            columns: ["delete_operation_id"]
+            isOneToOne: true
+            referencedRelation: "vault_collection_operations"
+            referencedColumns: ["operation_id"]
+          },
+          {
+            foreignKeyName: "vault_tombstones_deleted_by_device_id_fkey"
+            columns: ["deleted_by_device_id"]
+            isOneToOne: false
+            referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_tombstones_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: true
+            referencedRelation: "vault_notes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

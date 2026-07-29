@@ -42,6 +42,8 @@ export type NoteAppend = {
   previousRevisionHash: Uint8Array | null;
 };
 
+export type NoteDelete = { noteId: string; expectedRevisionHash: Uint8Array };
+
 function text(record: Map<number, unknown>, label: number): string {
   const value = record.get(label); if (typeof value !== 'string' || !value) throw new Error('invalid-registration'); return value;
 }
@@ -103,6 +105,14 @@ export async function admitNoteAppend(command: VaultCommand, signingPublicKey: U
   if (!sameBytes(await sha256(revisionRecord), result.revisionHash)
     || !await verifyProtocolRecord('clipsx/vault/v1/note-revision', revisionRecord, result.revisionSignature, signingPublicKey)) throw new Error('invalid-note-append');
   return result;
+}
+
+export function admitNoteDelete(command: VaultCommand): NoteDelete {
+  if (command.operationType !== 'note-delete' || !command.authorDeviceId || !command.collectionId
+    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-delete');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  if (payload.size !== 2) throw new Error('invalid-note-delete');
+  return { noteId: text(payload, 1), expectedRevisionHash: bytes(payload, 2, 32) };
 }
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {

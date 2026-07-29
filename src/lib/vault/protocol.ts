@@ -60,7 +60,7 @@ export type VaultCommand = {
 };
 
 function asArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  return bytes.slice().buffer;
+  return new Uint8Array(bytes).buffer;
 }
 
 function assertLength(value: Uint8Array, expected: number, name: string): void {

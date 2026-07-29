@@ -883,17 +883,22 @@ signature or ciphertext verification. The browser performs all vault plaintext
 and private-key operations locally; no server endpoint performs decrypt/sign
 operations on its behalf.
 
-The implemented initial write is `note-append`: bootstrap returns the current
+The implemented encrypted write is `note-append`: bootstrap returns the current
 collection-operation head with the verified epoch envelope, and the worker
 keeps both only while unlocked. The route verifies the device command and its
 embedded immutable-revision signature before a private transaction locks the
 head, validates the bound session, owner/editor membership and current epoch,
-then atomically appends revision one and the collection ledger entry.
+then atomically appends the next immutable revision and collection ledger entry.
 
 Verified read sync is also implemented for the current single-device personal
-collection profile. A no-store route returns only canonical signed operation
-and ciphertext records; the worker validates the chain, signatures, hashes and
-AEAD context before returning decrypted item fields to React. Lock clears the
+collection profile. A no-store route returns only canonical signed operation,
+ciphertext, and tombstone records; the worker validates the chain, signatures,
+hashes and AEAD context before returning decrypted item fields to React. A
+signed delete binds the current collection and note revision heads. Its private
+transaction removes stored note ciphertext/key wraps, marks the note deleted,
+and records the operation-linked non-secret tombstone atomically. The worker
+accepts a tombstone only when its signed delete operation binds the same note
+and accepted revision hash, then omits that item from the result. Lock clears the
 rendered item state and terminates the worker. Multi-device/member records are
 intentionally rejected until their signed public-key directory is implemented.
 

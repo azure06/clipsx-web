@@ -1,5 +1,5 @@
 begin;
-select plan(6);
+select plan(10);
 
 select has_function(
   'private', 'append_vault_note_revision',
@@ -28,6 +28,21 @@ select is(
 );
 select is((select count(*) from public.vault_notes), 0::bigint, 'rejected append leaves no note row');
 select is((select count(*) from public.vault_note_revisions), 0::bigint, 'rejected append leaves no revision row');
+select has_table('public', 'vault_tombstones', 'signed tombstones are stored separately from ciphertext');
+select has_function('private', 'delete_vault_note', 'private note-delete transaction exists');
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'private.delete_vault_note(uuid,uuid,uuid,uuid,bytea,uuid,bytea,uuid,bytea,bytea,bytea)',
+    'execute'
+  ),
+  'browser roles cannot execute note deletion directly'
+);
+select is(
+  private.delete_vault_note(gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), decode(repeat('00', 32), 'hex'), gen_random_uuid(), decode(repeat('00', 32), 'hex'), gen_random_uuid(), decode('00', 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 64), 'hex')),
+  false,
+  'wrong session or membership rejects deletion without a tombstone'
+);
 
 select * from finish();
 rollback;

@@ -6,13 +6,13 @@ The billing tables are implemented. Migration
 `20260728064659_add_vault_read_schema.sql` and
 `20260728073117_add_vault_trust_ledger.sql` implement core browser-readable
 vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
-mutation grants. The first signed collection-create transaction and its
-collection-operation ledger are implemented; invitations, checkpoints, and
-tombstones remain planned.
-`20260728143159_add_vault_device_register_transaction.sql` adds the private,
-all-or-nothing first-device registration and collection-create transactions;
-the HTTP dispatcher validates and executes both command types. Other command
-transactions remain pending.
+mutation grants. The first signed collection-create, immutable revision, and
+item-deletion transactions are implemented. Invitations and checkpoints remain
+planned.
+`20260728143159_add_vault_device_register_transaction.sql` adds private,
+all-or-nothing first-device registration, collection-create, immutable-revision,
+and item-deletion transactions. The HTTP dispatcher validates and executes all
+four command types; other command transactions remain pending.
 Browser IndexedDB records remain local-only target records. The descriptions
 below use logical names; implemented database names carry the `vault_` prefix.
 Cryptographic
@@ -372,7 +372,9 @@ note content.
 | `deleted_at` | Optional deletion marker after a signed delete operation. |
 
 The current head changes only through the optimistic-concurrency RPC that
-atomically inserts a revision whose signed parent matches the prior head.
+atomically inserts a revision whose signed parent matches the prior head. Signed
+deletion locks the same head before setting `deleted_at`; deleted notes cannot
+accept a later revision.
 
 ### `vault_note_revisions` — NoteRevision
 
@@ -459,7 +461,8 @@ Fields include `id`, `account_id`, optional `collection_id`, `log_type`,
 
 ### `vault_tombstones`
 
-Preserves the existing saved-item sync concept after product-policy deletion.
+Implemented append-only deletion evidence that preserves the saved-item sync
+concept after product-policy deletion.
 Fields include `note_id`, `collection_id`, `deleted_by_device_id`,
 `delete_operation_id`, `last_revision_hash`, and `deleted_at`. The delete
 operation is signed. Ciphertext and wrapped keys may be removed according to
@@ -501,7 +504,11 @@ transactions must enforce:
 - signature/algorithm/AAD validation before accepting key-bearing data; and
 - idempotency by signed operation ID.
 
-`private.append_vault_note_revision` is the implemented first-write boundary.
+`private.append_vault_note_revision` is the implemented immutable-revision
+boundary. `private.delete_vault_note` locks the collection and note heads,
+validates the active bound owner/editor, marks the note deleted, removes its
+revision ciphertext/key wraps, appends the signed operation, and inserts
+`vault_tombstones` atomically.
 It locks the current `collection_operations` row, compares the command's
 expected head, checks active owner/editor membership, the device's current Auth
 session binding, and the collection epoch, then inserts `notes`, immutable

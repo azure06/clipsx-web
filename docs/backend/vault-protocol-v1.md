@@ -251,7 +251,7 @@ in bounded CBOR pages. The sequence is an availability cursor only; clients
 trust only verified signed heads and local checkpoints. Collection sync is not
 implemented for the current personal-device profile at
 `GET /api/vault/collections/{collectionId}/sync`: it returns no plaintext,
-only canonical operation and revision records. The worker verifies the
+only canonical operation, revision, and tombstone records. The worker verifies the
 hash-linked command sequence, command signatures, revision signatures and
 ciphertext hashes before unwrapping/decrypting an item. Records from another
 device are rejected until the forthcoming verified device-key directory and
@@ -306,6 +306,20 @@ three UI resolutions are: keep remote (discard the memory-only local draft),
 reapply local (create a new revision from the refreshed remote head), and
 manual merge (edit remote/local fields, then create that new revision). A
 draft is never reported as synchronized or durable before a `201` response.
+
+### Signed item deletion and tombstones
+
+`note-delete` is device-signed and requires the current 32-byte
+`expectedCollectionHead`. Its two-field payload contains the note ID and exact
+current revision hash. The private transaction locks both heads, verifies the
+bound active owner/editor session, marks the note deleted, deletes its stored
+revision ciphertext and wrapped revision keys, appends the signed
+`note-delete` collection operation, and stores a non-secret tombstone in the
+same transaction. A stale or repeated deletion returns `409` without a partial
+change. Sync returns tombstones bound to their signed operation; the worker
+verifies that operation and removes the matching item from rendered results.
+Deletion does not claim cryptographic erasure from previous recipients,
+browser copies, backups, or exports.
 
 ## Sharing, recovery, deletion, and locking
 

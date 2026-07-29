@@ -7,9 +7,9 @@ const text = (record: Map<number, CborValue>, label: number) => { const value = 
 const same = (a: Uint8Array, b: Uint8Array) => a.byteLength === b.byteLength && a.every((v, i) => v === b[i]);
 
 export async function openVaultCollectionSync(input: { bytes: Uint8Array; accountId: string; collectionId: string; deviceId: string; signingPublicKey: Uint8Array; epochKey: Uint8Array }): Promise<SyncedVaultItem[]> {
-  const root = decodeCanonicalCbor(input.bytes); const operations = root.get(3); const revisions = root.get(4);
-  if (root.size !== 5 || root.get(1) !== 1 || root.get(2) !== input.collectionId || !Array.isArray(operations) || !Array.isArray(revisions)) throw new Error('Invalid vault sync.');
-  const known = new Set<string>(); let previous: Uint8Array | null = null;
+  const root = decodeCanonicalCbor(input.bytes); const operations = root.get(3); const revisions = root.get(4); const tombstones = root.get(6);
+  if (root.size !== 6 || root.get(1) !== 1 || root.get(2) !== input.collectionId || !Array.isArray(operations) || !Array.isArray(revisions) || !Array.isArray(tombstones)) throw new Error('Invalid vault sync.');
+  const known = new Map<string, Map<number, CborValue>>(); let previous: Uint8Array | null = null;
   for (const entry of operations) {
     if (!(entry instanceof Map) || entry.size !== 8) throw new Error('Invalid vault operation.');
     const operationId = text(entry, 1); const payload = bytes(entry, 4); const hash = bytes(entry, 6, 32); const signature = bytes(entry, 8, 64);
@@ -18,7 +18,7 @@ export async function openVaultCollectionSync(input: { bytes: Uint8Array; accoun
     if (command.get(1) !== 1 || command.get(2) !== operationId || command.get(5) !== `device:${input.deviceId}` || command.get(6) !== input.collectionId || typeof type !== 'string') throw new Error('Invalid vault operation.');
     command.set(10, signature);
     if (!same(await sha256(encodeCanonicalCbor(command)), hash) || !await verifyProtocolRecord(`clipsx/vault/v1/command/${type}`, payload, signature, input.signingPublicKey)) throw new Error('Unverified vault operation.');
-    known.add(operationId); previous = hash;
+    known.set(operationId, command); previous = hash;
   }
   const items: SyncedVaultItem[] = [];
   for (const entry of revisions) {
@@ -34,6 +34,15 @@ export async function openVaultCollectionSync(input: { bytes: Uint8Array; accoun
     const itemType: 'note' | 'login' = type;
     const item: SyncedVaultItem = { id, revisionNumber, revisionHash, type: itemType, title, ...(itemType === 'note' ? { body: decoded.get(4) as string } : { username: decoded.get(5) as string, password: decoded.get(6) as string, url: decoded.get(7) as string }), labels: decoded.get(8) as string[] };
     const prior = items.findIndex((candidate) => candidate.id === id); if (prior >= 0) items[prior] = item; else items.push(item);
+  }
+  for (const entry of tombstones) {
+    if (!(entry instanceof Map) || entry.size !== 4) throw new Error('Invalid vault tombstone.');
+    const id = text(entry, 1); const lastRevisionHash = bytes(entry, 2, 32); const deviceId = text(entry, 3); const operationId = text(entry, 4);
+    const command = known.get(operationId); if (!command || command.get(3) !== 'note-delete' || command.get(5) !== `device:${input.deviceId}` || deviceId !== input.deviceId) throw new Error('Unverified vault tombstone.');
+    const payload = decodeCanonicalCbor(command.get(9) as Uint8Array);
+    if (payload.size !== 2 || text(payload, 1) !== id || !same(bytes(payload, 2, 32), lastRevisionHash)) throw new Error('Unverified vault tombstone.');
+    const index = items.findIndex((item) => item.id === id);
+    if (index >= 0) items.splice(index, 1);
   }
   return items;
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitInitialDeviceRegistration, admitNoteAppend, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -110,6 +110,21 @@ export async function POST(request: NextRequest) {
       });
       if (error || !data) return cborError(409, 'note-append-rejected');
       const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, note.noteId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'note-delete') {
+      const { command } = admission;
+      const deleted = admitNoteDelete(command);
+      const { data, error } = await admin.schema('private').rpc('delete_vault_note', {
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'), p_note_id: deleted.noteId,
+        p_expected_revision_hash: Buffer.from(deleted.expectedRevisionHash).toString('base64'), p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'), p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'note-delete-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, deleted.noteId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 

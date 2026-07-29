@@ -114,6 +114,12 @@ export class BrowserVaultRuntime {
     return { noteId: response.noteId, command: response.command };
   }
 
+  async deleteNote(input: { deviceId: string; collectionId: string; noteId: string; previousRevisionHash: Uint8Array }): Promise<{ noteId: string; command: Uint8Array }> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'delete-note', accountId: this.accountId, ...input, previousRevisionHash: copy(input.previousRevisionHash) });
+    if (response.type !== 'note-deleted') throw new Error('Vault worker rejected note deletion.');
+    return { noteId: response.noteId, command: response.command };
+  }
+
   async openCollectionSync(input: { deviceId: string; collectionId: string; sync: Uint8Array }) {
     const response = await this.request({ id: crypto.randomUUID(), type: 'open-sync', accountId: this.accountId, ...input, sync: copy(input.sync) });
     if (response.type !== 'sync-opened') throw new Error('Vault worker rejected collection sync.');

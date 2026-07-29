@@ -318,6 +318,7 @@ begin
   end if;
 
   if not note_exists and p_expected_previous_revision_hash is not null then return false; end if;
+  if note_exists and current_note.deleted_at is not null then return false; end if;
   if note_exists and current_note.current_revision_hash is distinct from p_expected_previous_revision_hash then return false; end if;
   if not note_exists then
     insert into public.vault_notes (id, collection_id, created_by_device_id, current_revision, current_revision_hash)
@@ -348,4 +349,65 @@ $$;
 revoke all on function private.append_vault_note_revision(
   uuid, uuid, uuid, uuid, bytea, uuid, bytea, integer, bytea, bytea, bytea, bytea,
   bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
+) from public, anon, authenticated;
+
+-- Deletion retains only an authenticated non-secret tombstone. The route has
+-- already verified the device-signed canonical command before this transaction.
+create function private.delete_vault_note(
+  p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
+  p_expected_collection_head bytea, p_note_id uuid, p_expected_revision_hash bytea,
+  p_operation_id uuid, p_command_payload bytea, p_command_hash bytea, p_command_signature bytea
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_operation public.vault_collection_operations%rowtype;
+  current_note public.vault_notes%rowtype;
+begin
+  if octet_length(p_expected_collection_head) <> 32 or octet_length(p_expected_revision_hash) <> 32
+     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64 then return false;
+  end if;
+
+  select * into current_operation from public.vault_collection_operations
+  where collection_id = p_collection_id order by sequence_number desc limit 1 for update;
+  if not found then return false; end if;
+  select * into current_note from public.vault_notes
+  where id = p_note_id and collection_id = p_collection_id for update;
+  if not found or current_note.deleted_at is not null
+     or current_operation.operation_hash <> p_expected_collection_head
+     or current_note.current_revision_hash <> p_expected_revision_hash
+     or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
+     or exists (select 1 from public.vault_tombstones where note_id = p_note_id)
+     or not exists (
+       select 1 from public.vault_devices d join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
+       where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active' and d.auth_session_id = p_session_id
+     ) or not exists (
+       select 1 from public.vault_collection_memberships m
+       where m.collection_id = p_collection_id and m.account_id = p_account_id and m.status = 'active' and m.role in ('owner', 'editor')
+     ) then return false;
+  end if;
+
+  update public.vault_notes set deleted_at = now() where id = p_note_id;
+  delete from public.vault_note_revisions where note_id = p_note_id;
+  insert into public.vault_collection_operations (
+    operation_id, collection_id, sequence_number, operation_type, canonical_payload, previous_operation_hash,
+    operation_hash, author_device_id, signature, protocol_version
+  ) values (
+    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'note-delete', p_command_payload, current_operation.operation_hash,
+    p_command_hash, p_device_id, p_command_signature, 1
+  );
+  insert into public.vault_tombstones (
+    note_id, collection_id, deleted_by_device_id, delete_operation_id, last_revision_hash
+  ) values (
+    p_note_id, p_collection_id, p_device_id, p_operation_id, p_expected_revision_hash
+  );
+  return true;
+end;
+$$;
+
+revoke all on function private.delete_vault_note(
+  uuid, uuid, uuid, uuid, bytea, uuid, bytea, uuid, bytea, bytea, bytea
 ) from public, anon, authenticated;

@@ -21,11 +21,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // the current worker cannot verify from genesis.
   if (!Number.isSafeInteger(after) || after !== 0) return response(422, new Map([[1, 'invalid-cursor']]));
   const supabase = await createClient();
-  const [{ data: operations, error: operationError }, { data: revisions, error: revisionError }] = await Promise.all([
+  const [{ data: operations, error: operationError }, { data: revisions, error: revisionError }, { data: tombstones, error: tombstoneError }] = await Promise.all([
     supabase.from('vault_collection_operations').select('operation_id, sequence_number, operation_type, canonical_payload, previous_operation_hash, operation_hash, author_device_id, signature').eq('collection_id', collectionId).gt('sequence_number', after).order('sequence_number').limit(100),
     supabase.from('vault_note_revisions').select('note_id, revision_number, collection_epoch, encrypted_content, content_nonce, wrapped_revision_key, key_wrap_nonce, ciphertext_hash, wrapped_revision_key_hash, revision_hash, previous_revision_hash, author_device_id, author_signature, operation_id').eq('collection_id', collectionId).order('created_at').limit(100),
+    supabase.from('vault_tombstones').select('note_id, deleted_by_device_id, delete_operation_id, last_revision_hash').eq('collection_id', collectionId).order('deleted_at').limit(100),
   ]);
-  if (operationError || revisionError) return response(422, new Map([[1, 'sync-unavailable']]));
+  if (operationError || revisionError || tombstoneError) return response(422, new Map([[1, 'sync-unavailable']]));
   const operationRecords: import('@/lib/vault/protocol').CborValue[] = [];
   for (const op of operations ?? []) {
     const payload = bytes(op.canonical_payload); const hash = bytes(op.operation_hash); const signature = bytes(op.signature); const previous = bytes(op.previous_operation_hash);
@@ -38,5 +39,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     if (values.some((value) => !value)) continue;
     revisionRecords.push(new Map([[1, revision.note_id], [2, revision.revision_number], [3, revision.collection_epoch], [4, values[0]!], [5, values[1]!], [6, values[2]!], [7, values[3]!], [8, values[4]!], [9, values[5]!], [10, values[6]!], [11, revision.author_device_id], [12, values[7]!], [13, revision.operation_id], [14, bytes(revision.previous_revision_hash)]]));
   }
-  return response(200, new Map<number, import('@/lib/vault/protocol').CborValue>([[1, 1], [2, collectionId], [3, operationRecords], [4, revisionRecords], [5, after + operationRecords.length]]));
+  const tombstoneRecords: import('@/lib/vault/protocol').CborValue[] = [];
+  for (const tombstone of tombstones ?? []) {
+    const lastRevisionHash = bytes(tombstone.last_revision_hash);
+    if (!lastRevisionHash) continue;
+    tombstoneRecords.push(new Map([[1, tombstone.note_id], [2, lastRevisionHash], [3, tombstone.deleted_by_device_id], [4, tombstone.delete_operation_id]]));
+  }
+  return response(200, new Map<number, import('@/lib/vault/protocol').CborValue>([[1, 1], [2, collectionId], [3, operationRecords], [4, revisionRecords], [5, after + operationRecords.length], [6, tombstoneRecords]]));
 }
