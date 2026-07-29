@@ -25,9 +25,6 @@ export type VaultWorkerRequest =
     type: 'create-collection';
     accountId: string;
     deviceId: string;
-    deviceEncryptionPublicKey: Uint8Array;
-    recoveryKeyId: string;
-    recoveryEncryptionPublicKey: Uint8Array;
     metadataTitle: string;
     collectionId?: string;
     operationId?: string;

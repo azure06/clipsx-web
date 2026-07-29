@@ -19,7 +19,7 @@ describe('vault bootstrap', () => {
     const creation = admitCollectionCreation(decodeVaultCommand(created.command));
     const deviceEnvelope = decodeCanonicalCbor(creation.deviceEnvelope.payload);
     const bootstrap = encodeCanonicalCbor(new Map<number, CborValue>([
-      [1, 1], [2, 'device-1'], [3, signing.publicKey], [4, [new Map<number, CborValue>([
+      [1, 1], [2, 'device-1'], [3, signing.publicKey], [4, deviceEncryption.publicKey], [5, 'recovery-1'], [6, recoveryEncryption.publicKey], [7, [new Map<number, CborValue>([
         [1, 'collection-1'], [2, creation.encryptedMetadata], [3, creation.metadataNonce], [4, 1],
         [5, creation.transitionPayload], [6, creation.transitionSignature], [7, creation.transitionHash],
         [8, deviceEnvelope.get(7)!], [9, deviceEnvelope.get(8)!], [10, creation.deviceEnvelope.payload], [11, await sha256(creation.deviceEnvelope.payload)],
@@ -28,6 +28,6 @@ describe('vault bootstrap', () => {
     ]));
     await expect(openVaultBootstrap({
       bytes: bootstrap, accountId: 'account-1', deviceEncryptionSecretKey: deviceEncryption.secretKey, deviceSigningSecretKey: signing.secretKey,
-    })).resolves.toEqual([{ id: 'collection-1', title: 'Personal' }]);
+    })).resolves.toMatchObject({ collections: [{ id: 'collection-1', title: 'Personal' }] });
   });
 });

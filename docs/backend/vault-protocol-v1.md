@@ -44,6 +44,9 @@ signed session-binding command without releasing the device signing key.
 records, epoch transitions, and device envelope bytes as canonical CBOR. The
 worker verifies their signatures and hashes, opens its own HPKE envelopes, and
 decrypts collection metadata before returning collection labels to the UI.
+The unlocked vault screen can create a named collection through that worker;
+the collection appears only after the command succeeds and the bootstrap result
+has been re-fetched and verified.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 

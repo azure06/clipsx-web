@@ -81,17 +81,13 @@ export class BrowserVaultRuntime {
 
   async createCollection(input: {
     deviceId: string;
-    deviceEncryptionPublicKey: Uint8Array;
-    recoveryKeyId: string;
-    recoveryEncryptionPublicKey: Uint8Array;
     metadataTitle: string;
     collectionId?: string;
     operationId?: string;
   }): Promise<{ collectionId: string; command: Uint8Array }> {
     const response = await this.request({
       id: crypto.randomUUID(), type: 'create-collection', accountId: this.accountId,
-      deviceId: input.deviceId, deviceEncryptionPublicKey: copy(input.deviceEncryptionPublicKey),
-      recoveryKeyId: input.recoveryKeyId, recoveryEncryptionPublicKey: copy(input.recoveryEncryptionPublicKey),
+      deviceId: input.deviceId,
       metadataTitle: input.metadataTitle, collectionId: input.collectionId, operationId: input.operationId,
     });
     if (response.type !== 'collection-created') throw new Error('Vault worker rejected collection creation.');
