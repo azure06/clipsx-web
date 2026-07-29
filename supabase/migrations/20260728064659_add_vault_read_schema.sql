@@ -47,6 +47,9 @@ create table public.vault_recovery_keys (
 
 create unique index vault_recovery_keys_one_active_per_account on public.vault_recovery_keys(account_id) where status = 'active';
 create index vault_devices_active_account_idx on public.vault_devices(account_id) where status = 'active';
+create unique index vault_devices_one_active_session_idx
+  on public.vault_devices(auth_session_id)
+  where auth_session_id is not null and status = 'active';
 
 create table public.vault_collections (
   id uuid primary key default gen_random_uuid(),
@@ -157,6 +160,29 @@ returns boolean language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function private.can_read_vault_collection(uuid, uuid) from public, anon, authenticated;
 
+create or replace function private.has_active_bound_vault_device(
+  p_account_id uuid,
+  p_session_id text
+)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.vault_devices d
+    join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
+    where d.account_id = p_account_id
+      and d.status = 'active'
+      and d.auth_session_id::text = p_session_id
+  )
+$$;
+
+revoke all on function private.has_active_bound_vault_device(uuid, text)
+  from public, anon, authenticated;
+
 alter table public.vault_devices enable row level security;
 alter table public.vault_recovery_keys enable row level security;
 alter table public.vault_collections enable row level security;
@@ -168,12 +194,33 @@ alter table public.vault_note_revisions enable row level security;
 
 create policy vault_devices_read_own on public.vault_devices for select to authenticated using ((select auth.uid()) = account_id);
 create policy vault_recovery_keys_read_own on public.vault_recovery_keys for select to authenticated using ((select auth.uid()) = account_id);
-create policy vault_collections_read_member on public.vault_collections for select to authenticated using (private.can_read_vault_collection(id, (select auth.uid())));
-create policy vault_memberships_read_member on public.vault_collection_memberships for select to authenticated using (private.can_read_vault_collection(collection_id, (select auth.uid())));
-create policy vault_epochs_read_member on public.vault_collection_epochs for select to authenticated using (private.can_read_vault_collection(collection_id, (select auth.uid())));
-create policy vault_device_envelopes_read_recipient on public.vault_device_epoch_envelopes for select to authenticated using (recipient_device_id in (select d.id from public.vault_devices d where d.account_id = (select auth.uid()) and d.status = 'active'));
-create policy vault_notes_read_member on public.vault_notes for select to authenticated using (private.can_read_vault_collection(collection_id, (select auth.uid())));
-create policy vault_note_revisions_read_member on public.vault_note_revisions for select to authenticated using (private.can_read_vault_collection(collection_id, (select auth.uid())));
+create policy vault_collections_read_member on public.vault_collections for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(id, (select auth.uid()))
+);
+create policy vault_memberships_read_member on public.vault_collection_memberships for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
+);
+create policy vault_epochs_read_member on public.vault_collection_epochs for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
+);
+create policy vault_device_envelopes_read_recipient on public.vault_device_epoch_envelopes for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and recipient_device_id in (
+    select d.id from public.vault_devices d
+    where d.account_id = (select auth.uid()) and d.status = 'active'
+  )
+);
+create policy vault_notes_read_member on public.vault_notes for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
+);
+create policy vault_note_revisions_read_member on public.vault_note_revisions for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
+);
 
 revoke all on all tables in schema public from anon;
 revoke insert, update, delete, truncate on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_notes, public.vault_note_revisions from authenticated;

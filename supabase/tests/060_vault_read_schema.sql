@@ -5,8 +5,8 @@ select has_table('public', 'vault_collections', 'vault collection table exists')
 select has_table('public', 'vault_collection_memberships', 'vault membership table exists');
 select has_table('public', 'vault_collection_epochs', 'vault epoch table exists');
 select has_table('public', 'vault_note_revisions', 'vault immutable revision table exists');
-select ok(row_security_active('public', 'vault_devices'), 'device rows use RLS');
-select ok(row_security_active('public', 'vault_note_revisions'), 'ciphertext revisions use RLS');
+select ok((select relrowsecurity from pg_class where oid = 'public.vault_devices'::regclass), 'device rows use RLS');
+select ok((select relrowsecurity from pg_class where oid = 'public.vault_note_revisions'::regclass), 'ciphertext revisions use RLS');
 select ok(not has_table_privilege('authenticated', 'public.vault_notes', 'insert'), 'browser cannot mutate vault rows directly');
 select * from finish();
 rollback;

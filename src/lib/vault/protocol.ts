@@ -44,10 +44,11 @@ export type HpkeCiphertext = {
 };
 
 export const VAULT_COMMAND_TYPES = [
-  'device-register', 'device-authorize', 'device-revoke', 'recovery-rotate',
-  'collection-create', 'note-append', 'note-delete', 'checkpoint-append',
-  'invitation-create', 'invitation-accept', 'invitation-confirm', 'member-add',
-  'member-remove', 'epoch-rotate',
+  'device-register', 'device-session-bind', 'device-authorize', 'device-revoke',
+  'recovery-rotate', 'collection-create', 'note-append', 'note-delete',
+  'checkpoint-append', 'invitation-create', 'invitation-accept',
+  'invitation-confirm', 'member-add', 'member-remove', 'epoch-rotate',
+  'epoch-envelope-grant',
 ] as const;
 
 export type VaultCommandType = (typeof VAULT_COMMAND_TYPES)[number];

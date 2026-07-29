@@ -34,6 +34,7 @@ revoke all on function private.consume_vault_device_registration_challenge(uuid,
 
 create or replace function private.register_initial_vault_device(
   p_account_id uuid,
+  p_auth_session_id uuid,
   p_challenge_id uuid,
   p_challenge_response_hash bytea,
   p_device_id uuid,
@@ -65,7 +66,8 @@ begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
 
   if exists (select 1 from public.vault_recovery_keys where account_id = p_account_id)
-     or exists (select 1 from public.vault_devices where account_id = p_account_id and status = 'active') then
+     or exists (select 1 from public.vault_devices where account_id = p_account_id and status = 'active')
+     or not exists (select 1 from auth.sessions where id = p_auth_session_id and user_id = p_account_id) then
     return false;
   end if;
 
@@ -86,19 +88,21 @@ begin
   insert into public.vault_devices (
     id, account_id, display_name, client_type, platform, enrollment_origin,
     key_protection_profile, client_crypto_capabilities, encryption_public_key,
-    signing_public_key, encryption_algorithm, signing_algorithm, key_version, status
+    signing_public_key, encryption_algorithm, signing_algorithm, key_version, status, auth_session_id
   ) values (
     p_device_id, p_account_id, p_display_name, 'browser', p_platform, p_enrollment_origin,
     p_protection_profile, p_capabilities, p_device_encryption_public_key,
-    p_device_signing_public_key, 'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active'
+    p_device_signing_public_key, 'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active', p_auth_session_id
   );
 
   insert into public.vault_device_authorizations (
     account_id, device_id, recovery_key_id, authorization_method, authorization_payload,
-    authorization_payload_hash, proof_of_possession_payload, signature
+    authorization_payload_hash, proof_of_possession_payload,
+    proof_of_possession_signature, signature
   ) values (
     p_account_id, p_device_id, p_recovery_key_id, 'recovery', p_authorization_payload,
-    p_authorization_payload_hash, p_device_proof_payload, p_recovery_command_signature
+    p_authorization_payload_hash, p_device_proof_payload,
+    p_device_proof_signature, p_recovery_command_signature
   );
 
   insert into public.vault_account_operations (
@@ -113,4 +117,69 @@ begin
 end;
 $$;
 
-revoke all on function private.register_initial_vault_device(uuid, uuid, bytea, uuid, text, text, text, text, jsonb, bytea, bytea, uuid, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea) from public, anon, authenticated;
+revoke all on function private.register_initial_vault_device(uuid, uuid, uuid, bytea, uuid, text, text, text, text, jsonb, bytea, bytea, uuid, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea) from public, anon, authenticated;
+
+create function private.bind_vault_device_session(
+  p_account_id uuid,
+  p_device_id uuid,
+  p_session_id uuid,
+  p_expected_previous_operation_hash bytea,
+  p_operation_id uuid,
+  p_command_payload bytea,
+  p_command_hash bytea,
+  p_signature bytea
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_operation public.vault_account_operations%rowtype;
+begin
+  perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
+
+  select * into current_operation
+  from public.vault_account_operations
+  where account_id = p_account_id
+  order by sequence_number desc
+  limit 1
+  for update;
+
+  if not found
+     or current_operation.operation_hash <> p_expected_previous_operation_hash
+     or exists (
+       select 1 from public.vault_devices
+       where auth_session_id = p_session_id and status = 'active' and id <> p_device_id
+     )
+     or not exists (
+       select 1 from auth.sessions where id = p_session_id and user_id = p_account_id
+     )
+     or not exists (
+       select 1 from public.vault_devices
+       where id = p_device_id and account_id = p_account_id and status = 'active'
+     ) then
+    return false;
+  end if;
+
+  update public.vault_devices
+  set auth_session_id = p_session_id, last_seen_at = now()
+  where id = p_device_id and account_id = p_account_id and status = 'active';
+
+  insert into public.vault_account_operations (
+    operation_id, account_id, sequence_number, operation_type, canonical_payload,
+    previous_operation_hash, operation_hash, author_device_id, signature,
+    protocol_version
+  ) values (
+    p_operation_id, p_account_id, current_operation.sequence_number + 1,
+    'device-session-bind', p_command_payload, current_operation.operation_hash,
+    p_command_hash, p_device_id, p_signature, 1
+  );
+
+  return true;
+end;
+$$;
+
+revoke all on function private.bind_vault_device_session(
+  uuid, uuid, uuid, bytea, uuid, bytea, bytea, bytea
+) from public, anon, authenticated;

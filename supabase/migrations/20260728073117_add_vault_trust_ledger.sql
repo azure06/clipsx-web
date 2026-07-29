@@ -10,6 +10,7 @@ create table public.vault_device_authorizations (
   authorization_payload bytea not null,
   authorization_payload_hash bytea not null unique,
   proof_of_possession_payload bytea not null,
+  proof_of_possession_signature bytea not null check (octet_length(proof_of_possession_signature) = 64),
   signature bytea not null check (octet_length(signature) = 64),
   created_at timestamptz not null default now(),
   check ((authorized_by_device_id is null) <> (recovery_key_id is null))
@@ -20,7 +21,7 @@ create table public.vault_account_operations (
   operation_id uuid primary key,
   account_id uuid not null references auth.users(id) on delete cascade,
   sequence_number bigint not null check (sequence_number >= 1),
-  operation_type text not null check (operation_type in ('device-register', 'device-authorize', 'device-revoke', 'recovery-rotate', 'passkey-recovery-wrapper-create', 'passkey-recovery-wrapper-revoke')),
+  operation_type text not null check (operation_type in ('device-register', 'device-session-bind', 'device-authorize', 'device-revoke', 'recovery-rotate', 'passkey-recovery-wrapper-create', 'passkey-recovery-wrapper-revoke')),
   canonical_payload bytea not null,
   previous_operation_hash bytea,
   operation_hash bytea not null unique,

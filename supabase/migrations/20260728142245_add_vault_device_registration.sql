@@ -6,12 +6,17 @@ create table private.vault_device_registration_challenges (
   expires_at timestamptz not null,
   consumed_at timestamptz,
   created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   check (expires_at > created_at)
 );
 
 create index vault_device_registration_challenges_account_expiry_idx
   on private.vault_device_registration_challenges(account_id, expires_at)
   where consumed_at is null;
+
+create trigger set_vault_device_registration_challenge_updated_at
+before update on private.vault_device_registration_challenges
+for each row execute function private.set_updated_at();
 
 alter table private.vault_device_registration_challenges enable row level security;
 revoke all on private.vault_device_registration_challenges from public, anon, authenticated;

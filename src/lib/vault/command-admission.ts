@@ -4,14 +4,22 @@ import type { User } from '@supabase/supabase-js';
 
 import { decodeCanonicalCbor, decodeVaultCommand, encodeCanonicalCbor, verifyProtocolRecord, type VaultCommand } from './protocol';
 
-const MAX_COMMAND_BYTES = 1_100_000;
+export const MAX_COMMAND_BYTES = 1_100_000;
+
+export type VaultCommandPrincipal = Pick<User, 'id'> & { sessionId: string };
+
+export type ActiveVaultDevice = {
+  signingPublicKey: Uint8Array;
+  boundSessionId: string | null;
+};
 
 export type VaultCommandLookup = {
-  findActiveDevice(id: string, accountId: string): Promise<Uint8Array | null>;
+  findActiveDevice(id: string, accountId: string): Promise<ActiveVaultDevice | null>;
   findActiveRecoveryKey(id: string, accountId: string): Promise<Uint8Array | null>;
 };
 
-export type CommandAdmission = { command: VaultCommand };
+export type DeviceSessionBinding = { deviceId: string; sessionId: string };
+export type CommandAdmission = { command: VaultCommand; sessionBinding?: DeviceSessionBinding };
 export type InitialDeviceRegistration = {
   deviceId: string; recoveryKeyId: string; displayName: string; platform: string;
   enrollmentOrigin: string; protectionProfile: string; capabilitiesHash: Uint8Array;
@@ -28,6 +36,7 @@ function bytes(record: Map<number, unknown>, label: number, length: number): Uin
 }
 
 export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, user: Pick<User, 'id'>): Promise<{ command: VaultCommand; registration: InitialDeviceRegistration }> {
+  if (bytesInput.byteLength === 0 || bytesInput.byteLength > MAX_COMMAND_BYTES) throw new Error('command-size');
   const command = decodeVaultCommand(bytesInput);
   if (command.operationType !== 'device-register' || command.accountId !== user.id || !command.recoveryKeyId) throw new Error('invalid-registration');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
@@ -50,16 +59,18 @@ export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, use
 
 export async function admitVaultCommand(
   bytes: Uint8Array,
-  user: Pick<User, 'id'>,
+  user: VaultCommandPrincipal,
   lookup: VaultCommandLookup,
 ): Promise<CommandAdmission> {
   if (bytes.byteLength === 0 || bytes.byteLength > MAX_COMMAND_BYTES) throw new Error('command-size');
   const command = decodeVaultCommand(bytes);
   if (command.accountId !== user.id) throw new Error('account-mismatch');
 
-  const publicKey = command.authorDeviceId
+  const device = command.authorDeviceId
     ? await lookup.findActiveDevice(command.authorDeviceId, user.id)
-    : await lookup.findActiveRecoveryKey(command.recoveryKeyId!, user.id);
+    : null;
+  const publicKey = device?.signingPublicKey
+    ?? (command.recoveryKeyId ? await lookup.findActiveRecoveryKey(command.recoveryKeyId, user.id) : null);
   if (!publicKey) throw new Error('inactive-author');
 
   const valid = await verifyProtocolRecord(
@@ -69,5 +80,18 @@ export async function admitVaultCommand(
     publicKey,
   );
   if (!valid) throw new Error('invalid-signature');
-  return { command };
+
+  if (command.operationType !== 'device-session-bind') {
+    if (command.authorDeviceId && device?.boundSessionId !== user.sessionId) throw new Error('unbound-session');
+    return { command };
+  }
+
+  if (!command.authorDeviceId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) {
+    throw new Error('invalid-session-binding');
+  }
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  if (payload.size !== 2 || text(payload, 1) !== command.authorDeviceId || text(payload, 2) !== user.sessionId) {
+    throw new Error('invalid-session-binding');
+  }
+  return { command, sessionBinding: { deviceId: command.authorDeviceId, sessionId: user.sessionId } };
 }

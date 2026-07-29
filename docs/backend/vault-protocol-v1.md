@@ -31,9 +31,11 @@ challenge, signs/submits the bootstrap command, and only then saves the local
 encrypted device bundle. The same route discovers this account's local device
 record and unlocks its device keys in page memory using the dedicated PRF
 credential or passphrase; locking releases the page's reference to those keys.
-The next implementation phase moves this unlocked state into a dedicated worker,
-adds signed session rebinding, and implements the remaining command
-transactions, sync, and encrypted-item UI.
+Initial registration binds the device to the authenticated Supabase session;
+an unlocked active device can submit the signed `device-session-bind` command
+after later account sign-in changes that session. The next implementation phase
+moves unlocked state into a dedicated worker and implements the remaining
+command transactions, sync, and encrypted-item UI.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 

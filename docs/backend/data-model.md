@@ -114,7 +114,8 @@ account to a proposed device encryption public key and stores only the SHA-256
 hash of a random challenge, expiry, and consumption time. The server returns
 the challenge only as an HPKE ciphertext addressed to the proposed device; the
 client returns its hash after local decryption. This is not a vault secret and
-expires after the one-time enrollment attempt.
+expires after the one-time enrollment attempt. Its `updated_at` field records
+challenge consumption for operational audit without retaining the raw challenge.
 
 ### `devices` — Device
 
@@ -170,7 +171,7 @@ Append-only certificate record that activates a pending device.
 | `authorization_method` | `qr`, `short-auth-string`, `out-of-band`, or `recovery`. |
 | `authorization_payload` | Exact deterministic-CBOR `DeviceAuthorization` payload defined in `architecture.md`. |
 | `authorization_payload_hash` | Domain-separated hash used in log/checkpoint structures. |
-| `proof_of_possession_payload`, `proof_of_possession_signature` | Canonical signing/encryption possession transcript and the new device's Ed25519 signature over it. The signature is nullable only for legacy rows created before this evidence column existed. |
+| `proof_of_possession_payload`, `proof_of_possession_signature` | Canonical signing/encryption possession transcript and the new device's required 64-byte Ed25519 signature over it. |
 | `signature` | Authorizer signature over the canonical authorization payload. |
 | `created_at` | Signed creation time and append time. |
 
