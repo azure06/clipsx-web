@@ -823,11 +823,15 @@ server never converts plaintext.
 ClipsX defaults to optimistic concurrency, not a CRDT. A writer signs its
 expected `previousRevisionHash` and next revision number. The server atomically
 accepts only one operation extending the current head. A concurrent loser gets
-a conflict response, keeps its plaintext/encrypted draft locally, downloads
-and verifies the accepted revision, and creates a user-selected or deterministic
-application merge as a new signed revision. No ciphertext is silently
-overwritten and no merge-safety claim is made. Invalid parent or duplicate
-revision aborts normal commit.
+a `409` conflict response. The implemented browser flow keeps its plaintext
+draft only in worker/UI memory (not IndexedDB), re-downloads bootstrap and the
+affected collection through the verified paths, then displays the verified
+remote revision. The user can keep remote and discard the draft, reapply local,
+or edit a manual merge; reapply and merge both sign a fresh revision against
+the refreshed head. Lock, page exit, cross-tab lock, and vault UI teardown
+clear the draft and all rendered plaintext. No ciphertext is silently
+overwritten, no draft is claimed durable, and no merge-safety claim is made.
+Invalid parent or duplicate revision aborts normal commit.
 
 ### 13. Detecting a stale or replayed response
 

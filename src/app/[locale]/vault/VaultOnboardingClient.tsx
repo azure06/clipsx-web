@@ -7,6 +7,7 @@ import { listBrowserDeviceRecords, saveBrowserDeviceRecord, type BrowserDeviceRe
 import { createBrowserVaultIdentity, encodeBrowserDeviceBundle, wrapDeviceBundle, type BrowserVaultIdentity } from '@/lib/vault/browser-onboarding';
 import { createInitialDeviceRegistrationCommand, decodeDeviceRegistrationChallenge } from '@/lib/vault/browser-registration';
 import { BrowserVaultRuntime } from '@/lib/vault/browser-vault-runtime';
+import { beginNoteConflict, isStaleNoteUpdate, keepRemoteResolution, manualMergeResolution, reapplyLocalResolution, type NoteConflict, type VaultItemContent, type VaultItemHead } from '@/lib/vault/browser-note-conflict';
 import { deriveVaultPassphraseKey, encodeCanonicalCbor, randomBytes } from '@/lib/vault/protocol';
 import { createVaultPrfCredential, getVaultPrfOutput } from '@/lib/vault/webauthn-prf';
 
@@ -127,16 +128,28 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [url, setUrl] = useState('');
-  const [items, setItems] = useState<Array<{ id: string; type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string }>>([]);
+  const [items, setItems] = useState<VaultItemHead[]>([]);
+  const [editing, setEditing] = useState<VaultItemHead | null>(null);
+  const [draft, setDraft] = useState<VaultItemContent | null>(null);
+  const [conflict, setConflict] = useState<NoteConflict | null>(null);
+  const [mergeDraft, setMergeDraft] = useState<VaultItemContent | null>(null);
   const runtimeRef = useRef<BrowserVaultRuntime | null>(null);
+
+  function clearPlaintext() {
+    setItems([]); setEditing(null); setDraft(null); setConflict(null); setMergeDraft(null);
+    setItemTitle(''); setItemBody(''); setUsername(''); setPassword(''); setUrl('');
+  }
 
   useEffect(() => {
     const runtime = new BrowserVaultRuntime(accountId);
     runtimeRef.current = runtime;
-    const lockOnPageExit = () => { void runtime.lock(); };
+    runtime.onLock = clearPlaintext;
+    const lockOnPageExit = () => { clearPlaintext(); void runtime.lock(); };
     window.addEventListener('pagehide', lockOnPageExit);
     return () => {
       window.removeEventListener('pagehide', lockOnPageExit);
+      clearPlaintext();
+      runtime.onLock = null;
       runtime.dispose();
       runtimeRef.current = null;
     };
@@ -202,16 +215,68 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
     } finally {
       setUnlocked(false);
       setCollections([]);
-      setItems([]);
+      clearPlaintext();
       setWorking(false);
     }
   }
 
-  async function refreshItems() {
-    if (!runtimeRef.current || !selectedCollectionId) return;
-    const response = await fetch(`/api/vault/collections/${selectedCollectionId}/sync`, { cache: 'no-store' });
+  async function refreshItems(collectionId = selectedCollectionId): Promise<VaultItemHead[]> {
+    if (!runtimeRef.current || !collectionId) return [];
+    const response = await fetch(`/api/vault/collections/${collectionId}/sync`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Could not sync encrypted items.');
-    setItems(await runtimeRef.current.openCollectionSync({ deviceId: record.deviceId, collectionId: selectedCollectionId, sync: new Uint8Array(await response.arrayBuffer()) }));
+    const opened = await runtimeRef.current.openCollectionSync({ deviceId: record.deviceId, collectionId, sync: new Uint8Array(await response.arrayBuffer()) });
+    setItems(opened);
+    return opened;
+  }
+
+  function itemContent(item: VaultItemContent): VaultItemContent {
+    return { type: item.type, title: item.title, body: item.body, username: item.username, password: item.password, url: item.url, labels: [...item.labels] };
+  }
+
+  async function submitUpdate(remote: VaultItemHead, local: VaultItemContent) {
+    if (!runtimeRef.current || !selectedCollectionId) throw new Error('Vault runtime is not ready.');
+    const created = await runtimeRef.current.updateNote({
+      deviceId: record.deviceId, collectionId: selectedCollectionId, noteId: remote.id,
+      revisionNumber: remote.revisionNumber + 1, previousRevisionHash: remote.revisionHash, content: local,
+    });
+    const response = await fetch('/api/vault/commands', { method: 'POST', headers: { 'Content-Type': 'application/cbor' }, body: body(created.command) });
+    if (isStaleNoteUpdate(response.status)) {
+      await refreshCollections();
+      const refreshed = await refreshItems(selectedCollectionId);
+      const accepted = refreshed.find((item) => item.id === remote.id);
+      if (!accepted) throw new Error('The conflicting remote item was not returned by verified sync.');
+      setEditing(null); setDraft(null); setMergeDraft(null);
+      setConflict(beginNoteConflict(local, accepted));
+      return;
+    }
+    if (!response.ok) throw new Error('Could not update the encrypted item.');
+    setEditing(null); setDraft(null); setConflict(null); setMergeDraft(null);
+    await refreshCollections();
+    await refreshItems(selectedCollectionId);
+  }
+
+  async function saveEdit() {
+    if (!editing || !draft) return;
+    setWorking(true); setError(null);
+    try { await submitUpdate(editing, draft); }
+    catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not update the encrypted item.'); }
+    finally { setWorking(false); }
+  }
+
+  async function reapplyConflict() {
+    if (!conflict) return;
+    setWorking(true); setError(null);
+    try { await submitUpdate(conflict.remote, reapplyLocalResolution(conflict)); }
+    catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not reapply the encrypted draft.'); }
+    finally { setWorking(false); }
+  }
+
+  async function saveManualMerge() {
+    if (!conflict || !mergeDraft) return;
+    setWorking(true); setError(null);
+    try { await submitUpdate(conflict.remote, manualMergeResolution(conflict, mergeDraft)); }
+    catch (caught) { setError(caught instanceof Error ? caught.message : 'Could not save the merged encrypted item.'); }
+    finally { setWorking(false); }
   }
 
   async function createItem() {
@@ -234,6 +299,11 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
     } finally { setWorking(false); }
   }
 
-  if (unlocked) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">Your collections</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Collection names and saved-item plaintext are decrypted and encrypted only inside the vault worker.</p><div className="mt-5 flex gap-2"><input value={collectionTitle} onChange={(event) => setCollectionTitle(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" placeholder="Collection name" maxLength={128} /><Button loading={working} onClick={createCollection}>Create collection</Button></div><section className="mt-5 space-y-3 rounded-lg border border-emerald-500/30 bg-white/50 p-4 dark:bg-gray-900/50"><h2 className="font-semibold">Save encrypted item</h2><div className="grid gap-3 sm:grid-cols-2"><select value={selectedCollectionId} onChange={(event) => { setSelectedCollectionId(event.target.value); setItems([]); }} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="">Choose collection</option>{collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.title}</option>)}</select><select value={itemType} onChange={(event) => setItemType(event.target.value as 'note' | 'login')} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="note">Note</option><option value="login">Login</option></select></div><input value={itemTitle} onChange={(event) => setItemTitle(event.target.value)} placeholder="Title" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" />{itemType === 'note' ? <textarea value={itemBody} onChange={(event) => setItemBody(event.target.value)} placeholder="Note" className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /> : <><input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Username" autoComplete="off" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete="new-password" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="URL (optional)" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /></>}<Button loading={working} onClick={createItem}>Save encrypted {itemType}</Button></section><Button className="mt-5" variant="outline" onClick={() => void refreshItems().catch((caught) => setError(caught instanceof Error ? caught.message : 'Could not sync encrypted items.'))}>Refresh encrypted items</Button><ul className="mt-3 space-y-2">{items.map((item) => <li key={item.id} className="rounded-lg border border-emerald-500/30 bg-white/50 p-3 dark:bg-gray-900/50"><b>{item.title}</b><p className="mt-1 whitespace-pre-wrap text-sm">{item.type === 'note' ? item.body : `${item.username} · ${item.password}`}</p></li>)}</ul>{error && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}<ul className="mt-5 space-y-2">{collections.length === 0 ? <li className="text-sm text-gray-600 dark:text-gray-300">No encrypted collections yet.</li> : collections.map((collection) => <li key={collection.id} className="rounded-lg border border-emerald-500/30 bg-white/50 px-4 py-3 font-medium dark:bg-gray-900/50">{collection.title}</li>)}</ul><Button className="mt-6" variant="outline" loading={working} onClick={lock}>Lock vault</Button></div></div>;
+  if (unlocked) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">Your collections</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Collection names and saved-item plaintext are decrypted and encrypted only inside the vault worker.</p><div className="mt-5 flex gap-2"><input value={collectionTitle} onChange={(event) => setCollectionTitle(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" placeholder="Collection name" maxLength={128} /><Button loading={working} onClick={createCollection}>Create collection</Button></div><section className="mt-5 space-y-3 rounded-lg border border-emerald-500/30 bg-white/50 p-4 dark:bg-gray-900/50"><h2 className="font-semibold">Save encrypted item</h2><div className="grid gap-3 sm:grid-cols-2"><select value={selectedCollectionId} onChange={(event) => { setSelectedCollectionId(event.target.value); clearPlaintext(); }} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="">Choose collection</option>{collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.title}</option>)}</select><select value={itemType} onChange={(event) => setItemType(event.target.value as 'note' | 'login')} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="note">Note</option><option value="login">Login</option></select></div><input value={itemTitle} onChange={(event) => setItemTitle(event.target.value)} placeholder="Title" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" />{itemType === 'note' ? <textarea value={itemBody} onChange={(event) => setItemBody(event.target.value)} placeholder="Note" className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /> : <><input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Username" autoComplete="off" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete="new-password" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="URL (optional)" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /></>}<Button loading={working} onClick={createItem}>Save encrypted {itemType}</Button></section><Button className="mt-5" variant="outline" onClick={() => void refreshItems().catch((caught) => setError(caught instanceof Error ? caught.message : 'Could not sync encrypted items.'))}>Refresh encrypted items</Button><ul className="mt-3 space-y-2">{items.map((item) => <li key={item.id} className="rounded-lg border border-emerald-500/30 bg-white/50 p-3 dark:bg-gray-900/50"><div className="flex items-center justify-between gap-3"><b>{item.title}</b><Button variant="outline" onClick={() => { setEditing(item); setDraft(itemContent(item)); setConflict(null); }}>Edit</Button></div><p className="mt-1 whitespace-pre-wrap text-sm">{item.type === 'note' ? item.body : `${item.username} · ${item.password}`}</p></li>)}</ul>{editing && draft && <section className="mt-5 space-y-3 rounded-lg border border-cyan-500/40 bg-white/50 p-4 dark:bg-gray-900/50"><h2 className="font-semibold">Edit encrypted item</h2><VaultItemEditor value={draft} onChange={setDraft} /><div className="flex gap-2"><Button loading={working} onClick={saveEdit}>Save new revision</Button><Button variant="outline" onClick={() => { setEditing(null); setDraft(null); }}>Cancel</Button></div></section>}{conflict && <section className="mt-5 space-y-3 rounded-lg border border-amber-500/50 bg-amber-50 p-4 dark:bg-amber-500/10"><h2 className="font-semibold">Update conflict</h2><p className="text-sm">A verified remote revision was accepted first. Your draft is held only in this page’s memory and will be lost if you lock, leave, or close this page.</p><div className="rounded border border-amber-500/30 p-3 text-sm"><b>Verified remote: {conflict.remote.title}</b><p className="whitespace-pre-wrap">{conflict.remote.type === 'note' ? conflict.remote.body : `${conflict.remote.username} · ${conflict.remote.password}`}</p></div><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => { keepRemoteResolution(); setConflict(null); setMergeDraft(null); }}>Keep remote</Button><Button loading={working} onClick={reapplyConflict}>Reapply local</Button><Button variant="outline" onClick={() => setMergeDraft(itemContent(conflict.local))}>Manual merge</Button></div>{mergeDraft && <div className="space-y-3 rounded border border-amber-500/30 p-3"><p className="text-sm">Edit the merged fields, then save a fresh revision from the verified remote head.</p><VaultItemEditor value={mergeDraft} onChange={setMergeDraft} /><Button loading={working} onClick={saveManualMerge}>Save merged revision</Button></div>}</section>}{error && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}<ul className="mt-5 space-y-2">{collections.length === 0 ? <li className="text-sm text-gray-600 dark:text-gray-300">No encrypted collections yet.</li> : collections.map((collection) => <li key={collection.id} className="rounded-lg border border-emerald-500/30 bg-white/50 px-4 py-3 font-medium dark:bg-gray-900/50">{collection.title}</li>)}</ul><Button className="mt-6" variant="outline" loading={working} onClick={lock}>Lock vault</Button></div></div>;
   return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-xl rounded-xl border border-gray-200 p-6 dark:border-white/10"><p className="text-sm font-semibold text-cyan-600">Encrypted vault</p><h1 className="mt-2 font-heading text-3xl font-black">Unlock your vault</h1><p className="mt-3 text-sm text-gray-600 dark:text-gray-300">{record.protectionProfile === 'webauthn-prf-wrapped' ? 'Confirm with the dedicated vault passkey on this browser.' : 'Enter this browser’s vault passphrase.'}</p>{record.protectionProfile === 'vault-passphrase-wrapped' && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="mt-5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" autoComplete="current-password" />}{error && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}<Button className="mt-6" loading={working} onClick={unlock}>Unlock vault</Button></div></div>;
+}
+
+function VaultItemEditor({ value, onChange }: { value: VaultItemContent; onChange: (value: VaultItemContent) => void }) {
+  const change = (patch: Partial<VaultItemContent>) => onChange({ ...value, ...patch });
+  return <><input value={value.title} onChange={(event) => change({ title: event.target.value })} placeholder="Title" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" />{value.type === 'note' ? <textarea value={value.body ?? ''} onChange={(event) => change({ body: event.target.value })} placeholder="Note" className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /> : <><input value={value.username ?? ''} onChange={(event) => change({ username: event.target.value })} placeholder="Username" autoComplete="off" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input type="password" value={value.password ?? ''} onChange={(event) => change({ password: event.target.value })} placeholder="Password" autoComplete="new-password" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input value={value.url ?? ''} onChange={(event) => change({ url: event.target.value })} placeholder="URL (optional)" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /></>}</>;
 }

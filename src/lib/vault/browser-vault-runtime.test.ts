@@ -45,4 +45,16 @@ describe('BrowserVaultRuntime', () => {
     expect(worker.terminated).toBe(true);
     runtime.dispose();
   });
+
+  it('notifies the UI when a lock clears the worker session', async () => {
+    const worker = new FakeWorker();
+    const runtime = new BrowserVaultRuntime('account-1', () => worker);
+    let locks = 0;
+    runtime.onLock = () => { locks += 1; };
+
+    await runtime.lock(false);
+
+    expect(locks).toBe(1);
+    runtime.dispose();
+  });
 });

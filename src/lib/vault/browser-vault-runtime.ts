@@ -25,6 +25,7 @@ export class BrowserVaultRuntime {
   private worker: VaultWorkerPort | null = null;
   private readonly pending = new Map<string, PendingRequest>();
   private readonly channel: BroadcastChannel | null;
+  onLock: (() => void) | null = null;
 
   constructor(
     private readonly accountId: string,
@@ -55,12 +56,13 @@ export class BrowserVaultRuntime {
 
   async lock(broadcast = true): Promise<void> {
     if (broadcast) this.channel?.postMessage('lock');
-    if (!this.worker) return;
+    if (!this.worker) { this.onLock?.(); return; }
     try {
       const response = await this.request({ id: crypto.randomUUID(), type: 'lock' });
       if (response.type !== 'locked') throw new Error('Vault worker rejected lock.');
     } finally {
       this.stopWorker();
+      this.onLock?.();
     }
   }
 
@@ -121,6 +123,7 @@ export class BrowserVaultRuntime {
   dispose() {
     this.channel?.close();
     this.stopWorker();
+    this.onLock?.();
   }
 
   private getWorker(): VaultWorkerPort {

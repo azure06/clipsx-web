@@ -99,6 +99,10 @@ npm run lint
 - A note append rejects stale collection heads, wrong epoch, inactive
   membership/session, duplicate IDs, and direct RPC execution; a rejection
   leaves no note, revision, or operation row.
+- A stale note-update `409` keeps a draft only in memory, refreshes verified
+  bootstrap and collection sync, and supports keep-remote, reapply-local, and
+  manual-merge actions. Lock, page exit, cross-tab lock, and vault teardown
+  clear that draft and all rendered plaintext.
 
 ## Commit order
 

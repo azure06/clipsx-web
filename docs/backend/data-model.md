@@ -100,12 +100,14 @@ advance this record but never decrease or silently replace it.
 
 ### `browser_encrypted_drafts` — local only
 
-Conflicting/offline drafts, when supported, are AEAD-encrypted under a local
-draft/cache key protected by the device bundle. Fields include draft ID, note
+This is reserved for a future encrypted offline-draft feature and is not
+implemented. Current `409` conflict drafts exist only in the unlocked
+worker/UI memory and are cleared on lock, page exit, cross-tab lock, and vault
+UI teardown. They are not written to IndexedDB, so the UI must never claim
+they are durable or synchronized. A future record would use an AEAD-encrypted
+draft/cache key protected by the device bundle and contain the draft ID, note
 and collection IDs, base revision hash, ciphertext, nonce, algorithm/version,
-and updated time. Lock removes decrypted draft state. IndexedDB eviction may
-lose unsynchronized drafts, so the UI must not claim durable sync until a
-signed note revision is accepted by the server.
+and updated time.
 
 ## Server encrypted-vault entities
 

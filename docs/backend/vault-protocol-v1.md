@@ -49,13 +49,20 @@ the collection appears only after the command succeeds and the bootstrap result
 has been re-fetched and verified.
 The unlocked screen can also create an encrypted note or login. Bootstrap now
 includes each collection's authenticated operation head; the worker retains it
-with the verified current epoch key. A `note-append` command creates revision
-one only, binds that head, and carries opaque content/key-wrap ciphertext plus
+with the verified current epoch key. A `note-append` command creates an
+initial or later immutable revision, binds that head (and, for a later
+revision, its exact prior revision hash), and carries opaque content/key-wrap ciphertext plus
 an independently signed immutable-revision record. The command route verifies
 both signatures and its hashes before a private transaction atomically inserts
 the note, revision, and next collection-operation entry. The UI refreshes the
 verified bootstrap after acceptance and never presents locally generated text
-as persisted state.
+as persisted state. On a `409` note-update rejection it keeps the plaintext
+draft only in worker/UI memory, re-fetches and verifies bootstrap and
+collection sync, and shows the verified remote revision. The user may discard
+the draft, reapply it, or manually merge fields; either write is a newly signed
+next immutable revision. Lock, page exit, cross-tab lock, and component
+teardown clear the draft and rendered plaintext; no conflict draft is persisted
+yet.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 
@@ -291,6 +298,14 @@ Later immutable revisions use the same command with an incremented revision
 number and payload label `13` containing the exact prior revision hash. The
 private transaction locks the note and collection-operation head, rejecting
 either stale precondition without writing a partial revision.
+
+For a `409` rejection of a later revision, the client must treat the command
+as unaccepted. It refreshes bootstrap and the affected collection through the
+same verified worker paths before displaying the accepted remote content. The
+three UI resolutions are: keep remote (discard the memory-only local draft),
+reapply local (create a new revision from the refreshed remote head), and
+manual merge (edit remote/local fields, then create that new revision). A
+draft is never reported as synchronized or durable before a `201` response.
 
 ## Sharing, recovery, deletion, and locking
 
