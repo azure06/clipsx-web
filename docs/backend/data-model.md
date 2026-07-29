@@ -506,6 +506,9 @@ session binding, and the collection epoch, then inserts `notes`, immutable
 revision `1`, and the next operation row in one transaction. Duplicate note or
 operation IDs and any failed validation leave no partial rows.
 
+Later revisions additionally require the note's exact current revision hash;
+this is the optimistic-concurrency boundary for encrypted item updates.
+
 The collection sync route reads the existing RLS-protected operation and
 revision tables. It returns canonical CBOR, never plaintext; a browser worker
 uses `canonical_payload`, operation hashes/signatures, and revision evidence to

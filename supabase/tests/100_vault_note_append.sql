@@ -8,7 +8,7 @@ select has_function(
 select ok(
   not has_function_privilege(
     'authenticated',
-    'private.append_vault_note_revision(uuid,uuid,uuid,uuid,bytea,uuid,integer,bytea,bytea,bytea,bytea,bytea,bytea,bytea,bytea,uuid,bytea,bytea,bytea)',
+    'private.append_vault_note_revision(uuid,uuid,uuid,uuid,bytea,uuid,bytea,integer,bytea,bytea,bytea,bytea,bytea,bytea,bytea,bytea,uuid,bytea,bytea,bytea)',
     'execute'
   ),
   'browser roles cannot execute note append directly'
@@ -16,13 +16,13 @@ select ok(
 select ok(
   not has_function_privilege(
     'anon',
-    'private.append_vault_note_revision(uuid,uuid,uuid,uuid,bytea,uuid,integer,bytea,bytea,bytea,bytea,bytea,bytea,bytea,bytea,uuid,bytea,bytea,bytea)',
+    'private.append_vault_note_revision(uuid,uuid,uuid,uuid,bytea,uuid,bytea,integer,bytea,bytea,bytea,bytea,bytea,bytea,bytea,bytea,uuid,bytea,bytea,bytea)',
     'execute'
   ),
   'anonymous roles cannot execute note append directly'
 );
 select is(
-  private.append_vault_note_revision(gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), decode(repeat('00', 32), 'hex'), gen_random_uuid(), 1, decode(repeat('00', 16), 'hex'), decode(repeat('00', 12), 'hex'), decode(repeat('00', 16), 'hex'), decode(repeat('00', 12), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 64), 'hex'), gen_random_uuid(), decode('00', 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 64), 'hex')),
+  private.append_vault_note_revision(gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), decode(repeat('00', 32), 'hex'), gen_random_uuid(), null, 1, decode(repeat('00', 16), 'hex'), decode(repeat('00', 12), 'hex'), decode(repeat('00', 16), 'hex'), decode(repeat('00', 12), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 64), 'hex'), gen_random_uuid(), decode('00', 'hex'), decode(repeat('00', 32), 'hex'), decode(repeat('00', 64), 'hex')),
   false,
   'wrong session or membership is rejected without a write'
 );

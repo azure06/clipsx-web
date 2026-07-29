@@ -128,6 +128,15 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
         return;
       }
+      case 'update-note': {
+        if (!bundle) throw new Error('Vault is locked.');
+        const epoch = epochKeys.get(request.collectionId);
+        if (!epoch?.operationHead) throw new Error('A verified collection head is unavailable. Refresh the vault first.');
+        const now = new Date().toISOString();
+        const result = await createNoteAppendCommand({ accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId, noteId: request.noteId, revisionNumber: request.revisionNumber, previousRevisionHash: request.previousRevisionHash, epochKey: epoch.key, deviceSigningSecretKey: bundle.deviceSigningSecretKey, expectedCollectionHead: epoch.operationHead, content: { ...request.content, createdAt: now, updatedAt: now } });
+        respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
+        return;
+      }
       case 'open-sync': {
         if (!bundle) throw new Error('Vault is locked.');
         const epoch = epochKeys.get(request.collectionId);

@@ -4,20 +4,23 @@ import { encodeCanonicalCbor, signProtocolRecord, type CborValue } from './proto
 export async function createNoteAppendCommand(input: {
   accountId: string; collectionId: string; deviceId: string; epochKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array; expectedCollectionHead: Uint8Array; content: VaultNoteContent;
-  noteId?: string; operationId?: string;
+  noteId?: string; operationId?: string; revisionNumber?: number; previousRevisionHash?: Uint8Array;
 }): Promise<{ noteId: string; command: Uint8Array }> {
   if (input.expectedCollectionHead.byteLength !== 32) throw new Error('Expected collection head must be 32 bytes.');
   const noteId = input.noteId ?? crypto.randomUUID();
   const operationId = input.operationId ?? crypto.randomUUID();
+  const revisionNumber = input.revisionNumber ?? 1;
+  if (!Number.isSafeInteger(revisionNumber) || revisionNumber < 1 || (revisionNumber === 1) !== !input.previousRevisionHash || (input.previousRevisionHash && input.previousRevisionHash.byteLength !== 32)) throw new Error('Invalid revision precondition.');
   const revision = await createEncryptedRevision({
-    accountId: input.accountId, collectionId: input.collectionId, noteId, epoch: 1, revision: 1,
-    operationId, epochKey: input.epochKey, authorDeviceId: input.deviceId,
+    accountId: input.accountId, collectionId: input.collectionId, noteId, epoch: 1, revision: revisionNumber,
+    operationId, previousRevisionHash: input.previousRevisionHash, epochKey: input.epochKey, authorDeviceId: input.deviceId,
     authorSigningSecretKey: input.deviceSigningSecretKey, content: input.content,
   });
   const payload = encodeCanonicalCbor(new Map<number, CborValue>([
-    [1, noteId], [2, 1], [3, 1], [4, revision.encryptedContent.ciphertext], [5, revision.encryptedContent.nonce],
+    [1, noteId], [2, 1], [3, revisionNumber], [4, revision.encryptedContent.ciphertext], [5, revision.encryptedContent.nonce],
     [6, revision.wrappedRevisionKey.ciphertext], [7, revision.wrappedRevisionKey.nonce], [8, revision.ciphertextHash],
     [9, revision.wrappedRevisionKeyHash], [10, revision.revisionHash], [11, revision.signature], [12, input.content.type],
+    ...(input.previousRevisionHash ? [[13, input.previousRevisionHash] as [number, CborValue]] : []),
   ]));
   const unsigned = new Map<number, CborValue>([
     [1, 1], [2, operationId], [3, 'note-append'], [4, input.accountId], [5, `device:${input.deviceId}`],

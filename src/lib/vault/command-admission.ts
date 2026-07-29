@@ -39,6 +39,7 @@ export type NoteAppend = {
   contentNonce: Uint8Array; wrappedRevisionKey: Uint8Array; keyWrapNonce: Uint8Array;
   ciphertextHash: Uint8Array; wrappedRevisionKeyHash: Uint8Array; revisionHash: Uint8Array;
   revisionSignature: Uint8Array; itemType: 'note' | 'login';
+  previousRevisionHash: Uint8Array | null;
 };
 
 function text(record: Map<number, unknown>, label: number): string {
@@ -80,22 +81,24 @@ export async function admitNoteAppend(command: VaultCommand, signingPublicKey: U
   if (command.operationType !== 'note-append' || !command.authorDeviceId || !command.collectionId
     || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-append');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
-  if (payload.size !== 12 || payload.get(2) !== 1 || payload.get(3) !== 1) throw new Error('invalid-note-append');
+  const revisionNumber = payload.get(3);
+  if ((payload.size !== 12 && payload.size !== 13) || payload.get(2) !== 1 || typeof revisionNumber !== 'number' || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('invalid-note-append');
   const itemType = payload.get(12);
   if (itemType !== 'note' && itemType !== 'login') throw new Error('invalid-note-append');
   const result: NoteAppend = {
-    noteId: text(payload, 1), collectionEpoch: 1, revisionNumber: 1,
+    noteId: text(payload, 1), collectionEpoch: 1, revisionNumber,
     encryptedContent: payloadBytes(payload, 4, 16), contentNonce: bytes(payload, 5, 12),
     wrappedRevisionKey: payloadBytes(payload, 6, 16), keyWrapNonce: bytes(payload, 7, 12),
     ciphertextHash: bytes(payload, 8, 32), wrappedRevisionKeyHash: bytes(payload, 9, 32),
-    revisionHash: bytes(payload, 10, 32), revisionSignature: bytes(payload, 11, 64), itemType,
+    revisionHash: bytes(payload, 10, 32), revisionSignature: bytes(payload, 11, 64), itemType, previousRevisionHash: payload.size === 13 ? bytes(payload, 13, 32) : null,
   };
+  if ((result.revisionNumber === 1) !== (result.previousRevisionHash === null)) throw new Error('invalid-note-append');
   if (result.encryptedContent.byteLength > 1_048_576
     || !sameBytes(await sha256(result.encryptedContent), result.ciphertextHash)
     || !sameBytes(await sha256(result.wrappedRevisionKey), result.wrappedRevisionKeyHash)) throw new Error('invalid-note-append');
   const revisionRecord = encodeCanonicalCbor(new Map<number, import('./protocol').CborValue>([
     [1, 1], [2, command.operationId], [3, command.collectionId], [4, result.noteId], [5, result.collectionEpoch],
-    [6, result.revisionNumber], [7, null], [8, result.ciphertextHash], [9, result.wrappedRevisionKeyHash], [10, command.authorDeviceId],
+    [6, result.revisionNumber], [7, result.previousRevisionHash], [8, result.ciphertextHash], [9, result.wrappedRevisionKeyHash], [10, command.authorDeviceId],
   ]));
   if (!sameBytes(await sha256(revisionRecord), result.revisionHash)
     || !await verifyProtocolRecord('clipsx/vault/v1/note-revision', revisionRecord, result.revisionSignature, signingPublicKey)) throw new Error('invalid-note-append');

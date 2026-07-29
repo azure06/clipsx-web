@@ -274,7 +274,7 @@ revoke all on function private.create_vault_collection(
 -- command and immutable-revision signatures.  It receives opaque ciphertext.
 create function private.append_vault_note_revision(
   p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
-  p_expected_collection_head bytea, p_note_id uuid, p_collection_epoch integer,
+  p_expected_collection_head bytea, p_note_id uuid, p_expected_previous_revision_hash bytea, p_collection_epoch integer,
   p_encrypted_content bytea, p_content_nonce bytea, p_wrapped_revision_key bytea,
   p_key_wrap_nonce bytea, p_ciphertext_hash bytea, p_wrapped_revision_key_hash bytea,
   p_revision_hash bytea, p_revision_signature bytea, p_operation_id uuid,
@@ -287,6 +287,8 @@ set search_path = ''
 as $$
 declare
   current_operation public.vault_collection_operations%rowtype;
+  current_note public.vault_notes%rowtype;
+  note_exists boolean;
 begin
   if octet_length(p_expected_collection_head) <> 32 or p_collection_epoch < 1
      or octet_length(p_encrypted_content) not between 16 and 1048576
@@ -299,9 +301,11 @@ begin
 
   select * into current_operation from public.vault_collection_operations
   where collection_id = p_collection_id order by sequence_number desc limit 1 for update;
-  if not found or current_operation.operation_hash <> p_expected_collection_head
+  if not found then return false; end if;
+  select * into current_note from public.vault_notes where id = p_note_id and collection_id = p_collection_id for update;
+  note_exists := found;
+  if current_operation.operation_hash <> p_expected_collection_head
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
-     or exists (select 1 from public.vault_notes where id = p_note_id)
      or not exists (
        select 1 from public.vault_devices d join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active' and d.auth_session_id = p_session_id
@@ -313,16 +317,22 @@ begin
      ) then return false;
   end if;
 
-  insert into public.vault_notes (id, collection_id, created_by_device_id, current_revision, current_revision_hash)
-  values (p_note_id, p_collection_id, p_device_id, 1, p_revision_hash);
+  if not note_exists and p_expected_previous_revision_hash is not null then return false; end if;
+  if note_exists and current_note.current_revision_hash is distinct from p_expected_previous_revision_hash then return false; end if;
+  if not note_exists then
+    insert into public.vault_notes (id, collection_id, created_by_device_id, current_revision, current_revision_hash)
+    values (p_note_id, p_collection_id, p_device_id, 1, p_revision_hash);
+  else
+    update public.vault_notes set current_revision = current_note.current_revision + 1, current_revision_hash = p_revision_hash where id = p_note_id;
+  end if;
   insert into public.vault_note_revisions (
     note_id, collection_id, revision_number, collection_epoch, encrypted_content, content_nonce,
     wrapped_revision_key, key_wrap_nonce, ciphertext_hash, wrapped_revision_key_hash, revision_hash,
     author_device_id, author_signature, operation_id, operation_type, logical_clock
   ) values (
-    p_note_id, p_collection_id, 1, p_collection_epoch, p_encrypted_content, p_content_nonce,
+    p_note_id, p_collection_id, case when note_exists then current_note.current_revision + 1 else 1 end, p_collection_epoch, p_encrypted_content, p_content_nonce,
     p_wrapped_revision_key, p_key_wrap_nonce, p_ciphertext_hash, p_wrapped_revision_key_hash, p_revision_hash,
-    p_device_id, p_revision_signature, p_operation_id, 'create', 0
+    p_device_id, p_revision_signature, p_operation_id, case when note_exists then 'update' else 'create' end, case when note_exists then current_note.current_revision else 0 end
   );
   insert into public.vault_collection_operations (
     operation_id, collection_id, sequence_number, operation_type, canonical_payload, previous_operation_hash,
@@ -336,6 +346,6 @@ end;
 $$;
 
 revoke all on function private.append_vault_note_revision(
-  uuid, uuid, uuid, uuid, bytea, uuid, integer, bytea, bytea, bytea, bytea,
+  uuid, uuid, uuid, uuid, bytea, uuid, bytea, integer, bytea, bytea, bytea, bytea,
   bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
 ) from public, anon, authenticated;

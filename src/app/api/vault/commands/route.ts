@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       const note = await admitNoteAppend(command, signingPublicKey);
       const { data, error } = await admin.schema('private').rpc('append_vault_note_revision', {
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: command.collectionId!,
-        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'), p_note_id: note.noteId, p_collection_epoch: note.collectionEpoch,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'), p_note_id: note.noteId, p_expected_previous_revision_hash: note.previousRevisionHash ? Buffer.from(note.previousRevisionHash).toString('base64') : null, p_collection_epoch: note.collectionEpoch,
         p_encrypted_content: Buffer.from(note.encryptedContent).toString('base64'), p_content_nonce: Buffer.from(note.contentNonce).toString('base64'),
         p_wrapped_revision_key: Buffer.from(note.wrappedRevisionKey).toString('base64'), p_key_wrap_nonce: Buffer.from(note.keyWrapNonce).toString('base64'),
         p_ciphertext_hash: Buffer.from(note.ciphertextHash).toString('base64'), p_wrapped_revision_key_hash: Buffer.from(note.wrappedRevisionKeyHash).toString('base64'),

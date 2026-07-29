@@ -287,6 +287,11 @@ revision signature covers the fixed revision identity/hash record using
 `clipsx/vault/v1/note-revision`. Servers validate all lengths and hashes but
 never receive content or key plaintext.
 
+Later immutable revisions use the same command with an incremented revision
+number and payload label `13` containing the exact prior revision hash. The
+private transaction locks the note and collection-operation head, rejecting
+either stale precondition without writing a partial revision.
+
 ## Sharing, recovery, deletion, and locking
 
 Verified invitations are mandatory. An invitation link contains its
