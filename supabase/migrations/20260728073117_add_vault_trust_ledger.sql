@@ -58,7 +58,8 @@ create table public.vault_recovery_epoch_envelopes (
   collection_id uuid not null,
   epoch_number integer not null,
   recovery_key_id uuid not null references public.vault_recovery_keys(id) on delete restrict,
-  sender_device_id uuid not null references public.vault_devices(id) on delete restrict,
+  sender_device_id uuid references public.vault_devices(id) on delete restrict,
+  sender_recovery_key_id uuid references public.vault_recovery_keys(id) on delete restrict,
   encapsulation bytea not null,
   ciphertext bytea not null,
   nonce bytea,
@@ -70,7 +71,8 @@ create table public.vault_recovery_epoch_envelopes (
   signature bytea not null check (octet_length(signature) = 64),
   created_at timestamptz not null default now(),
   foreign key (collection_id, epoch_number) references public.vault_collection_epochs(collection_id, epoch_number) on delete cascade,
-  unique (collection_id, epoch_number, recovery_key_id, key_version)
+  unique (collection_id, epoch_number, recovery_key_id, key_version),
+  check ((sender_device_id is null) <> (sender_recovery_key_id is null))
 );
 
 alter table public.vault_device_authorizations enable row level security;

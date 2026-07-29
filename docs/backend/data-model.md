@@ -622,6 +622,17 @@ erasing a key from old browser devices.
 
 ## V1 data-model decisions and deferred work
 
+### Implemented recovery-root rotation records
+
+`vault_recovery_keys` retains the old row as `revoked` and adds a new `active`
+row with a monotonic `key_version`. Replacement rows in
+`vault_recovery_epoch_envelopes` identify the new recipient and set
+`sender_recovery_key_id`; exactly one of `sender_recovery_key_id` and
+`sender_device_id` is present. The corresponding `vault_account_operations`
+row has type `recovery-rotate`, names the new recovery key, and is appended in
+the same private transaction. This is implemented for personal collections;
+sharing and invitation membership are still future work.
+
 - Signed deletion removes primary revision ciphertext/wrapped keys immediately
   and retains a non-secret tombstone. Superseded revisions remain until note or
   collection deletion; neither policy claims cryptographic erasure from backups

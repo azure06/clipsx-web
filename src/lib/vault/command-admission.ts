@@ -53,6 +53,7 @@ export type NoteAppend = {
 
 export type NoteDelete = { noteId: string; expectedRevisionHash: Uint8Array };
 export type DeviceRevocation = { deviceId: string; reason: string; rotations: Array<{ collectionId: string; epochNumber: number; membershipHash: Uint8Array; recipientCommitment: Uint8Array; transitionPayload: Uint8Array; transitionSignature: Uint8Array; transitionHash: Uint8Array; deviceEnvelopes: Map<number, unknown>[]; recoveryEnvelopes: Map<number, unknown>[] }> };
+export type RecoveryRotation = { newRecoveryKeyId: string; encryptionPublicKey: Uint8Array; signingPublicKey: Uint8Array; activeDeviceId: string; activeSignature: Uint8Array; envelopes: Map<number, unknown>[]; activeSignedPayload: Uint8Array };
 
 function text(record: Map<number, unknown>, label: number): string {
   const value = record.get(label); if (typeof value !== 'string' || !value) throw new Error('invalid-registration'); return value;
@@ -134,6 +135,23 @@ export function admitDeviceRevocation(command: VaultCommand): DeviceRevocation {
     if (!(entry instanceof Map) || entry.size !== 9 || !Array.isArray(entry.get(7)) || !Array.isArray(entry.get(8)) || typeof epochNumber !== 'number' || !Number.isSafeInteger(epochNumber) || epochNumber < 2) throw new Error('invalid-device-revocation');
     return { collectionId: text(entry, 1), epochNumber, membershipHash: bytes(entry, 2, 32), recipientCommitment: bytes(entry, 3, 32), transitionPayload: payloadBytes(entry, 4, 1), transitionSignature: bytes(entry, 5, 64), transitionHash: bytes(entry, 6, 32), deviceEnvelopes: entry.get(7) as Map<number, unknown>[], recoveryEnvelopes: entry.get(8) as Map<number, unknown>[] };
   }) };
+}
+export async function admitRecoveryRotation(command: VaultCommand, activeSigningPublicKey: Uint8Array): Promise<RecoveryRotation> {
+  if (command.operationType !== 'recovery-rotate' || !command.recoveryKeyId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-recovery-rotation');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  const envelopes = payload.get(6);
+  if (payload.size !== 6 || !Array.isArray(envelopes)
+    || envelopes.some((envelope) => !(envelope instanceof Map) || envelope.size !== 6
+      || typeof envelope.get(1) !== 'string' || typeof envelope.get(2) !== 'number'
+      || !Number.isSafeInteger(envelope.get(2)) || (envelope.get(2) as number) < 1
+      || !(envelope.get(3) instanceof Uint8Array) || !(envelope.get(4) instanceof Uint8Array)
+      || !(envelope.get(5) instanceof Uint8Array) || !(envelope.get(6) instanceof Uint8Array)
+      || (envelope.get(3) as Uint8Array).byteLength !== 32 || (envelope.get(6) as Uint8Array).byteLength !== 64)
+    || new Set(envelopes.map((envelope) => `${(envelope as Map<number, unknown>).get(1)}:${(envelope as Map<number, unknown>).get(2)}`)).size !== envelopes.length) throw new Error('invalid-recovery-rotation');
+  const unsigned = new Map(payload); const activeSignature = bytes(payload, 5, 64); unsigned.delete(5);
+  const activeSignedPayload = encodeCanonicalCbor(unsigned as Map<number, import('./protocol').CborValue>);
+  if (!await verifyProtocolRecord('clipsx/vault/v1/recovery-rotate-active', activeSignedPayload, activeSignature, activeSigningPublicKey)) throw new Error('invalid-recovery-rotation');
+  return { newRecoveryKeyId: text(payload, 1), encryptionPublicKey: bytes(payload, 2, 32), signingPublicKey: bytes(payload, 3, 32), activeDeviceId: text(payload, 4), activeSignature, envelopes: envelopes as Map<number, unknown>[], activeSignedPayload };
 }
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {

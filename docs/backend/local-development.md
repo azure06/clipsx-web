@@ -109,6 +109,11 @@ npm run lint
   its next epoch and exactly the remaining active-device and recovery-root
   envelope recipients; a revoked device receives no new envelope and cannot
   bind or submit a later command.
+- Recovery-root rotation must require signatures from both the existing
+  recovery root and a session-bound active device, cover each current personal
+  collection exactly once, and make no state change when validation fails.
+  Verify that browser roles have no execute privilege on the private rotation
+  transaction.
 - A tombstoned item never returns ciphertext during sync.
 - A signed note deletion requires both the collection and current revision
   heads, atomically removes revision ciphertext/key wraps, and emits an

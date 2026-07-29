@@ -1,5 +1,5 @@
 begin;
-select plan(10);
+select plan(12);
 
 select has_table('private', 'vault_pending_device_registrations', 'pending registrations are private');
 select has_column('private', 'vault_pending_device_registrations', 'proof_hash', 'pending proof commitment is retained');
@@ -11,6 +11,8 @@ select ok(to_regprocedure('private.authorize_pending_vault_device_with_recovery(
 select ok(not has_function_privilege('authenticated', 'private.authorize_pending_vault_device_with_recovery(uuid,uuid,uuid,uuid,bytea,bytea,bytea,bytea,jsonb,uuid,bytea,bytea)', 'execute'), 'browser roles cannot invoke recovery authorization directly');
 select ok(to_regprocedure('private.revoke_vault_device_and_rotate_epochs(uuid,uuid,uuid,uuid,text,bytea,jsonb,uuid,bytea,bytea,bytea)') is not null, 'revocation and epoch rotation transaction exists');
 select ok(not has_function_privilege('authenticated', 'private.revoke_vault_device_and_rotate_epochs(uuid,uuid,uuid,uuid,text,bytea,jsonb,uuid,bytea,bytea,bytea)', 'execute'), 'browser roles cannot invoke revocation directly');
+select ok(to_regprocedure('private.rotate_vault_recovery_root(uuid,uuid,uuid,uuid,uuid,bytea,bytea,bytea,bytea,bytea,jsonb,uuid,bytea,bytea)') is not null, 'recovery root rotation transaction exists');
+select ok(not has_function_privilege('authenticated', 'private.rotate_vault_recovery_root(uuid,uuid,uuid,uuid,uuid,bytea,bytea,bytea,bytea,bytea,jsonb,uuid,bytea,bytea)', 'execute'), 'browser roles cannot invoke recovery root rotation directly');
 
 select * from finish();
 rollback;

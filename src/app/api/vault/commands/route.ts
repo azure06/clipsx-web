@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitVaultCommand } from '@/lib/vault/command-admission';
-import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
+import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitRecoveryRotation, admitVaultCommand } from '@/lib/vault/command-admission';
+import { decodeCanonicalCbor, encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
 
@@ -130,6 +130,20 @@ export async function POST(request: NextRequest) {
       if (error || !data) return cborError(409, 'device-revocation-rejected');
       const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, revoked.deviceId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'recovery-rotate') {
+      const { command } = admission;
+      const raw = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+      const activeDeviceId = raw.get(4);
+      if (typeof activeDeviceId !== 'string') return cborError(422, 'invalid-recovery-rotation');
+      const { data: active } = await admin.from('vault_devices').select('signing_public_key').eq('id', activeDeviceId).eq('account_id', principal.user.id).eq('status', 'active').eq('auth_session_id', principal.sessionId).maybeSingle();
+      const activeKey = bytea(active?.signing_public_key); if (!activeKey) return cborError(403, 'invalid-recovery-rotation');
+      const rotation = await admitRecoveryRotation(command, activeKey);
+      const envelopes = rotation.envelopes.map((e) => ({ collection_id: e.get(1), epoch_number: e.get(2), encapsulation: Buffer.from(e.get(3) as Uint8Array).toString('base64'), ciphertext: Buffer.from(e.get(4) as Uint8Array).toString('base64'), payload: Buffer.from(e.get(5) as Uint8Array).toString('base64'), signature: Buffer.from(e.get(6) as Uint8Array).toString('base64') }));
+      const { data, error } = await admin.schema('private').rpc('rotate_vault_recovery_root', { p_account_id: principal.user.id, p_session_id: principal.sessionId, p_old_recovery_key_id: command.recoveryKeyId!, p_active_device_id: rotation.activeDeviceId, p_new_recovery_key_id: rotation.newRecoveryKeyId, p_new_encryption_public_key: Buffer.from(rotation.encryptionPublicKey).toString('base64'), p_new_signing_public_key: Buffer.from(rotation.signingPublicKey).toString('base64'), p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'), p_authorization_payload: Buffer.from(command.signedBytes).toString('base64'), p_active_device_signature: Buffer.from(rotation.activeSignature).toString('base64'), p_envelopes: envelopes, p_operation_id: command.operationId, p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_recovery_signature: Buffer.from(command.signature).toString('base64') });
+      if (error || !data) return cborError(409, 'recovery-rotation-rejected');
+      return new NextResponse(encodeCanonicalCbor(new Map([[1, command.operationId]])).slice().buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 
     if (admission.command.operationType === 'collection-create') {

@@ -681,6 +681,15 @@ epoch keys already recovered. Because v1 requires recovery enrollment, a user
 who loses every authorized device uses the recovery phrase or an available
 passkey-recovery wrapper.
 
+The implemented recovery-root rotation is deliberately co-signed by a
+currently bound active device. The recovery root signs the command; the active
+device signs the canonical payload excluding that co-signature. Before changing
+state, the private transaction verifies the account head, old root, bound
+device, and one unique current-epoch recovery envelope for each personal
+collection. It then revokes the old root and atomically installs the next
+public recovery-key version and replacement envelopes. Browser database roles
+cannot call that transaction.
+
 ## End-to-end flows
 
 ### Approval lifecycle

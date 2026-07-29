@@ -394,6 +394,23 @@ remaining active devices and recovery roots, never the revoked device.
 Rotation protects future data only. It cannot erase keys, ciphertext, or
 plaintext already copied by the lost device.
 
+## Recovery-root rotation
+
+`recovery-rotate` is a recovery-root-signed command with a co-signature from a
+currently session-bound active device. Its payload names a fresh recovery key
+ID, 32-byte encryption and signing public keys, and exactly one signed recovery
+envelope for the current epoch of every non-deleted personal collection. The
+active-device co-signature covers the canonical payload with its signature
+field omitted.
+
+The private transaction locks the account operation head and old active root,
+validates complete, unique current-epoch coverage before its first write,
+revokes the old root, creates the next key version, stores the replacement
+envelopes with a recovery sender, and appends one `recovery-rotate` account
+operation. A rejection writes neither root nor envelope state. The old phrase
+can still represent already copied material; rotation only limits future
+server-mediated recovery.
+
 ## Compatibility and test vectors
 
 The protocol fixture directory must contain deterministic fixtures for each
