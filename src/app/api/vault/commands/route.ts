@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitInitialDeviceRegistration, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitInitialDeviceRegistration, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -72,6 +72,23 @@ export async function POST(request: NextRequest) {
       if (error || !data) return cborError(409, 'device-session-bind-rejected');
       const result = encodeCanonicalCbor(new Map([[1, command.operationId]])).slice();
       return new NextResponse(result.buffer as ArrayBuffer, { headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'collection-create') {
+      const creation = admitCollectionCreation(admission.command);
+      const { command } = admission;
+      const { data, error } = await admin.schema('private').rpc('create_vault_collection', {
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: creation.collectionId,
+        p_encrypted_metadata: Buffer.from(creation.encryptedMetadata).toString('base64'), p_metadata_nonce: Buffer.from(creation.metadataNonce).toString('base64'),
+        p_membership_state_hash: Buffer.from(creation.membershipStateHash).toString('base64'), p_recipient_set_commitment: Buffer.from(creation.recipientSetCommitment).toString('base64'),
+        p_transition_payload: Buffer.from(creation.transitionPayload).toString('base64'), p_transition_signature: Buffer.from(creation.transitionSignature).toString('base64'), p_transition_hash: Buffer.from(creation.transitionHash).toString('base64'),
+        p_device_envelope_enc: Buffer.from(creation.deviceEnvelope.encapsulation).toString('base64'), p_device_envelope_ciphertext: Buffer.from(creation.deviceEnvelope.ciphertext).toString('base64'), p_device_envelope_payload: Buffer.from(creation.deviceEnvelope.payload).toString('base64'), p_device_envelope_signature: Buffer.from(creation.deviceEnvelope.signature).toString('base64'),
+        p_recovery_key_id: creation.recoveryKeyId, p_recovery_envelope_enc: Buffer.from(creation.recoveryEnvelope.encapsulation).toString('base64'), p_recovery_envelope_ciphertext: Buffer.from(creation.recoveryEnvelope.ciphertext).toString('base64'), p_recovery_envelope_payload: Buffer.from(creation.recoveryEnvelope.payload).toString('base64'), p_recovery_envelope_signature: Buffer.from(creation.recoveryEnvelope.signature).toString('base64'),
+        p_operation_id: command.operationId, p_command_payload: Buffer.from(command.signedBytes).toString('base64'), p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'collection-create-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, creation.collectionId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 
     // No mutation is enabled until its command-specific private transaction is

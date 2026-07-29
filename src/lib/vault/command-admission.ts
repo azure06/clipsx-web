@@ -20,6 +20,13 @@ export type VaultCommandLookup = {
 
 export type DeviceSessionBinding = { deviceId: string; sessionId: string };
 export type CommandAdmission = { command: VaultCommand; sessionBinding?: DeviceSessionBinding };
+export type CollectionCreation = {
+  collectionId: string; encryptedMetadata: Uint8Array; metadataNonce: Uint8Array;
+  membershipStateHash: Uint8Array; recipientSetCommitment: Uint8Array; transitionPayload: Uint8Array;
+  transitionSignature: Uint8Array; transitionHash: Uint8Array; recoveryKeyId: string;
+  deviceEnvelope: { encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array };
+  recoveryEnvelope: { encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array };
+};
 export type InitialDeviceRegistration = {
   deviceId: string; recoveryKeyId: string; displayName: string; platform: string;
   enrollmentOrigin: string; protectionProfile: string; capabilitiesHash: Uint8Array;
@@ -33,6 +40,33 @@ function text(record: Map<number, unknown>, label: number): string {
 }
 function bytes(record: Map<number, unknown>, label: number, length: number): Uint8Array {
   const value = record.get(label); if (!(value instanceof Uint8Array) || value.byteLength !== length) throw new Error('invalid-registration'); return value;
+}
+
+function payloadBytes(record: Map<number, unknown>, label: number, minimum: number): Uint8Array {
+  const value = record.get(label); if (!(value instanceof Uint8Array) || value.byteLength < minimum) throw new Error('invalid-collection-create'); return value;
+}
+
+function envelope(record: Map<number, unknown>, label: number, kind: 'device' | 'recovery', collectionId: string, recipientId: string, deviceId: string, signature: Uint8Array) {
+  const payload = payloadBytes(record, label, 1);
+  const nested = decodeCanonicalCbor(payload) as Map<number, unknown>;
+  if (nested.size !== 8 || nested.get(1) !== 1 || nested.get(2) !== collectionId || nested.get(3) !== 1
+    || nested.get(4) !== kind || nested.get(5) !== recipientId || nested.get(6) !== deviceId) throw new Error('invalid-collection-create');
+  return { encapsulation: bytes(nested, 7, 32), ciphertext: payloadBytes(nested, 8, 16), payload, signature };
+}
+
+export function admitCollectionCreation(command: VaultCommand): CollectionCreation {
+  if (command.operationType !== 'collection-create' || !command.authorDeviceId || !command.collectionId) throw new Error('invalid-collection-create');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  if (payload.size !== 13 || text(payload, 1) !== command.collectionId) throw new Error('invalid-collection-create');
+  const recoveryKeyId = text(payload, 13);
+  const transitionSignature = bytes(payload, 7, 64);
+  return {
+    collectionId: command.collectionId, encryptedMetadata: payloadBytes(payload, 2, 16), metadataNonce: bytes(payload, 3, 12),
+    membershipStateHash: bytes(payload, 4, 32), recipientSetCommitment: bytes(payload, 5, 32),
+    transitionPayload: payloadBytes(payload, 6, 1), transitionSignature, transitionHash: bytes(payload, 8, 32), recoveryKeyId,
+    deviceEnvelope: envelope(payload, 9, 'device', command.collectionId, command.authorDeviceId, command.authorDeviceId, bytes(payload, 10, 64)),
+    recoveryEnvelope: envelope(payload, 11, 'recovery', command.collectionId, recoveryKeyId, command.authorDeviceId, bytes(payload, 12, 64)),
+  };
 }
 
 export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, user: Pick<User, 'id'>): Promise<{ command: VaultCommand; registration: InitialDeviceRegistration }> {

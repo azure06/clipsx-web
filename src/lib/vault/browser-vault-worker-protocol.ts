@@ -19,6 +19,18 @@ export type VaultWorkerRequest =
     sessionId: string;
     expectedAccountHead: Uint8Array;
     operationId?: string;
+  }
+  | {
+    id: string;
+    type: 'create-collection';
+    accountId: string;
+    deviceId: string;
+    deviceEncryptionPublicKey: Uint8Array;
+    recoveryKeyId: string;
+    recoveryEncryptionPublicKey: Uint8Array;
+    encryptedMetadata: Uint8Array;
+    collectionId?: string;
+    operationId?: string;
   };
 
 export type VaultWorkerResponse =
@@ -26,4 +38,5 @@ export type VaultWorkerResponse =
   | { id: string; type: 'locked' }
   | { id: string; type: 'status'; unlocked: boolean }
   | { id: string; type: 'signed-session-bind'; command: Uint8Array }
+  | { id: string; type: 'collection-created'; collectionId: string; command: Uint8Array }
   | { id: string; type: 'error'; message: string };

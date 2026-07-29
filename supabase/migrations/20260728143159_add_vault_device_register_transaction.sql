@@ -183,3 +183,89 @@ $$;
 revoke all on function private.bind_vault_device_session(
   uuid, uuid, uuid, bytea, uuid, bytea, bytea, bytea
 ) from public, anon, authenticated;
+
+create function private.create_vault_collection(
+  p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
+  p_encrypted_metadata bytea, p_metadata_nonce bytea, p_membership_state_hash bytea,
+  p_recipient_set_commitment bytea, p_transition_payload bytea, p_transition_signature bytea,
+  p_transition_hash bytea, p_device_envelope_enc bytea, p_device_envelope_ciphertext bytea,
+  p_device_envelope_payload bytea, p_device_envelope_signature bytea, p_recovery_key_id uuid,
+  p_recovery_envelope_enc bytea, p_recovery_envelope_ciphertext bytea,
+  p_recovery_envelope_payload bytea, p_recovery_envelope_signature bytea,
+  p_operation_id uuid, p_command_payload bytea, p_command_hash bytea, p_command_signature bytea
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if octet_length(p_metadata_nonce) <> 12 or octet_length(p_membership_state_hash) <> 32
+     or octet_length(p_recipient_set_commitment) <> 32 or octet_length(p_transition_hash) <> 32
+     or octet_length(p_transition_signature) <> 64 or octet_length(p_device_envelope_enc) <> 32
+     or octet_length(p_recovery_envelope_enc) <> 32 or octet_length(p_device_envelope_signature) <> 64
+     or octet_length(p_recovery_envelope_signature) <> 64 or octet_length(p_command_hash) <> 32
+     or octet_length(p_command_signature) <> 64 or octet_length(p_encrypted_metadata) < 16
+     or octet_length(p_device_envelope_ciphertext) < 16 or octet_length(p_recovery_envelope_ciphertext) < 16 then
+    return false;
+  end if;
+
+  if not exists (
+    select 1 from public.vault_devices d join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
+    where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active' and d.auth_session_id = p_session_id
+  ) or not exists (
+    select 1 from public.vault_recovery_keys where id = p_recovery_key_id and account_id = p_account_id and status = 'active'
+  ) or exists (select 1 from public.vault_collections where id = p_collection_id)
+    or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id) then
+    return false;
+  end if;
+
+  insert into public.vault_collections (
+    id, owner_account_id, encrypted_metadata, metadata_nonce, current_epoch_number,
+    current_epoch_transition_hash, membership_log_head_hash
+  ) values (
+    p_collection_id, p_account_id, p_encrypted_metadata, p_metadata_nonce, 1,
+    p_transition_hash, p_membership_state_hash
+  );
+  insert into public.vault_collection_memberships (
+    collection_id, account_id, role, status, joined_at, joined_epoch, history_access_from_epoch,
+    invited_by_device_id, membership_operation_id
+  ) values (
+    p_collection_id, p_account_id, 'owner', 'active', now(), 1, 1, p_device_id, p_operation_id
+  );
+  insert into public.vault_collection_epochs (
+    collection_id, epoch_number, created_by_device_id, rotation_reason, membership_state_hash,
+    recipient_set_commitment, transition_payload, transition_signature, transition_hash, state
+  ) values (
+    p_collection_id, 1, p_device_id, 'collection-created', p_membership_state_hash,
+    p_recipient_set_commitment, p_transition_payload, p_transition_signature, p_transition_hash, 'current'
+  );
+  insert into public.vault_device_epoch_envelopes (
+    collection_id, epoch_number, recipient_device_id, sender_device_id, encapsulation, ciphertext,
+    algorithm, key_version, protocol_version, envelope_payload_hash, signature
+  ) values (
+    p_collection_id, 1, p_device_id, p_device_id, p_device_envelope_enc, p_device_envelope_ciphertext,
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, digest(p_device_envelope_payload, 'sha256'), p_device_envelope_signature
+  );
+  insert into public.vault_recovery_epoch_envelopes (
+    collection_id, epoch_number, recovery_key_id, sender_device_id, encapsulation, ciphertext,
+    algorithm, key_version, protocol_version, envelope_payload_hash, signature
+  ) values (
+    p_collection_id, 1, p_recovery_key_id, p_device_id, p_recovery_envelope_enc, p_recovery_envelope_ciphertext,
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, digest(p_recovery_envelope_payload, 'sha256'), p_recovery_envelope_signature
+  );
+  insert into public.vault_collection_operations (
+    operation_id, collection_id, sequence_number, operation_type, canonical_payload, operation_hash,
+    author_device_id, signature, protocol_version
+  ) values (
+    p_operation_id, p_collection_id, 1, 'collection-create', p_command_payload, p_command_hash,
+    p_device_id, p_command_signature, 1
+  );
+  return true;
+end;
+$$;
+
+revoke all on function private.create_vault_collection(
+  uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, bytea, bytea, bytea,
+  bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
+) from public, anon, authenticated;

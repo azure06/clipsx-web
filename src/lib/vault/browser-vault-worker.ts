@@ -2,9 +2,11 @@
 
 import { unwrapDeviceBundle, type BrowserDeviceBundle } from './browser-onboarding';
 import { createDeviceSessionBindCommand } from './browser-session-binding';
+import { createCollectionCommand } from './browser-collection-create';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 let bundle: BrowserDeviceBundle | null = null;
+const epochKeys = new Map<string, Uint8Array>();
 
 function wipe(bytes: Uint8Array | undefined) {
   bytes?.fill(0);
@@ -15,10 +17,12 @@ function lock() {
   wipe(bundle.deviceEncryptionSecretKey);
   wipe(bundle.deviceSigningSecretKey);
   bundle = null;
+  for (const epochKey of epochKeys.values()) wipe(epochKey);
+  epochKeys.clear();
 }
 
 function respond(message: VaultWorkerResponse) {
-  if (message.type === 'signed-session-bind') {
+  if (message.type === 'signed-session-bind' || message.type === 'collection-created') {
     self.postMessage(message, [message.command.buffer]);
     return;
   }
@@ -67,6 +71,23 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           }),
         });
         return;
+      case 'create-collection': {
+        if (!bundle) throw new Error('Vault is locked.');
+        const result = await createCollectionCommand({
+          accountId: request.accountId,
+          deviceId: request.deviceId,
+          deviceEncryptionPublicKey: request.deviceEncryptionPublicKey,
+          recoveryKeyId: request.recoveryKeyId,
+          recoveryEncryptionPublicKey: request.recoveryEncryptionPublicKey,
+          deviceSigningSecretKey: bundle.deviceSigningSecretKey,
+          encryptedMetadata: request.encryptedMetadata,
+          collectionId: request.collectionId,
+          operationId: request.operationId,
+        });
+        epochKeys.set(result.collectionId, result.epochKey);
+        respond({ id: request.id, type: 'collection-created', collectionId: result.collectionId, command: result.command });
+        return;
+      }
     }
   } catch (error) {
     respond({ id: request.id, type: 'error', message: error instanceof Error ? error.message : 'Vault worker request failed.' });

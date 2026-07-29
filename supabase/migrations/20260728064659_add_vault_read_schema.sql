@@ -125,6 +125,21 @@ create table public.vault_device_epoch_envelopes (
   unique (collection_id, epoch_number, recipient_device_id, key_version)
 );
 
+create table public.vault_collection_operations (
+  operation_id uuid primary key,
+  collection_id uuid not null references public.vault_collections(id) on delete cascade,
+  sequence_number bigint not null check (sequence_number >= 1),
+  operation_type text not null check (operation_type in ('collection-create')),
+  canonical_payload bytea not null,
+  previous_operation_hash bytea,
+  operation_hash bytea not null unique,
+  author_device_id uuid not null references public.vault_devices(id) on delete restrict,
+  signature bytea not null check (octet_length(signature) = 64),
+  protocol_version integer not null check (protocol_version = 1),
+  created_at timestamptz not null default now(),
+  unique (collection_id, sequence_number)
+);
+
 create table public.vault_notes (
   id uuid primary key default gen_random_uuid(),
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
@@ -189,6 +204,7 @@ alter table public.vault_collections enable row level security;
 alter table public.vault_collection_memberships enable row level security;
 alter table public.vault_collection_epochs enable row level security;
 alter table public.vault_device_epoch_envelopes enable row level security;
+alter table public.vault_collection_operations enable row level security;
 alter table public.vault_notes enable row level security;
 alter table public.vault_note_revisions enable row level security;
 
@@ -213,6 +229,10 @@ create policy vault_device_envelopes_read_recipient on public.vault_device_epoch
     where d.account_id = (select auth.uid()) and d.status = 'active'
   )
 );
+create policy vault_collection_operations_read_member on public.vault_collection_operations for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
+);
 create policy vault_notes_read_member on public.vault_notes for select to authenticated using (
   private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
@@ -223,5 +243,5 @@ create policy vault_note_revisions_read_member on public.vault_note_revisions fo
 );
 
 revoke all on all tables in schema public from anon;
-revoke insert, update, delete, truncate on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_notes, public.vault_note_revisions from authenticated;
-grant select on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_notes, public.vault_note_revisions to authenticated;
+revoke insert, update, delete, truncate on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions from authenticated;
+grant select on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions to authenticated;

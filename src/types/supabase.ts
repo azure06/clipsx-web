@@ -893,6 +893,35 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_vault_collection: {
+        Args: {
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_envelope_ciphertext: string
+          p_device_envelope_enc: string
+          p_device_envelope_payload: string
+          p_device_envelope_signature: string
+          p_device_id: string
+          p_encrypted_metadata: string
+          p_membership_state_hash: string
+          p_metadata_nonce: string
+          p_operation_id: string
+          p_recipient_set_commitment: string
+          p_recovery_envelope_ciphertext: string
+          p_recovery_envelope_enc: string
+          p_recovery_envelope_payload: string
+          p_recovery_envelope_signature: string
+          p_recovery_key_id: string
+          p_session_id: string
+          p_transition_hash: string
+          p_transition_payload: string
+          p_transition_signature: string
+        }
+        Returns: boolean
+      }
       fail_stripe_webhook_event: {
         Args: {
           p_error: string
@@ -1146,6 +1175,63 @@ export type Database = {
             columns: ["invited_by_device_id"]
             isOneToOne: false
             referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vault_collection_operations: {
+        Row: {
+          author_device_id: string
+          canonical_payload: string
+          collection_id: string
+          created_at: string
+          operation_hash: string
+          operation_id: string
+          operation_type: string
+          previous_operation_hash: string | null
+          protocol_version: number
+          sequence_number: number
+          signature: string
+        }
+        Insert: {
+          author_device_id: string
+          canonical_payload: string
+          collection_id: string
+          created_at?: string
+          operation_hash: string
+          operation_id: string
+          operation_type: string
+          previous_operation_hash?: string | null
+          protocol_version: number
+          sequence_number: number
+          signature: string
+        }
+        Update: {
+          author_device_id?: string
+          canonical_payload?: string
+          collection_id?: string
+          created_at?: string
+          operation_hash?: string
+          operation_id?: string
+          operation_type?: string
+          previous_operation_hash?: string | null
+          protocol_version?: number
+          sequence_number?: number
+          signature?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_collection_operations_author_device_id_fkey"
+            columns: ["author_device_id"]
+            isOneToOne: false
+            referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_collection_operations_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "vault_collections"
             referencedColumns: ["id"]
           },
         ]

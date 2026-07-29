@@ -6,11 +6,13 @@ The billing tables are implemented. Migration
 `20260728064659_add_vault_read_schema.sql` and
 `20260728073117_add_vault_trust_ledger.sql` implement core browser-readable
 vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
-mutation grants. Invitation, collection-operation, checkpoint, and tombstone
-tables remain planned until the signed command transaction is implemented.
+mutation grants. The first signed collection-create transaction and its
+collection-operation ledger are implemented; invitations, checkpoints, and
+tombstones remain planned.
 `20260728143159_add_vault_device_register_transaction.sql` adds the private,
-all-or-nothing first-device registration transaction; the HTTP dispatcher that
-performs its command-specific proof validation remains pending.
+all-or-nothing first-device registration and collection-create transactions;
+the HTTP dispatcher validates and executes both command types. Other command
+transactions remain pending.
 Browser IndexedDB records remain local-only target records. The descriptions
 below use logical names; implemented database names carry the `vault_` prefix.
 Cryptographic
@@ -425,7 +427,9 @@ device. Unique commitments prevent replay across invitations.
 ### `collection_operations`
 
 Append-only signed history for membership, invitation, epoch, note-head,
-revocation-reference, and checkpoint operations.
+revocation-reference, and checkpoint operations. The current implementation
+stores the initial `collection-create` entry; later operation types remain
+reserved until their corresponding transaction is implemented.
 
 | Column | Meaning |
 | --- | --- |

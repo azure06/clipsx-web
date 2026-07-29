@@ -29,8 +29,8 @@ confirmation UI is implemented at `/[locale]/vault`: it shows and confirms the
 mandatory phrase, selects a PRF/passphrase local protection profile, obtains a
 challenge, signs/submits the bootstrap command, and only then saves the local
 encrypted device bundle. The same route discovers this account's local device
-record and unlocks its device keys in page memory using the dedicated PRF
-credential or passphrase; locking releases the page's reference to those keys.
+record and transfers derived unlock material to the dedicated worker using the
+PRF credential or passphrase; locking releases the worker's key references.
 Initial registration binds the device to the authenticated Supabase session;
 an unlocked active device can submit the signed `device-session-bind` command
 after later account sign-in changes that session. The next implementation phase
@@ -198,11 +198,31 @@ device/recovery authority, canonical bytes, size, hash, and Ed25519 signature
 before calling a single private database transaction. Browser clients have no
 direct mutation grants.
 
-`GET /api/vault/bootstrap` returns account/device/recovery heads. `GET
-/api/vault/collections/{id}/sync?after=<sequence>` returns authorized
-collection operations, ciphertext, envelopes, and tombstones in bounded CBOR
-pages. The sequence is an availability cursor only; clients trust only verified
-signed heads and local checkpoints.
+### Initial collection creation payload
+
+`collection-create` is signed by the active, session-bound device and creates
+one empty collection at epoch `1`. Its payload has labels `1` collection ID,
+`2` epoch-key-encrypted metadata ciphertext, `3` metadata nonce, `4` owner
+membership-state hash, `5` recipient-set commitment, `6` canonical epoch
+transition payload, `7` transition signature, `8` transition hash, `9` device
+envelope payload, `10` device-envelope signature, `11` recovery-envelope
+payload, `12` recovery-envelope signature, and `13` active recovery-key ID.
+The two envelope payloads identify the same collection and epoch and include
+the recipient kind/ID, sender device, HPKE encapsulation, and ciphertext.
+
+The browser worker generates the random epoch key, encrypts metadata under it,
+delivers that key separately to the creating device and current recovery root,
+and retains it only in its unlocked worker session. The server stores neither
+the epoch key nor metadata plaintext. The private transaction inserts the
+collection, active owner membership, current epoch, both envelopes, and the
+first collection-log entry atomically.
+
+The planned `GET /api/vault/bootstrap` and `GET
+/api/vault/collections/{id}/sync?after=<sequence>` endpoints will return
+account/device/recovery heads and authorized collection operations, ciphertext,
+envelopes, and tombstones in bounded CBOR pages. The sequence is an
+availability cursor only; clients will trust only verified signed heads and
+local checkpoints. Neither sync endpoint is implemented yet.
 
 ## Encrypted item payloads
 
