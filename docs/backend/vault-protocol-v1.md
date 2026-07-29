@@ -34,8 +34,12 @@ credential or passphrase; locking releases the page's reference to those keys.
 Initial registration binds the device to the authenticated Supabase session;
 an unlocked active device can submit the signed `device-session-bind` command
 after later account sign-in changes that session. The next implementation phase
-moves unlocked state into a dedicated worker and implements the remaining
-command transactions, sync, and encrypted-item UI.
+implements the remaining command transactions, sync, and encrypted-item UI.
+The current unlock flow transfers the derived unlock material to a dedicated
+module worker, which unwraps and retains the device keys without returning them
+to React. Lock, page exit, and a same-account cross-tab lock event zeroize the
+worker-held key buffers and terminate the worker. The worker can also create a
+signed session-binding command without releasing the device signing key.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 

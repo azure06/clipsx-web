@@ -265,10 +265,12 @@ session. After ordinary sign-in creates a different session, an unlocked active
 device must submit a signed `device-session-bind` command before ordinary vault
 reads or mutations resume.
 
-Unlocked keys and plaintext should live in a dedicated worker or similarly
-small execution boundary and remain only for the active vault session. Lock,
-logout, page lifecycle termination, idle timeout, and a cross-tab lock event
-drop all key references and plaintext buffers. JavaScript garbage collection
+Unlocked device keys live in a dedicated module worker and remain only for the
+active vault session. The worker accepts narrowly scoped requests and never
+returns device private keys to React. Lock, page lifecycle termination, and a
+same-account cross-tab lock event zeroize the worker-held key buffers and
+terminate the worker; logout and idle-timeout wiring remain required before the
+vault is complete. JavaScript garbage collection
 cannot guarantee immediate physical memory erasure, so documentation and UI
 must say that locking releases application access rather than proving memory
 forensics erasure. Decrypted keys must not be retained in a service worker or

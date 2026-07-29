@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { listBrowserDeviceRecords, saveBrowserDeviceRecord, type BrowserDeviceRecord } from '@/lib/vault/browser-device-store';
-import { createBrowserVaultIdentity, encodeBrowserDeviceBundle, unwrapDeviceBundle, wrapDeviceBundle, type BrowserDeviceBundle, type BrowserVaultIdentity } from '@/lib/vault/browser-onboarding';
+import { createBrowserVaultIdentity, encodeBrowserDeviceBundle, wrapDeviceBundle, type BrowserVaultIdentity } from '@/lib/vault/browser-onboarding';
 import { createInitialDeviceRegistrationCommand, decodeDeviceRegistrationChallenge } from '@/lib/vault/browser-registration';
+import { BrowserVaultRuntime } from '@/lib/vault/browser-vault-runtime';
 import { deriveVaultPassphraseKey, encodeCanonicalCbor, randomBytes } from '@/lib/vault/protocol';
 import { createVaultPrfCredential, getVaultPrfOutput } from '@/lib/vault/webauthn-prf';
 
@@ -116,30 +117,55 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
   const [passphrase, setPassphrase] = useState('');
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bundle, setBundle] = useState<BrowserDeviceBundle | null>(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const runtimeRef = useRef<BrowserVaultRuntime | null>(null);
+
+  useEffect(() => {
+    const runtime = new BrowserVaultRuntime(accountId);
+    runtimeRef.current = runtime;
+    const lockOnPageExit = () => { void runtime.lock(); };
+    window.addEventListener('pagehide', lockOnPageExit);
+    return () => {
+      window.removeEventListener('pagehide', lockOnPageExit);
+      runtime.dispose();
+      runtimeRef.current = null;
+    };
+  }, [accountId]);
 
   async function unlock() {
     setWorking(true);
     setError(null);
+    let material: Uint8Array | null = null;
     try {
-      let material: Uint8Array;
       if (record.protectionProfile === 'webauthn-prf-wrapped') {
         if (!record.webauthnCredentialId || !record.prfInput || !record.webauthnRpId) throw new Error('This browser’s passkey metadata is incomplete.');
         material = await getVaultPrfOutput({ credentialId: record.webauthnCredentialId, prfInput: record.prfInput, rpId: record.webauthnRpId });
       } else {
         if (!record.passphraseKdfSalt) throw new Error('This browser’s passphrase metadata is incomplete.');
         material = await deriveVaultPassphraseKey(passphrase, record.passphraseKdfSalt);
+        setPassphrase('');
       }
-      setBundle(await unwrapDeviceBundle(material, accountId, record.deviceId, record.bundleSalt, {
-        nonce: record.bundleNonce, ciphertext: record.encryptedBundle,
-      }));
+      if (!runtimeRef.current) throw new Error('Vault runtime is not ready.');
+      await runtimeRef.current.unlock(record, material);
+      setUnlocked(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Vault unlock failed.');
     } finally {
+      material?.fill(0);
       setWorking(false);
     }
   }
 
-  if (bundle) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">This browser is ready</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Its device keys are available only in this page’s memory. Encrypted collections and notes come next.</p><Button className="mt-6" variant="outline" onClick={() => setBundle(null)}>Lock vault</Button></div></div>;
+  async function lock() {
+    setWorking(true);
+    try {
+      await runtimeRef.current?.lock();
+    } finally {
+      setUnlocked(false);
+      setWorking(false);
+    }
+  }
+
+  if (unlocked) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">This browser is ready</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Its device keys stay in a dedicated vault worker and are released when you lock this vault.</p><Button className="mt-6" variant="outline" loading={working} onClick={lock}>Lock vault</Button></div></div>;
   return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-xl rounded-xl border border-gray-200 p-6 dark:border-white/10"><p className="text-sm font-semibold text-cyan-600">Encrypted vault</p><h1 className="mt-2 font-heading text-3xl font-black">Unlock your vault</h1><p className="mt-3 text-sm text-gray-600 dark:text-gray-300">{record.protectionProfile === 'webauthn-prf-wrapped' ? 'Confirm with the dedicated vault passkey on this browser.' : 'Enter this browser’s vault passphrase.'}</p>{record.protectionProfile === 'vault-passphrase-wrapped' && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="mt-5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" autoComplete="current-password" />}{error && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}<Button className="mt-6" loading={working} onClick={unlock}>Unlock vault</Button></div></div>;
 }
