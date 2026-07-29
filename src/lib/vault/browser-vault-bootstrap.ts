@@ -1,6 +1,6 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 
-import { decryptAesGcm, decodeCanonicalCbor, importHpkePrivateKey, openHpke, sha256, utf8, verifyProtocolRecord, type CborValue } from './protocol';
+import { decryptAesGcm, decodeCanonicalCbor, encodeCanonicalCbor, importHpkePrivateKey, openHpke, sha256, utf8, verifyProtocolRecord, type CborValue } from './protocol';
 
 type BootstrapCollection = {
   id: string;
@@ -16,6 +16,10 @@ type BootstrapCollection = {
   envelopePayloadHash: Uint8Array;
   envelopeSignature: Uint8Array;
   senderDeviceId: string;
+  operationHead: Uint8Array;
+  operationPayload: Uint8Array;
+  operationSignature: Uint8Array;
+  operationAuthorDeviceId: string;
 };
 
 function text(record: Map<number, CborValue>, label: number): string {
@@ -32,12 +36,13 @@ export function decodeVaultBootstrap(input: Uint8Array): { deviceId: string; dev
   return {
     deviceId: text(record, 2), deviceSigningPublicKey: bytes(record, 3, 32), deviceEncryptionPublicKey: bytes(record, 4, 32), recoveryKeyId: text(record, 5), recoveryEncryptionPublicKey: bytes(record, 6, 32),
     collections: collections.map((entry) => {
-      if (!(entry instanceof Map) || entry.size !== 13 || entry.get(4) !== 1) throw new Error('Invalid vault bootstrap.');
+      if (!(entry instanceof Map) || entry.size !== 17 || entry.get(4) !== 1) throw new Error('Invalid vault bootstrap.');
       return {
         id: text(entry, 1), metadataCiphertext: bytes(entry, 2), metadataNonce: bytes(entry, 3, 12), epochNumber: 1,
         transitionPayload: bytes(entry, 5), transitionSignature: bytes(entry, 6, 64), transitionHash: bytes(entry, 7, 32),
         envelopeEncapsulation: bytes(entry, 8, 32), envelopeCiphertext: bytes(entry, 9), envelopePayload: bytes(entry, 10), envelopePayloadHash: bytes(entry, 11, 32),
-        envelopeSignature: bytes(entry, 12, 64), senderDeviceId: text(entry, 13),
+        envelopeSignature: bytes(entry, 12, 64), senderDeviceId: text(entry, 13), operationHead: bytes(entry, 14, 32),
+        operationPayload: bytes(entry, 15), operationSignature: bytes(entry, 16, 64), operationAuthorDeviceId: text(entry, 17),
       };
     }),
   };
@@ -48,11 +53,21 @@ export async function openVaultBootstrap(input: {
   accountId: string;
   deviceEncryptionSecretKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array;
-}): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochKey: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array }> {
+}): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochKey: Uint8Array; operationHead: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array }> {
   const bootstrap = decodeVaultBootstrap(input.bytes);
   const signingPublicKey = ed25519.getPublicKey(input.deviceSigningSecretKey);
   if (!signingPublicKey.every((value, index) => value === bootstrap.deviceSigningPublicKey[index])) throw new Error('Vault device key mismatch.');
   const opened = await Promise.all(bootstrap.collections.map(async (collection) => {
+    const operation = decodeCanonicalCbor(collection.operationPayload);
+    const operationType = operation.get(3);
+    if (collection.operationAuthorDeviceId !== bootstrap.deviceId || operation.get(1) !== 1 || operation.get(5) !== `device:${bootstrap.deviceId}`
+      || operation.get(6) !== collection.id || typeof operationType !== 'string') throw new Error('Unverified collection-operation head.');
+    operation.set(10, collection.operationSignature);
+    const signedOperation = encodeCanonicalCbor(operation);
+    if (!sameBytes(await sha256(signedOperation), collection.operationHead)
+      || !await verifyProtocolRecord(`clipsx/vault/v1/command/${operationType}`, collection.operationPayload, collection.operationSignature, signingPublicKey)) {
+      throw new Error('Unverified collection-operation head.');
+    }
     if (collection.senderDeviceId !== bootstrap.deviceId
       || !(await verifyProtocolRecord('clipsx/vault/v1/epoch-transition', collection.transitionPayload, collection.transitionSignature, signingPublicKey))
       || !(await verifyProtocolRecord('clipsx/vault/v1/epoch-envelope', collection.envelopePayload, collection.envelopeSignature, signingPublicKey))) {
@@ -78,7 +93,7 @@ export async function openVaultBootstrap(input: {
       const decoded = decodeCanonicalCbor(metadata);
       const title = decoded.get(2);
       if (decoded.size !== 2 || decoded.get(1) !== 1 || typeof title !== 'string' || !title) throw new Error('Invalid encrypted collection metadata.');
-      return { id: collection.id, title, epochKey };
+      return { id: collection.id, title, epochKey, operationHead: collection.operationHead };
     } catch (error) {
       epochKey.fill(0);
       throw error;
@@ -86,7 +101,7 @@ export async function openVaultBootstrap(input: {
   }));
   return {
     collections: opened.map(({ id, title }) => ({ id, title })),
-    epochKeys: opened.map(({ id, epochKey }) => ({ collectionId: id, epochKey })),
+    epochKeys: opened.map(({ id, epochKey, operationHead }) => ({ collectionId: id, epochKey, operationHead })),
     recoveryKeyId: bootstrap.recoveryKeyId,
     recoveryEncryptionPublicKey: bootstrap.recoveryEncryptionPublicKey,
   };

@@ -879,6 +879,13 @@ signature or ciphertext verification. The browser performs all vault plaintext
 and private-key operations locally; no server endpoint performs decrypt/sign
 operations on its behalf.
 
+The implemented initial write is `note-append`: bootstrap returns the current
+collection-operation head with the verified epoch envelope, and the worker
+keeps both only while unlocked. The route verifies the device command and its
+embedded immutable-revision signature before a private transaction locks the
+head, validates the bound session, owner/editor membership and current epoch,
+then atomically appends revision one and the collection ledger entry.
+
 ## Enforceable invariants
 
 - Device private keys exist in plaintext only transiently inside an unlocked

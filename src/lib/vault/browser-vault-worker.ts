@@ -4,11 +4,12 @@ import { unwrapDeviceBundle, type BrowserDeviceBundle } from './browser-onboardi
 import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
 import { openVaultBootstrap } from './browser-vault-bootstrap';
+import { createNoteAppendCommand } from './browser-note-append';
 import { x25519 } from '@noble/curves/ed25519.js';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 let bundle: BrowserDeviceBundle | null = null;
-const epochKeys = new Map<string, Uint8Array>();
+const epochKeys = new Map<string, { key: Uint8Array; operationHead?: Uint8Array }>();
 let recoveryKey: { id: string; encryptionPublicKey: Uint8Array } | null = null;
 
 function wipe(bytes: Uint8Array | undefined) {
@@ -20,14 +21,14 @@ function lock() {
   wipe(bundle.deviceEncryptionSecretKey);
   wipe(bundle.deviceSigningSecretKey);
   bundle = null;
-  for (const epochKey of epochKeys.values()) wipe(epochKey);
+  for (const epochKey of epochKeys.values()) { wipe(epochKey.key); wipe(epochKey.operationHead); }
   epochKeys.clear();
   recoveryKey?.encryptionPublicKey.fill(0);
   recoveryKey = null;
 }
 
 function respond(message: VaultWorkerResponse) {
-  if (message.type === 'signed-session-bind' || message.type === 'collection-created') {
+  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'note-created') {
     self.postMessage(message, [message.command.buffer]);
     return;
   }
@@ -89,7 +90,7 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           collectionId: request.collectionId,
           operationId: request.operationId,
         });
-        epochKeys.set(result.collectionId, result.epochKey);
+        epochKeys.set(result.collectionId, { key: result.epochKey });
         respond({ id: request.id, type: 'collection-created', collectionId: result.collectionId, command: result.command });
         return;
       }
@@ -103,15 +104,28 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         });
         recoveryKey?.encryptionPublicKey.fill(0);
         recoveryKey = { id: opened.recoveryKeyId, encryptionPublicKey: opened.recoveryEncryptionPublicKey.slice() };
-        for (const epochKey of epochKeys.values()) wipe(epochKey);
+        for (const epochKey of epochKeys.values()) { wipe(epochKey.key); wipe(epochKey.operationHead); }
         epochKeys.clear();
-        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, entry.epochKey);
+        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, { key: entry.epochKey, operationHead: entry.operationHead });
         respond({
           id: request.id,
           type: 'bootstrap-opened',
           collections: opened.collections,
         });
         return;
+      case 'create-note': {
+        if (!bundle) throw new Error('Vault is locked.');
+        const epoch = epochKeys.get(request.collectionId);
+        if (!epoch?.operationHead) throw new Error('A verified collection head is unavailable. Refresh the vault first.');
+        const now = new Date().toISOString();
+        const result = await createNoteAppendCommand({
+          accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId,
+          epochKey: epoch.key, deviceSigningSecretKey: bundle.deviceSigningSecretKey, expectedCollectionHead: epoch.operationHead,
+          content: { ...request.content, createdAt: now, updatedAt: now },
+        });
+        respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
+        return;
+      }
     }
   } catch (error) {
     respond({ id: request.id, type: 'error', message: error instanceof Error ? error.message : 'Vault worker request failed.' });

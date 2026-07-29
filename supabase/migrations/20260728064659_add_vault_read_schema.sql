@@ -129,7 +129,7 @@ create table public.vault_collection_operations (
   operation_id uuid primary key,
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   sequence_number bigint not null check (sequence_number >= 1),
-  operation_type text not null check (operation_type in ('collection-create')),
+  operation_type text not null check (operation_type in ('collection-create', 'note-append')),
   canonical_payload bytea not null,
   previous_operation_hash bytea,
   operation_hash bytea not null unique,

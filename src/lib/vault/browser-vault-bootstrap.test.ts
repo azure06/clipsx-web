@@ -23,7 +23,7 @@ describe('vault bootstrap', () => {
         [1, 'collection-1'], [2, creation.encryptedMetadata], [3, creation.metadataNonce], [4, 1],
         [5, creation.transitionPayload], [6, creation.transitionSignature], [7, creation.transitionHash],
         [8, deviceEnvelope.get(7)!], [9, deviceEnvelope.get(8)!], [10, creation.deviceEnvelope.payload], [11, await sha256(creation.deviceEnvelope.payload)],
-        [12, creation.deviceEnvelope.signature], [13, 'device-1'],
+        [12, creation.deviceEnvelope.signature], [13, 'device-1'], [14, await sha256(created.command)], [15, decodeVaultCommand(created.command).signedBytes], [16, decodeVaultCommand(created.command).signature], [17, 'device-1'],
       ])]],
     ]));
     await expect(openVaultBootstrap({

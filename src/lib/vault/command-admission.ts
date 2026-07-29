@@ -2,7 +2,7 @@ import 'server-only';
 
 import type { User } from '@supabase/supabase-js';
 
-import { decodeCanonicalCbor, decodeVaultCommand, encodeCanonicalCbor, verifyProtocolRecord, type VaultCommand } from './protocol';
+import { decodeCanonicalCbor, decodeVaultCommand, encodeCanonicalCbor, sha256, verifyProtocolRecord, type VaultCommand } from './protocol';
 
 export const MAX_COMMAND_BYTES = 1_100_000;
 
@@ -33,6 +33,12 @@ export type InitialDeviceRegistration = {
   deviceEncryptionPublicKey: Uint8Array; deviceSigningPublicKey: Uint8Array;
   recoveryEncryptionPublicKey: Uint8Array; recoverySigningPublicKey: Uint8Array;
   challengeId: string; challengeResponseHash: Uint8Array; deviceProofPayload: Uint8Array; deviceProofSignature: Uint8Array;
+};
+export type NoteAppend = {
+  noteId: string; collectionEpoch: number; revisionNumber: number; encryptedContent: Uint8Array;
+  contentNonce: Uint8Array; wrappedRevisionKey: Uint8Array; keyWrapNonce: Uint8Array;
+  ciphertextHash: Uint8Array; wrappedRevisionKeyHash: Uint8Array; revisionHash: Uint8Array;
+  revisionSignature: Uint8Array; itemType: 'note' | 'login';
 };
 
 function text(record: Map<number, unknown>, label: number): string {
@@ -67,6 +73,37 @@ export function admitCollectionCreation(command: VaultCommand): CollectionCreati
     deviceEnvelope: envelope(payload, 9, 'device', command.collectionId, command.authorDeviceId, command.authorDeviceId, bytes(payload, 10, 64)),
     recoveryEnvelope: envelope(payload, 11, 'recovery', command.collectionId, recoveryKeyId, command.authorDeviceId, bytes(payload, 12, 64)),
   };
+}
+
+/** Strictly decodes the opaque, first immutable revision.  The server learns no content. */
+export async function admitNoteAppend(command: VaultCommand, signingPublicKey: Uint8Array): Promise<NoteAppend> {
+  if (command.operationType !== 'note-append' || !command.authorDeviceId || !command.collectionId
+    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-append');
+  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  if (payload.size !== 12 || payload.get(2) !== 1 || payload.get(3) !== 1) throw new Error('invalid-note-append');
+  const itemType = payload.get(12);
+  if (itemType !== 'note' && itemType !== 'login') throw new Error('invalid-note-append');
+  const result: NoteAppend = {
+    noteId: text(payload, 1), collectionEpoch: 1, revisionNumber: 1,
+    encryptedContent: payloadBytes(payload, 4, 16), contentNonce: bytes(payload, 5, 12),
+    wrappedRevisionKey: payloadBytes(payload, 6, 16), keyWrapNonce: bytes(payload, 7, 12),
+    ciphertextHash: bytes(payload, 8, 32), wrappedRevisionKeyHash: bytes(payload, 9, 32),
+    revisionHash: bytes(payload, 10, 32), revisionSignature: bytes(payload, 11, 64), itemType,
+  };
+  if (result.encryptedContent.byteLength > 1_048_576
+    || !sameBytes(await sha256(result.encryptedContent), result.ciphertextHash)
+    || !sameBytes(await sha256(result.wrappedRevisionKey), result.wrappedRevisionKeyHash)) throw new Error('invalid-note-append');
+  const revisionRecord = encodeCanonicalCbor(new Map<number, import('./protocol').CborValue>([
+    [1, 1], [2, command.operationId], [3, command.collectionId], [4, result.noteId], [5, result.collectionEpoch],
+    [6, result.revisionNumber], [7, null], [8, result.ciphertextHash], [9, result.wrappedRevisionKeyHash], [10, command.authorDeviceId],
+  ]));
+  if (!sameBytes(await sha256(revisionRecord), result.revisionHash)
+    || !await verifyProtocolRecord('clipsx/vault/v1/note-revision', revisionRecord, result.revisionSignature, signingPublicKey)) throw new Error('invalid-note-append');
+  return result;
+}
+
+function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
+  return left.byteLength === right.byteLength && left.every((value, index) => value === right[index]);
 }
 
 export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, user: Pick<User, 'id'>): Promise<{ command: VaultCommand; registration: InitialDeviceRegistration }> {

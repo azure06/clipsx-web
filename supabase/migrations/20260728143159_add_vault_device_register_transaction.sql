@@ -269,3 +269,73 @@ revoke all on function private.create_vault_collection(
   uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, bytea, bytea, bytea,
   bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
 ) from public, anon, authenticated;
+
+-- Only the route handler reaches this transaction after validating the outer
+-- command and immutable-revision signatures.  It receives opaque ciphertext.
+create function private.append_vault_note_revision(
+  p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
+  p_expected_collection_head bytea, p_note_id uuid, p_collection_epoch integer,
+  p_encrypted_content bytea, p_content_nonce bytea, p_wrapped_revision_key bytea,
+  p_key_wrap_nonce bytea, p_ciphertext_hash bytea, p_wrapped_revision_key_hash bytea,
+  p_revision_hash bytea, p_revision_signature bytea, p_operation_id uuid,
+  p_command_payload bytea, p_command_hash bytea, p_command_signature bytea
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  current_operation public.vault_collection_operations%rowtype;
+begin
+  if octet_length(p_expected_collection_head) <> 32 or p_collection_epoch < 1
+     or octet_length(p_encrypted_content) not between 16 and 1048576
+     or octet_length(p_content_nonce) <> 12 or octet_length(p_wrapped_revision_key) < 16
+     or octet_length(p_key_wrap_nonce) <> 12 or octet_length(p_ciphertext_hash) <> 32
+     or octet_length(p_wrapped_revision_key_hash) <> 32 or octet_length(p_revision_hash) <> 32
+     or octet_length(p_revision_signature) <> 64 or octet_length(p_command_hash) <> 32
+     or octet_length(p_command_signature) <> 64 then return false;
+  end if;
+
+  select * into current_operation from public.vault_collection_operations
+  where collection_id = p_collection_id order by sequence_number desc limit 1 for update;
+  if not found or current_operation.operation_hash <> p_expected_collection_head
+     or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
+     or exists (select 1 from public.vault_notes where id = p_note_id)
+     or not exists (
+       select 1 from public.vault_devices d join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
+       where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active' and d.auth_session_id = p_session_id
+     ) or not exists (
+       select 1 from public.vault_collection_memberships m
+       where m.collection_id = p_collection_id and m.account_id = p_account_id and m.status = 'active' and m.role in ('owner', 'editor')
+     ) or not exists (
+       select 1 from public.vault_collections c where c.id = p_collection_id and c.current_epoch_number = p_collection_epoch and c.deleted_at is null
+     ) then return false;
+  end if;
+
+  insert into public.vault_notes (id, collection_id, created_by_device_id, current_revision, current_revision_hash)
+  values (p_note_id, p_collection_id, p_device_id, 1, p_revision_hash);
+  insert into public.vault_note_revisions (
+    note_id, collection_id, revision_number, collection_epoch, encrypted_content, content_nonce,
+    wrapped_revision_key, key_wrap_nonce, ciphertext_hash, wrapped_revision_key_hash, revision_hash,
+    author_device_id, author_signature, operation_id, operation_type, logical_clock
+  ) values (
+    p_note_id, p_collection_id, 1, p_collection_epoch, p_encrypted_content, p_content_nonce,
+    p_wrapped_revision_key, p_key_wrap_nonce, p_ciphertext_hash, p_wrapped_revision_key_hash, p_revision_hash,
+    p_device_id, p_revision_signature, p_operation_id, 'create', 0
+  );
+  insert into public.vault_collection_operations (
+    operation_id, collection_id, sequence_number, operation_type, canonical_payload, previous_operation_hash,
+    operation_hash, author_device_id, signature, protocol_version
+  ) values (
+    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'note-append', p_command_payload, current_operation.operation_hash,
+    p_command_hash, p_device_id, p_command_signature, 1
+  );
+  return true;
+end;
+$$;
+
+revoke all on function private.append_vault_note_revision(
+  uuid, uuid, uuid, uuid, bytea, uuid, integer, bytea, bytea, bytea, bytea,
+  bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
+) from public, anon, authenticated;

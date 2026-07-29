@@ -47,6 +47,15 @@ decrypts collection metadata before returning collection labels to the UI.
 The unlocked vault screen can create a named collection through that worker;
 the collection appears only after the command succeeds and the bootstrap result
 has been re-fetched and verified.
+The unlocked screen can also create an encrypted note or login. Bootstrap now
+includes each collection's authenticated operation head; the worker retains it
+with the verified current epoch key. A `note-append` command creates revision
+one only, binds that head, and carries opaque content/key-wrap ciphertext plus
+an independently signed immutable-revision record. The command route verifies
+both signatures and its hashes before a private transaction atomically inserts
+the note, revision, and next collection-operation entry. The UI refreshes the
+verified bootstrap after acceptance and never presents locally generated text
+as persisted state.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 
@@ -226,6 +235,9 @@ first collection-log entry atomically.
 
 `GET /api/vault/bootstrap` returns the bound device and its current authorized
 collection records, transitions, and device envelopes in canonical CBOR. The
+per-collection record also includes the current 32-byte collection-operation
+head. The worker verifies the enclosing record and only then uses that head as
+the optimistic-concurrency precondition for the next command.
 planned `GET /api/vault/collections/{id}/sync?after=<sequence>` endpoint will
 return authorized collection operations, ciphertext, envelopes, and tombstones
 in bounded CBOR pages. The sequence is an availability cursor only; clients
@@ -255,7 +267,19 @@ hash, the collection epoch, and the author device.
 with separate contextual AAD for content and revision-key wrapping. It supports
 the fixed note/login content maps and validates that a ciphertext cannot be
 replayed under a different note identity. Persisting these revisions remains
-pending on the command-specific transaction.
+is persisted by the initial `note-append` command transaction.
+
+### Initial note append payload
+
+`note-append` is device-signed and requires a 32-byte
+`expectedCollectionHead`. Its payload has labels `1` note ID, `2` collection
+epoch (currently `1`), `3` revision number (currently `1`), `4` content
+ciphertext, `5` content nonce, `6` wrapped revision key, `7` key-wrap nonce,
+`8` content ciphertext hash, `9` wrapped-key hash, `10` revision hash, `11`
+immutable revision signature, and `12` item type (`note` or `login`). The
+revision signature covers the fixed revision identity/hash record using
+`clipsx/vault/v1/note-revision`. Servers validate all lengths and hashes but
+never receive content or key plaintext.
 
 ## Sharing, recovery, deletion, and locking
 

@@ -844,6 +844,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      append_vault_note_revision: {
+        Args: {
+          p_account_id: string
+          p_ciphertext_hash: string
+          p_collection_epoch: number
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_content_nonce: string
+          p_device_id: string
+          p_encrypted_content: string
+          p_expected_collection_head: string
+          p_key_wrap_nonce: string
+          p_note_id: string
+          p_operation_id: string
+          p_revision_hash: string
+          p_revision_signature: string
+          p_session_id: string
+          p_wrapped_revision_key: string
+          p_wrapped_revision_key_hash: string
+        }
+        Returns: boolean
+      }
       apply_stripe_webhook_projection: {
         Args: {
           p_event_created_at: string

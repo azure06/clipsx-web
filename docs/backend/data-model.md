@@ -499,6 +499,13 @@ transactions must enforce:
 - signature/algorithm/AAD validation before accepting key-bearing data; and
 - idempotency by signed operation ID.
 
+`private.append_vault_note_revision` is the implemented first-write boundary.
+It locks the current `collection_operations` row, compares the command's
+expected head, checks active owner/editor membership, the device's current Auth
+session binding, and the collection epoch, then inserts `notes`, immutable
+revision `1`, and the next operation row in one transaction. Duplicate note or
+operation IDs and any failed validation leave no partial rows.
+
 RLS still checks account, active device, live Auth session, membership, and
 role for all browser-readable data. Browser mutation grants are revoked. RLS
 and TLS are server access controls, not cryptographic public-key authentication

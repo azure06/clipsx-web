@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { admitCollectionCreation, admitInitialDeviceRegistration, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitInitialDeviceRegistration, admitNoteAppend, admitVaultCommand } from '@/lib/vault/command-admission';
 import { encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
@@ -91,11 +91,33 @@ export async function POST(request: NextRequest) {
       return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 
+    if (admission.command.operationType === 'note-append') {
+      const { command } = admission;
+      const { data: author } = await admin.from('vault_devices').select('signing_public_key')
+        .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
+      const signingPublicKey = bytea(author?.signing_public_key);
+      if (!signingPublicKey) return cborError(422, 'note-append-rejected');
+      const note = await admitNoteAppend(command, signingPublicKey);
+      const { data, error } = await admin.schema('private').rpc('append_vault_note_revision', {
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'), p_note_id: note.noteId, p_collection_epoch: note.collectionEpoch,
+        p_encrypted_content: Buffer.from(note.encryptedContent).toString('base64'), p_content_nonce: Buffer.from(note.contentNonce).toString('base64'),
+        p_wrapped_revision_key: Buffer.from(note.wrappedRevisionKey).toString('base64'), p_key_wrap_nonce: Buffer.from(note.keyWrapNonce).toString('base64'),
+        p_ciphertext_hash: Buffer.from(note.ciphertextHash).toString('base64'), p_wrapped_revision_key_hash: Buffer.from(note.wrappedRevisionKeyHash).toString('base64'),
+        p_revision_hash: Buffer.from(note.revisionHash).toString('base64'), p_revision_signature: Buffer.from(note.revisionSignature).toString('base64'),
+        p_operation_id: command.operationId, p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'note-append-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, note.noteId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
     // No mutation is enabled until its command-specific private transaction is
     // implemented and tested. Never fall back to a browser table write.
     return cborError(422, `operation-not-enabled:${admission.command.operationType}`);
   } catch (error) {
-    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|unbound-session)$/.test(error.message)
+    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|unbound-session|invalid-note-append)$/.test(error.message)
       ? error.message : 'invalid-command';
     return cborError(code === 'command-size' ? 413 : code === 'unbound-session' ? 403 : 422, code);
   }

@@ -96,6 +96,9 @@ npm run lint
 - A removed member loses server-side access immediately.
 - A revoked device session cannot call vault RPCs.
 - A tombstoned item never returns ciphertext during sync.
+- A note append rejects stale collection heads, wrong epoch, inactive
+  membership/session, duplicate IDs, and direct RPC execution; a rejection
+  leaves no note, revision, or operation row.
 
 ## Commit order
 

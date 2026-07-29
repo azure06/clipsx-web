@@ -100,6 +100,12 @@ export class BrowserVaultRuntime {
     return response.collections;
   }
 
+  async createNote(input: { deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }): Promise<{ noteId: string; command: Uint8Array }> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'create-note', accountId: this.accountId, ...input });
+    if (response.type !== 'note-created') throw new Error('Vault worker rejected note creation.');
+    return { noteId: response.noteId, command: response.command };
+  }
+
   dispose() {
     this.channel?.close();
     this.stopWorker();

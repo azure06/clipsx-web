@@ -120,6 +120,13 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
   const [unlocked, setUnlocked] = useState(false);
   const [collections, setCollections] = useState<Array<{ id: string; title: string }>>([]);
   const [collectionTitle, setCollectionTitle] = useState('');
+  const [selectedCollectionId, setSelectedCollectionId] = useState('');
+  const [itemType, setItemType] = useState<'note' | 'login'>('note');
+  const [itemTitle, setItemTitle] = useState('');
+  const [itemBody, setItemBody] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [url, setUrl] = useState('');
   const runtimeRef = useRef<BrowserVaultRuntime | null>(null);
 
   useEffect(() => {
@@ -163,7 +170,9 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
     if (!runtimeRef.current) throw new Error('Vault runtime is not ready.');
     const bootstrapResponse = await fetch('/api/vault/bootstrap', { cache: 'no-store' });
     if (!bootstrapResponse.ok) throw new Error('Could not load encrypted vault records.');
-    setCollections(await runtimeRef.current.openBootstrap(new Uint8Array(await bootstrapResponse.arrayBuffer())));
+    const opened = await runtimeRef.current.openBootstrap(new Uint8Array(await bootstrapResponse.arrayBuffer()));
+    setCollections(opened);
+    setSelectedCollectionId((current) => opened.some((collection) => collection.id === current) ? current : (opened[0]?.id ?? ''));
   }
 
   async function createCollection() {
@@ -196,6 +205,26 @@ function VaultUnlock({ accountId, record }: { accountId: string; record: Browser
     }
   }
 
-  if (unlocked) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">Your collections</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Collection names are decrypted inside the vault worker. Encrypted notes and logins come next.</p><div className="mt-5 flex gap-2"><input value={collectionTitle} onChange={(event) => setCollectionTitle(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" placeholder="Collection name" maxLength={128} /><Button loading={working} onClick={createCollection}>Create collection</Button></div>{error && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}<ul className="mt-5 space-y-2">{collections.length === 0 ? <li className="text-sm text-gray-600 dark:text-gray-300">No encrypted collections yet.</li> : collections.map((collection) => <li key={collection.id} className="rounded-lg border border-emerald-500/30 bg-white/50 px-4 py-3 font-medium dark:bg-gray-900/50">{collection.title}</li>)}</ul><Button className="mt-6" variant="outline" loading={working} onClick={lock}>Lock vault</Button></div></div>;
+  async function createItem() {
+    if (!selectedCollectionId || !itemTitle.trim()) { setError('Choose a collection and enter a title.'); return; }
+    if (itemType === 'login' && (!username || !password)) { setError('A login needs a username and password.'); return; }
+    setWorking(true); setError(null);
+    try {
+      if (!runtimeRef.current) throw new Error('Vault runtime is not ready.');
+      const created = await runtimeRef.current.createNote({
+        deviceId: record.deviceId, collectionId: selectedCollectionId,
+        content: itemType === 'note' ? { type: 'note', title: itemTitle.trim(), body: itemBody, labels: [] }
+          : { type: 'login', title: itemTitle.trim(), username, password, url, labels: [] },
+      });
+      const response = await fetch('/api/vault/commands', { method: 'POST', headers: { 'Content-Type': 'application/cbor' }, body: body(created.command) });
+      if (!response.ok) throw new Error('Could not save the encrypted item.');
+      setItemTitle(''); setItemBody(''); setUsername(''); setPassword(''); setUrl('');
+      await refreshCollections();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not save the encrypted item.');
+    } finally { setWorking(false); }
+  }
+
+  if (unlocked) return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6"><p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Vault unlocked</p><h1 className="mt-2 font-heading text-3xl font-black">Your collections</h1><p className="mt-3 text-sm text-gray-700 dark:text-gray-200">Collection names and saved-item plaintext are decrypted and encrypted only inside the vault worker.</p><div className="mt-5 flex gap-2"><input value={collectionTitle} onChange={(event) => setCollectionTitle(event.target.value)} className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" placeholder="Collection name" maxLength={128} /><Button loading={working} onClick={createCollection}>Create collection</Button></div><section className="mt-5 space-y-3 rounded-lg border border-emerald-500/30 bg-white/50 p-4 dark:bg-gray-900/50"><h2 className="font-semibold">Save encrypted item</h2><div className="grid gap-3 sm:grid-cols-2"><select value={selectedCollectionId} onChange={(event) => setSelectedCollectionId(event.target.value)} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="">Choose collection</option>{collections.map((collection) => <option key={collection.id} value={collection.id}>{collection.title}</option>)}</select><select value={itemType} onChange={(event) => setItemType(event.target.value as 'note' | 'login')} className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"><option value="note">Note</option><option value="login">Login</option></select></div><input value={itemTitle} onChange={(event) => setItemTitle(event.target.value)} placeholder="Title" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" />{itemType === 'note' ? <textarea value={itemBody} onChange={(event) => setItemBody(event.target.value)} placeholder="Note" className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /> : <><input value={username} onChange={(event) => setUsername(event.target.value)} placeholder="Username" autoComplete="off" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" autoComplete="new-password" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="URL (optional)" className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" /></>}<Button loading={working} onClick={createItem}>Save encrypted {itemType}</Button></section>{error && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>}<ul className="mt-5 space-y-2">{collections.length === 0 ? <li className="text-sm text-gray-600 dark:text-gray-300">No encrypted collections yet.</li> : collections.map((collection) => <li key={collection.id} className="rounded-lg border border-emerald-500/30 bg-white/50 px-4 py-3 font-medium dark:bg-gray-900/50">{collection.title}</li>)}</ul><Button className="mt-6" variant="outline" loading={working} onClick={lock}>Lock vault</Button></div></div>;
   return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-xl rounded-xl border border-gray-200 p-6 dark:border-white/10"><p className="text-sm font-semibold text-cyan-600">Encrypted vault</p><h1 className="mt-2 font-heading text-3xl font-black">Unlock your vault</h1><p className="mt-3 text-sm text-gray-600 dark:text-gray-300">{record.protectionProfile === 'webauthn-prf-wrapped' ? 'Confirm with the dedicated vault passkey on this browser.' : 'Enter this browser’s vault passphrase.'}</p>{record.protectionProfile === 'vault-passphrase-wrapped' && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="mt-5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5" autoComplete="current-password" />}{error && <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>}<Button className="mt-6" loading={working} onClick={unlock}>Unlock vault</Button></div></div>;
 }
