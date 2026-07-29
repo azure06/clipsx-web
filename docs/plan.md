@@ -14,7 +14,7 @@ step is complete.
 | --- | --- | --- | --- |
 | 1. Reliable starting point | The project installs and passes its checks consistently. | Done. | Move to Step 2: create the test environment. |
 | 2. Test environment | A safe test version of Supabase, Google sign-in, Stripe, email, and Vercel. | Done. | Move to Step 3: build the private browser vault. |
-| 3. Private browser vault | Users can safely view their own saved passwords and notes in the browser. | Not started. | Build encrypted storage, device approval, recovery, sign-out, and lost-device access removal. |
+| 3. Private browser vault | Users can safely create, view, recover, share, and revoke encrypted saved passwords and notes in the browser. | In progress. | Complete signed vault commands, verified sync, worker isolation, recovery, device management, and verified sharing. |
 | 4. Subscription safety | Customers cannot create duplicate subscriptions or lose access because of a failed payment update. | Partly built. | Add the missing checks, then test purchase, cancellation, refund, payment failure, and retry cases. |
 | 5. Public website | The download, legal, help, blog, and contact pages are complete and accurate. | Partly built. | Connect real downloads, send contact messages to support, publish articles, and finish both English and Japanese pages. |
 | 6. Final launch choices | The real product limits, prices, legal terms, refund policy, supported platforms, and release details are approved. | Not started. | Make these choices after the app and desktop release are ready to review. |
@@ -57,7 +57,7 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
   including its cross-runtime test vectors and browser compatibility checks.
 - [x] Add the browser-safe v1 cryptographic primitives and unit coverage for
   deterministic CBOR, AES-GCM, HKDF, Ed25519, HPKE, and BIP-39 recovery
-  encoding. Route, storage, and WebAuthn integration remain pending.
+  encoding.
 - [ ] Add database tables and access rules for devices, collections, encrypted
   items, keys, invitations, and deleted-item markers.
 - [x] Add core browser-readable vault tables, RLS, and direct-browser mutation
@@ -67,8 +67,9 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
   recovery-envelope trust ledgers required before accepting signed writes.
 - [ ] Add tests proving a user cannot see another user's vault or use a removed
   device.
-- [ ] Add browser-device setup. The browser keeps its private key locally and
-  sends only its public key to the server.
+- [x] Add first-browser setup. The browser keeps its private key locally,
+  sends only public keys to the server, confirms the recovery phrase, and
+  protects its local bundle with a vault PRF credential or passphrase.
 - [ ] Add approval from an existing trusted device.
 - [ ] Add recovery using a recovery code without sending that code to the
   server.
@@ -80,8 +81,10 @@ The verified run is [CI run 30242126783](https://github.com/azure06/clipsx-web/a
 - [ ] Test normal setup, recovery, sign-out, lost-device removal, and blocked
   access by another user.
 
-**Done when:** a user can safely view and recover their own vault, and nobody
-else can access it.
+**Done when:** the complete frozen vault v1 works: notes and logins, verified
+sync, lock/sign-out, recovery, device approval and removal, conflict handling,
+deletion, verified sharing, rollback checkpoints, and the browser compatibility
+and staging acceptance suite.
 
 ### 4. Finish subscription safety
 

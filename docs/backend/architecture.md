@@ -260,7 +260,10 @@ uses trusted-device approval or recovery.
 
 Supabase authentication and vault unlock are independent. Authentication
 obtains a server session; unlock obtains local device keys. Neither one implies
-the other.
+the other. Initial enrollment binds a device to the authenticated Supabase
+session. After ordinary sign-in creates a different session, an unlocked active
+device must submit a signed `device-session-bind` command before ordinary vault
+reads or mutations resume.
 
 Unlocked keys and plaintext should live in a dedicated worker or similarly
 small execution boundary and remain only for the active vault session. Lock,
@@ -503,21 +506,14 @@ Membership: invited -> active -> removed
 Invitation acceptance is terminal for that invitation. Removed membership is
 terminal; rejoining uses a new invitation, membership event, and epoch.
 
-ClipsX supports two explicit verification modes:
-
-- **Verified invitation (default):** inviter and recipient verify a QR code,
-  full fingerprint/safety number, or a high-entropy invitation secret through
-  an authenticated channel. The transcript binds both account/device keys,
-  collection, invitation ID, and expiry. If a link carries the secret, the
-  secret must be in a URL fragment or equivalent channel that the server never
-  receives; the database stores only a domain-separated commitment. This mode
-  resists server key substitution when the independent verification channel is
-  authentic.
-- **Convenience/TOFU invitation:** the inviter pins the first recipient key
-  returned, labels the invitation as unverified, and warns prominently on any
-  later key change. It is weaker against a malicious server at first contact.
-  A normal server-delivered invitation link by itself does not authenticate the
-  recipient key.
+V1 invitations are always verified. Inviter and recipient compare a QR code,
+grouped safety number, or high-entropy invitation secret through an
+authenticated channel. The transcript binds both account/device keys,
+collection, invitation ID, and expiry. The shipped delivery flow is a
+user-carried link whose secret is in the URL fragment; the server receives only
+the invitation ID and stores a domain-separated commitment. This resists server
+key substitution when the independent verification channel is authentic. TOFU
+is not offered in v1.
 
 The inviter verifies the recipient's active device authorization chain and the
 invitation transcript before creating any epoch envelopes. A mismatch,
@@ -617,10 +613,11 @@ Using a standard reviewed KDF, the browser derives independent recovery
 encryption and signing seeds with protocol-versioned, domain-separated
 contexts. Library key-import/derivation APIs produce the corresponding key
 pairs; ClipsX does not implement scalar arithmetic. The server stores versioned
-recovery public keys, encrypted recovery envelopes, and optionally an encrypted
-passkey-recovery wrapper. The wrapper is ciphertext of the recovery secret
-under a vault credential's local PRF-derived key; it is convenience recovery,
-never the sole recovery root. Every covered collection epoch has:
+recovery public keys and encrypted recovery envelopes. The passkey-recovery
+wrapper schema is reserved but deferred from the shipped v1 browser feature; if
+added later, it is ciphertext of the recovery secret under a vault credential's
+local PRF-derived key and never the sole recovery root. Every covered collection
+epoch has:
 
 ```text
 RecoveryEpochEnvelope {
@@ -672,12 +669,12 @@ decisions, rather than a second system-design description.
 
 | Flow | Browser-owned action | Hosted-service role | Approval condition |
 | --- | --- | --- | --- |
-| Create account | Select local protection and create recovery material. | Store public recovery keys, non-secret metadata, and optional passkey-recovery ciphertext. | E2EE onboarding requires confirmed offline recovery storage. |
+| Create account | Select local protection and create recovery material. | Store public recovery keys and non-secret metadata. | E2EE onboarding requires confirmed offline recovery storage. |
 | Enroll device | Generate new encryption/signing keys, protect the local bundle, and prove possession. | Authenticate and store public authorization records. | Trust is rooted in recovery; the server never adds a trusted device. |
 | Read/write note | Unlock locally; verify state; encrypt/sign each revision with a fresh key. | Return/append ciphertext and signed records through bounded sync and command routes. | Readers verify signatures, checkpoints, context, and AEAD; writes extend one expected head only. |
 | Add device/member | Verify identity, authorize keys, and distribute only authorized epoch envelopes. | Store public commitments, membership state, and ciphertext envelopes. | No local bundle copying, no envelopes while pending, and no implicit historical access. |
 | Revoke/remove | Sign removal and rotate every affected collection to a fresh epoch. | Atomically commit removal, epoch transition, envelopes, and future-write restrictions. | Rotation completes before later writes; it protects future data only. |
-| Recover/migrate | Recover/enroll a new device locally, or create signed version/epoch transitions. | Retain ciphertext/public state during documented compatibility windows. | Secrets never leave the browser; reject downgrades; no independent checkpoint means recovery freshness is not provable. |
+| Recover/migrate | Recover/enroll a new device locally, or create signed version/epoch transitions. | Retain ciphertext/public state during documented compatibility windows. | Secrets never leave the browser; recovery uses the offline phrase; reject downgrades; no independent checkpoint means recovery freshness is not provable. |
 | Detect replay/fork | Compare returned state to durable local checkpoints. | May be stale, unavailable, or malicious. | Preserve the trusted checkpoint and report non-extension; independent comparison improves detection. |
 
 The end-to-end data path is: **authorize device -> unlock locally -> verify the
@@ -751,14 +748,13 @@ verification, authorization chain, or checkpoint consistency aborts.
 
 ### 6. Inviting another user
 
-The inviter creates a signed invitation with explicit verification mode,
-expiry, and commitment. In verified mode, the recipient proves control of an
-active authorized device and both parties compare the invitation transcript
-through an authenticated channel. In TOFU mode, the client pins and labels the
-first observed key. Only commitments, public records, and invitation metadata
-are uploaded; any high-entropy invitation secret remains outside server-visible
-request data. Key changes, invalid device chains, failed commitments, expiry,
-or transcript mismatches abort.
+The inviter creates a signed verified invitation with expiry and commitment.
+The recipient proves control of an active authorized device and both parties
+compare the invitation transcript through an authenticated channel. The
+user-carried link keeps its high-entropy secret in a URL fragment, so only
+commitments, public records, and invitation metadata reach the server. Key
+changes, invalid device chains, failed commitments, expiry, or transcript
+mismatches abort. TOFU is not offered.
 
 ### 7. Adding a member with or without historical access
 
@@ -872,7 +868,9 @@ grants. State-changing vault operations use `POST /api/vault/commands`: its
 Next.js route handler verifies the canonical command, signature, account,
 active-device/recovery authority, and matching JWT `session_id`, then invokes a
 private transaction that enforces membership, current epoch, append-only, and
-optimistic concurrency constraints. This avoids relying on a deprecated
+optimistic concurrency constraints. `device-session-bind` is the narrowly
+scoped exception: it verifies an active device signature before replacing that
+device's prior session binding. This avoids relying on a deprecated
 database crypto extension for Ed25519 verification. These server checks improve
 access control and availability behavior but are not substitutes for browser
 signature or ciphertext verification. The browser performs all vault plaintext
@@ -1038,8 +1036,8 @@ retry path. Billing tables live in `private` and are exposed only to
 
 ## V1 decisions and deferred work
 
-- Recovery phrase enrollment is mandatory; passkey recovery is optional
-  convenience, not the only recovery route.
+- Recovery phrase enrollment is mandatory. The optional passkey-recovery
+  wrapper is reserved but deferred from the shipped v1 browser feature.
 - Verified invitations are required. V1 does not offer TOFU invitations.
 - New members receive no pre-invitation history by default; owners may grant
   selected or all retained history explicitly.

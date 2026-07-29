@@ -105,9 +105,15 @@ npm run lint
 4. Stripe catalog/subscription projection.
 5. Direct webhook processor and catalog bootstrap.
 6. Entitlements and AI allowance ledger.
-7. Device/recovery schema and policies.
-8. Collections, key envelopes, sharing, item sync, and tombstones.
-9. Website integration and end-to-end sandbox verification.
+7. Freeze vault record fixtures, session binding, and the complete
+   device/recovery ledger schema.
+8. Add worker-isolated unlock, verified bootstrap/sync, collection creation,
+   encrypted item persistence, read UI, conflicts, and tombstones as separate
+   vault sub-feature commits.
+9. Add epoch rotation, device approval/revocation, phrase recovery,
+   recovery-root rotation, verified invitations, membership changes, and their
+   envelope transactions as separate vault sub-feature commits.
+10. Add vault CSP/runtime hardening and complete browser/staging verification.
 
 Each commit must leave the repository buildable and its applicable test suite
 passing. Hosted Supabase migrations and live Stripe catalog changes occur only

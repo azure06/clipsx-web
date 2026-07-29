@@ -31,7 +31,9 @@ challenge, signs/submits the bootstrap command, and only then saves the local
 encrypted device bundle. The same route discovers this account's local device
 record and unlocks its device keys in page memory using the dedicated PRF
 credential or passphrase; locking releases the page's reference to those keys.
-Remaining command transactions and the encrypted-item UI remain pending.
+The next implementation phase moves this unlocked state into a dedicated worker,
+adds signed session rebinding, and implements the remaining command
+transactions, sync, and encrypted-item UI.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
 
@@ -58,12 +60,12 @@ credential ID, and bundle salt locally. The PRF output is used only in the
 browser. A `vault-passphrase-wrapped` profile is the explicit fallback; the
 direct `indexeddb-nonextractable` profile is not supported in v1.
 
-An authenticated user may optionally store a `PasskeyRecoveryWrapper`: the
-recovery secret encrypted under a distinct key derived from an eligible vault
-credential's PRF output. This is convenience recovery only. If a synced or
-cross-device passkey cannot reproduce the PRF result, the recovery phrase is
-required. The server never receives the PRF output, unlock key, recovery
-secret, or recovery private key in plaintext.
+The schema reserves an optional `PasskeyRecoveryWrapper`: recovery-secret
+ciphertext under a distinct key derived from an eligible vault credential's PRF
+output. It is deferred from the shipping v1 browser feature. The mandatory
+offline recovery phrase remains the only recovery path implemented by v1. The
+server never receives the PRF output, unlock key, recovery secret, or recovery
+private key in plaintext.
 
 ## Algorithm profile
 
@@ -128,10 +130,19 @@ UTF-8(domain-label) || 0x00 || deterministic-CBOR(record-without-signature)
 10. `signature`
 
 The command domain label is `clipsx/vault/v1/command/<operationType>`. Valid
-operations in v1 are `device-register`, `device-authorize`, `device-revoke`,
-`recovery-rotate`, `collection-create`, `note-append`, `note-delete`,
-`checkpoint-append`, `invitation-create`, `invitation-accept`,
-`invitation-confirm`, `member-add`, `member-remove`, and `epoch-rotate`.
+operations in v1 are `device-register`, `device-session-bind`,
+`device-authorize`, `device-revoke`, `recovery-rotate`, `collection-create`,
+`note-append`, `note-delete`, `checkpoint-append`, `invitation-create`,
+`invitation-accept`, `invitation-confirm`, `member-add`, `member-remove`,
+`epoch-rotate`, and `epoch-envelope-grant`.
+
+`device-session-bind` is signed by an unlocked active device after an account
+sign-in creates a new Supabase session. It atomically replaces that device's
+current session binding and appends an account-log record. It is the sole
+exception to the normal requirement that a device command already match the
+bound session. `epoch-envelope-grant` is a bounded, signed delivery of an
+existing epoch key to a newly authorized device or an explicitly approved
+historical member; it never changes the epoch or grants implicit history.
 
 ### First-device registration payload
 
@@ -244,6 +255,9 @@ and rejected malformed record. Fixtures use fixed test-only keys and nonces and
 are never production material.
 
 Every browser implementation must verify the fixtures before release. The
-future desktop repository consumes the same CBOR bytes and tests. Legacy epoch
-`0` migration fixtures are part of the contract, but no desktop migration code
-is implemented in this repository.
+launch compatibility suite covers current desktop Chrome, Edge, Firefox, and
+Safari. PRF is used only after the browser and authenticator return a valid
+result; the vault-passphrase profile is tested as the supported fallback.
+Mobile certification is deferred. The future desktop repository consumes the
+same CBOR bytes and tests. Legacy epoch `0` migration fixtures are part of the
+contract, but no desktop migration code is implemented in this repository.

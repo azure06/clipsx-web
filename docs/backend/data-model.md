@@ -138,7 +138,7 @@ rather than overwriting public keys.
 | `signing_algorithm` | Named signature algorithm identifier. |
 | `key_version` | Protocol key version; never inferred from key length. |
 | `status` | `pending`, `active`, or `revoked`. |
-| `auth_session_id` | Current Supabase session binding used by RLS/RPC access checks. |
+| `auth_session_id` | Current Supabase session binding used by RLS/RPC access checks. Initial registration sets it; a signed `device-session-bind` operation replaces it after later account sign-in. |
 | `created_at`, `last_seen_at` | Enrollment and activity metadata. |
 | `revoked_at`, `revocation_reason` | Terminal revocation audit fields. |
 
@@ -213,15 +213,17 @@ PRF result, or plaintext recovery material.
 | `algorithm`, `key_version`, `protocol_version` | Exact decoder and protocol profile. |
 | `created_at`, `revoked_at` | Enrollment and terminal revocation audit values. |
 
-The browser may create one active wrapper per PRF-capable vault credential.
-The wrapper is fetched only after account authentication, must be bound to the
-current recovery key version, and is never accepted as proof that recovery is
-available. Recovery always falls back to the mandatory offline phrase.
+The table is reserved for a future optional convenience feature and is not
+populated by the shipped v1 browser vault. If enabled later, it must be bound
+to the current recovery key version and is never accepted as proof that
+recovery is available. Recovery always falls back to the mandatory offline
+phrase.
 
 ### `account_operations`
 
-Append-only signed account trust history for device authorization, device
-revocation, recovery-root rotation, and passkey-recovery wrapper lifecycle.
+Append-only signed account trust history for device session binding,
+authorization, revocation, and recovery-root rotation. Passkey-recovery wrapper
+lifecycle remains reserved for a future feature.
 
 | Column | Meaning |
 | --- | --- |
@@ -406,7 +408,7 @@ silently overwritten. The product does not claim automatic merge safety.
 | --- | --- |
 | `id`, `collection_id`, `inviter_device_id` | Invitation identity, collection, and signing device. |
 | `recipient_account_id`, `recipient_identity` | Known account or opaque delivery identity; minimize plaintext identity data. |
-| `verification_mode` | `verified` or `tofu`. |
+| `verification_mode` | Always `verified` in v1; the field remains explicit to reject unsupported future modes. |
 | `status` | `created`, `accepted`, `expired`, or `cancelled`. |
 | `expires_at`, `accepted_at`, `accepted_by_device_id` | Lifecycle and accepting active device. |
 | `invitation_key_commitment`, `verification_commitment` | Domain-separated commitments to any server-unknown invitation secret and canonical verification transcript. |
@@ -592,7 +594,9 @@ erasing a key from old browser devices.
   supported-browser matrix and PRF capability checks are part of the launch
   test suite; direct non-extractable key persistence is excluded.
 - Vault unlock uses a dedicated local credential, separate from optional
-  Supabase account passkeys. PRF outputs are never serialized to a server.
+  Supabase account passkeys. PRF outputs are never serialized to a server. The
+  optional passkey-recovery wrapper is deferred; its table is reserved but has
+  no v1 browser command or UI.
 - IndexedDB eviction is a lost-device event; bundle rewrap is atomic, tabs use
   a lock broadcast, and v1 has no service worker/background sync while the
   vault can be unlocked.
