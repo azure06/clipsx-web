@@ -63,10 +63,13 @@ function commandRecord(input: {
   accountId: string;
   deviceId: string;
   collectionId: string;
+  expectedAccountHead: Uint8Array;
   expectedCollectionHead: Uint8Array;
   payload: Uint8Array;
 }): Map<number, CborValue> {
-  if (input.expectedCollectionHead.byteLength !== 32) throw new Error('Collection head must be 32 bytes.');
+  if (input.expectedAccountHead.byteLength !== 32 || input.expectedCollectionHead.byteLength !== 32) {
+    throw new Error('Account and collection heads must be 32 bytes.');
+  }
   return new Map<number, CborValue>([
     [1, 1],
     [2, input.operationId ?? crypto.randomUUID()],
@@ -74,6 +77,7 @@ function commandRecord(input: {
     [4, input.accountId],
     [5, `device:${input.deviceId}`],
     [6, input.collectionId],
+    [7, input.expectedAccountHead],
     [8, input.expectedCollectionHead],
     [9, input.payload],
   ]);
@@ -99,6 +103,7 @@ export async function createVerifiedInvitationCommand(input: {
   deviceSigningPublicKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array;
   collectionId: string;
+  expectedAccountHead: Uint8Array;
   expectedCollectionHead: Uint8Array;
   recipientAccountId: string;
   role: 'editor' | 'viewer';
@@ -150,6 +155,7 @@ export async function createVerifiedInvitationCommand(input: {
     accountId: input.accountId,
     deviceId: input.deviceId,
     collectionId: input.collectionId,
+    expectedAccountHead: input.expectedAccountHead,
     expectedCollectionHead: input.expectedCollectionHead,
     payload,
   }), 'invitation-create', input.deviceSigningSecretKey);
@@ -260,6 +266,7 @@ export async function createInvitationAcceptanceCommand(input: {
   recipientSigningPublicKey: Uint8Array;
   recipientEncryptionPublicKey: Uint8Array;
   recipientSigningSecretKey: Uint8Array;
+  expectedAccountHead: Uint8Array;
   expectedCollectionHead?: Uint8Array;
   operationId?: string;
 }) {
@@ -289,6 +296,7 @@ export async function createInvitationAcceptanceCommand(input: {
     accountId: input.recipientAccountId,
     deviceId: input.recipientDeviceId,
     collectionId: invitation.collectionId,
+    expectedAccountHead: input.expectedAccountHead,
     expectedCollectionHead: input.expectedCollectionHead ?? invitation.invitationCommandHash,
     payload,
   }), 'invitation-accept', input.recipientSigningSecretKey);
@@ -302,6 +310,7 @@ export async function createInvitationConfirmationCommand(input: {
   inviterAccountId: string;
   inviterDeviceId: string;
   inviterSigningSecretKey: Uint8Array;
+  expectedAccountHead?: Uint8Array;
   expectedCollectionHead?: Uint8Array;
   operationId?: string;
 }) {
@@ -364,6 +373,7 @@ export async function createInvitationConfirmationCommand(input: {
     accountId: input.inviterAccountId,
     deviceId: input.inviterDeviceId,
     collectionId: invitation.collectionId as string,
+    expectedAccountHead: input.expectedAccountHead ?? acceptanceCommandHash,
     expectedCollectionHead: input.expectedCollectionHead ?? acceptanceCommandHash,
     payload,
   }), 'invitation-confirm', input.inviterSigningSecretKey);
@@ -496,6 +506,7 @@ export async function createMemberAddCommand(input: {
   deviceId: string;
   deviceSigningSecretKey: Uint8Array;
   collectionId: string;
+  expectedAccountHead: Uint8Array;
   expectedCollectionHead: Uint8Array;
   invitationId: string;
   membershipId: string;
@@ -570,6 +581,7 @@ export async function createMemberAddCommand(input: {
     accountId: input.accountId,
     deviceId: input.deviceId,
     collectionId: input.collectionId,
+    expectedAccountHead: input.expectedAccountHead,
     expectedCollectionHead: input.expectedCollectionHead,
     payload,
   }), 'member-add', input.deviceSigningSecretKey);
@@ -581,6 +593,7 @@ export async function createMemberRemoveCommand(input: {
   deviceId: string;
   deviceSigningSecretKey: Uint8Array;
   collectionId: string;
+  expectedAccountHead: Uint8Array;
   expectedCollectionHead: Uint8Array;
   membershipId: string;
   removedAccountId: string;
@@ -620,6 +633,7 @@ export async function createMemberRemoveCommand(input: {
     accountId: input.accountId,
     deviceId: input.deviceId,
     collectionId: input.collectionId,
+    expectedAccountHead: input.expectedAccountHead,
     expectedCollectionHead: input.expectedCollectionHead,
     payload,
   }), 'member-remove', input.deviceSigningSecretKey);

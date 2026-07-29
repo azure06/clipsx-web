@@ -14,7 +14,8 @@ describe('vault bootstrap', () => {
     const created = await createCollectionCommand({
       accountId: 'account-1', deviceId: 'device-1', deviceEncryptionPublicKey: deviceEncryption.publicKey,
       recoveryKeyId: 'recovery-1', recoveryEncryptionPublicKey: recoveryEncryption.publicKey,
-      deviceSigningSecretKey: signing.secretKey, metadataTitle: 'Personal', collectionId: 'collection-1', operationId: 'operation-1',
+      deviceSigningSecretKey: signing.secretKey, expectedAccountHead: new Uint8Array(32).fill(9),
+      metadataTitle: 'Personal', collectionId: 'collection-1', operationId: 'operation-1',
     });
     const creation = admitCollectionCreation(decodeVaultCommand(created.command));
     const deviceEnvelope = decodeCanonicalCbor(creation.deviceEnvelope.payload);
@@ -28,6 +29,7 @@ describe('vault bootstrap', () => {
     ]));
     await expect(openVaultBootstrap({
       bytes: bootstrap, accountId: 'account-1', deviceEncryptionSecretKey: deviceEncryption.secretKey, deviceSigningSecretKey: signing.secretKey,
+      expectedAccountHead: new Uint8Array(32).fill(9), deviceSigningKeys: new Map([['device-1', signing.publicKey]]),
     })).resolves.toMatchObject({ collections: [{ id: 'collection-1', title: 'Personal' }] });
   });
 });

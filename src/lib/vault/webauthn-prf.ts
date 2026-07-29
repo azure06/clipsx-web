@@ -8,13 +8,39 @@ function browser(): void {
 
 function buffer(bytes: Uint8Array): ArrayBuffer { return bytes.slice().buffer; }
 
-export async function createVaultPrfCredential(accountId: string, rpId = 'clipsx.app'): Promise<VaultPrfCredential> {
+/** WebAuthn credentials are scoped by the browser to the current host. */
+export function currentVaultRpId(): string {
+  browser();
+  if (!window.location.hostname) throw new Error('Vault WebAuthn requires a host name.');
+  return window.location.hostname;
+}
+
+/** Signed enrollment metadata records the exact origin that enrolled the device. */
+export function currentVaultEnrollmentOrigin(): string {
+  browser();
+  if (!window.location.origin || window.location.origin === 'null') throw new Error('Vault enrollment requires a web origin.');
+  return window.location.origin;
+}
+
+export async function vaultPrfCapability(): Promise<boolean | null> {
+  browser();
+  const constructor = window.PublicKeyCredential as typeof PublicKeyCredential & {
+    getClientCapabilities?: () => Promise<Record<string, boolean>>;
+  };
+  if (!constructor.getClientCapabilities) return null;
+  const capabilities = await constructor.getClientCapabilities();
+  return capabilities['extension:prf'] === true;
+}
+
+export async function createVaultPrfCredential(accountId: string, rpId = currentVaultRpId()): Promise<VaultPrfCredential> {
   browser();
   const prfInput = randomBytes(32);
   const credential = await navigator.credentials.create({
     publicKey: {
       challenge: buffer(randomBytes(32)), rp: { id: rpId, name: 'ClipsX Vault' },
-      user: { id: buffer(new TextEncoder().encode(accountId)), name: accountId, displayName: 'ClipsX Vault' },
+      // The opaque account ID is the required stable user handle. Do not surface
+      // it in an authenticator UI as a pretend username.
+      user: { id: buffer(new TextEncoder().encode(accountId)), name: 'ClipsX Vault', displayName: 'ClipsX Vault' },
       pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
       authenticatorSelection: { userVerification: 'required' },
       extensions: { prf: { eval: { first: prfInput } } } as AuthenticationExtensionsClientInputs,

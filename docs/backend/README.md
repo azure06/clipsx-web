@@ -14,13 +14,15 @@ subscriptions.
    protocol, cryptographic profile, and test-vector contract.
 4. [Vault key lifecycle](vault-key-lifecycle.md) is the visual guide to vault
    keys, recovery, encryption, and revocation flows.
-5. [Data model](data-model.md) is the implementation-facing table and column
+5. [Vault flow review and operating guide](vault-flow-review.md) maps the
+   implemented lifecycle, user rationale, diagnostics, and deployment checks.
+6. [Data model](data-model.md) is the implementation-facing table and column
    dictionary.
-6. [Stripe billing](billing-stripe.md) defines the Stripe projection,
+7. [Stripe billing](billing-stripe.md) defines the Stripe projection,
    entitlement rules, reconciliation, and operational scenarios.
-7. [Local development](local-development.md) defines the migration and test
+8. [Local development](local-development.md) defines the migration and test
    workflow.
-8. [Sources](sources.md) lists the primary documentation behind the design.
+9. [Sources](sources.md) lists the primary documentation behind the design.
 
 ## Locked v1 decisions
 

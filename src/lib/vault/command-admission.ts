@@ -75,7 +75,8 @@ function envelope(record: Map<number, unknown>, label: number, kind: 'device' | 
 }
 
 export function admitCollectionCreation(command: VaultCommand): CollectionCreation {
-  if (command.operationType !== 'collection-create' || !command.authorDeviceId || !command.collectionId) throw new Error('invalid-collection-create');
+  if (command.operationType !== 'collection-create' || !command.authorDeviceId || !command.collectionId
+    || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-collection-create');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
   if (payload.size !== 13 || text(payload, 1) !== command.collectionId) throw new Error('invalid-collection-create');
   const recoveryKeyId = text(payload, 13);
@@ -92,18 +93,25 @@ export function admitCollectionCreation(command: VaultCommand): CollectionCreati
 /** Strictly decodes the opaque, first immutable revision.  The server learns no content. */
 export async function admitNoteAppend(command: VaultCommand, signingPublicKey: Uint8Array): Promise<NoteAppend> {
   if (command.operationType !== 'note-append' || !command.authorDeviceId || !command.collectionId
+    || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32
     || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-append');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
+  const attachment = command.transportAttachment;
   const revisionNumber = payload.get(3);
-  if ((payload.size !== 12 && payload.size !== 13) || payload.get(2) !== 1 || typeof revisionNumber !== 'number' || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('invalid-note-append');
-  const itemType = payload.get(12);
+  const collectionEpoch = payload.get(2);
+  if ((payload.size !== 10 && payload.size !== 11) || !(attachment instanceof Map)
+    || attachment.size !== 2 || typeof collectionEpoch !== 'number'
+    || !Number.isSafeInteger(collectionEpoch) || collectionEpoch < 1 || typeof revisionNumber !== 'number'
+    || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('invalid-note-append');
+  const itemType = payload.get(10);
   if (itemType !== 'note' && itemType !== 'login') throw new Error('invalid-note-append');
   const result: NoteAppend = {
-    noteId: text(payload, 1), collectionEpoch: 1, revisionNumber,
-    encryptedContent: payloadBytes(payload, 4, 16), contentNonce: bytes(payload, 5, 12),
-    wrappedRevisionKey: payloadBytes(payload, 6, 16), keyWrapNonce: bytes(payload, 7, 12),
-    ciphertextHash: bytes(payload, 8, 32), wrappedRevisionKeyHash: bytes(payload, 9, 32),
-    revisionHash: bytes(payload, 10, 32), revisionSignature: bytes(payload, 11, 64), itemType, previousRevisionHash: payload.size === 13 ? bytes(payload, 13, 32) : null,
+    noteId: text(payload, 1), collectionEpoch, revisionNumber,
+    encryptedContent: payloadBytes(attachment, 1, 16), contentNonce: bytes(payload, 4, 12),
+    wrappedRevisionKey: payloadBytes(attachment, 2, 16), keyWrapNonce: bytes(payload, 5, 12),
+    ciphertextHash: bytes(payload, 6, 32), wrappedRevisionKeyHash: bytes(payload, 7, 32),
+    revisionHash: bytes(payload, 8, 32), revisionSignature: bytes(payload, 9, 64), itemType,
+    previousRevisionHash: payload.size === 11 ? bytes(payload, 11, 32) : null,
   };
   if ((result.revisionNumber === 1) !== (result.previousRevisionHash === null)) throw new Error('invalid-note-append');
   if (result.encryptedContent.byteLength > 1_048_576
@@ -120,6 +128,7 @@ export async function admitNoteAppend(command: VaultCommand, signingPublicKey: U
 
 export function admitNoteDelete(command: VaultCommand): NoteDelete {
   if (command.operationType !== 'note-delete' || !command.authorDeviceId || !command.collectionId
+    || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32
     || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-delete');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
   if (payload.size !== 2) throw new Error('invalid-note-delete');
@@ -158,6 +167,31 @@ function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
   return left.byteLength === right.byteLength && left.every((value, index) => value === right[index]);
 }
 
+function canonicalOrigin(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.origin : null;
+  } catch { return null; }
+}
+
+export function configuredVaultEnrollmentOrigins(value = process.env.VAULT_ENROLLMENT_ORIGINS): Set<string> {
+  return new Set((value ?? '').split(',').map((origin) => canonicalOrigin(origin.trim())).filter((origin): origin is string => origin !== null));
+}
+
+/** Production/staging origins are explicit configuration; development only permits loopback. */
+export function isAllowedVaultEnrollmentOrigin(
+  origin: string,
+  environment = process.env.NODE_ENV,
+  configuredOrigins = configuredVaultEnrollmentOrigins(),
+): boolean {
+  const canonical = canonicalOrigin(origin);
+  if (!canonical || canonical !== origin) return false;
+  if (configuredOrigins.has(canonical)) return true;
+  if (environment === 'production') return false;
+  const host = new URL(canonical).hostname;
+  return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+}
+
 export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, user: Pick<User, 'id'>): Promise<{ command: VaultCommand; registration: InitialDeviceRegistration }> {
   if (bytesInput.byteLength === 0 || bytesInput.byteLength > MAX_COMMAND_BYTES) throw new Error('command-size');
   const command = decodeVaultCommand(bytesInput);
@@ -172,7 +206,7 @@ export async function admitInitialDeviceRegistration(bytesInput: Uint8Array, use
     recoveryEncryptionPublicKey: bytes(payload, 10, 32), recoverySigningPublicKey: bytes(payload, 11, 32),
     challengeId: text(payload, 13), challengeResponseHash: bytes(payload, 14, 32), deviceProofPayload: new Uint8Array(), deviceProofSignature: new Uint8Array(),
   };
-  if (command.recoveryKeyId !== recoveryKeyId || registration.enrollmentOrigin !== 'https://clipsx.app' || !['webauthn-prf-wrapped', 'vault-passphrase-wrapped'].includes(registration.protectionProfile)) throw new Error('invalid-registration');
+  if (command.recoveryKeyId !== recoveryKeyId || !isAllowedVaultEnrollmentOrigin(registration.enrollmentOrigin) || !['webauthn-prf-wrapped', 'vault-passphrase-wrapped'].includes(registration.protectionProfile)) throw new Error('invalid-registration');
   const proof = bytes(payload, 15, 64); registration.deviceProofSignature = proof; const proofFields = new Map(payload); proofFields.delete(15);
   registration.deviceProofPayload = encodeCanonicalCbor(proofFields as Map<number, import('./protocol').CborValue>);
   if (!await verifyProtocolRecord('clipsx/vault/v1/device-register-proof', registration.deviceProofPayload, proof, registration.deviceSigningPublicKey)) throw new Error('invalid-device-proof');
@@ -196,7 +230,7 @@ export async function admitPendingDeviceRegistration(bytesInput: Uint8Array, use
     deviceSigningPublicKey: bytes(payload, 8, 32), challengeId: text(payload, 10), challengeResponseHash: bytes(payload, 11, 32),
     deviceProofPayload: command.signedBytes, deviceProofSignature: command.signature, sasCommitment: bytes(payload, 12, 32),
   };
-  if (command.authorDeviceId !== registration.deviceId || registration.enrollmentOrigin !== 'https://clipsx.app'
+  if (command.authorDeviceId !== registration.deviceId || !isAllowedVaultEnrollmentOrigin(registration.enrollmentOrigin)
     || !['webauthn-prf-wrapped', 'vault-passphrase-wrapped'].includes(registration.protectionProfile)
     || !await verifyProtocolRecord('clipsx/vault/v1/command/device-register', command.signedBytes, command.signature, registration.deviceSigningPublicKey)) throw new Error('invalid-pending-registration');
   return { command, registration };
@@ -238,6 +272,9 @@ export async function admitVaultCommand(
   if (bytes.byteLength === 0 || bytes.byteLength > MAX_COMMAND_BYTES) throw new Error('command-size');
   const command = decodeVaultCommand(bytes);
   if (command.accountId !== user.id) throw new Error('account-mismatch');
+  if (command.collectionId && (!command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32)) {
+    throw new Error('invalid-account-head');
+  }
 
   const device = command.authorDeviceId
     ? await lookup.findActiveDevice(command.authorDeviceId, user.id)

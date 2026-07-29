@@ -10,6 +10,30 @@
 The project has no local seed data. Database tests create their own fixtures,
 so `supabase db reset --local` applies migrations only.
 
+## Local browser-vault passkeys
+
+Run the app with `npm run dev` and open `http://localhost:3000/en/vault`.
+The vault derives its WebAuthn relying-party ID from the active hostname, so a
+local passkey is scoped to `localhost` and cannot unlock a production vault
+record. Local development admission accepts only loopback enrollment origins;
+production and staging must set the server-only comma-separated exact-origin
+allowlist, for example:
+
+```text
+VAULT_ENROLLMENT_ORIGINS=https://clipsx.app,https://staging.clipsx.app
+```
+
+Do not use a wildcard or a client-exposed `NEXT_PUBLIC_` variable for this
+setting.
+The device-challenge endpoint returns a safe machine-readable CBOR error code
+for malformed requests or challenge-storage failures. Every vault response
+also includes `X-Vault-Request-Id`; the local vault UI shows a safe action and
+the reference ID without exposing secrets.
+
+Deployment verification uses a clean `supabase db reset --local`, database/RLS
+tests, and a production build. Vault failures are correlated through
+`X-Vault-Request-Id`; there is no browser-callable database diagnostic route.
+
 No secret is committed. Local environment examples use variable names only.
 Stripe secret/restricted keys, webhook signing secrets, and Supabase service
 keys are server-only and never prefixed `NEXT_PUBLIC_`.
@@ -146,27 +170,14 @@ npm run lint
   manual-merge actions. Lock, page exit, cross-tab lock, and vault teardown
   clear that draft and all rendered plaintext.
 
-## Commit order
+## Vault migration order
 
-1. Documentation only.
-2. Pinned local tooling and test harness.
-3. Shared SQL foundations and billing accounts.
-4. Stripe catalog/subscription projection.
-5. Direct webhook processor and catalog bootstrap.
-6. Entitlements and AI allowance ledger.
-7. Freeze vault record fixtures, session binding, and the complete
-   device/recovery ledger schema.
-8. Add worker-isolated unlock, verified bootstrap/sync, collection creation,
-   encrypted item persistence, read UI, conflicts, and tombstones as separate
-   vault sub-feature commits.
-9. Add epoch rotation, device approval/revocation, phrase recovery,
-   recovery-root rotation, verified invitations, membership changes, and their
-   envelope transactions as separate vault sub-feature commits.
-10. Add vault CSP/runtime hardening and complete browser/staging verification.
-
-Each commit must leave the repository buildable and its applicable test suite
-passing. Hosted Supabase migrations and live Stripe catalog changes occur only
-after local verification and explicit review.
+Vault migrations are feature-owned and rebuildable: read schema/RLS, trust
+ledger, registration staging, device enrollment/session binding, device
+authorization/revocation, recovery rotation, collection/item content,
+collection sharing/rotation, and account sync. Do not append corrective grant
+or upgrade migrations while the schema remains pre-production; amend the owning
+feature migration and verify from a clean reset.
 
 ## Continuous integration
 

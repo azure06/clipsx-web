@@ -8,13 +8,15 @@ export type BrowserDeviceRecord = {
   bundleSalt: Uint8Array;
   passphraseKdfSalt?: Uint8Array;
   webauthnCredentialId?: Uint8Array;
-  webauthnRpId?: 'clipsx.app';
+  webauthnRpId?: string;
   prfInput?: Uint8Array;
   createdAt: string;
   updatedAt: string;
-  enrollmentStatus?: 'pending' | 'active';
+  enrollmentStatus?: 'registering' | 'pending' | 'active';
   pendingOfferCiphertext?: Uint8Array;
   pendingOfferNonce?: Uint8Array;
+  accountCheckpointSequence?: number;
+  accountCheckpointHash?: Uint8Array;
 };
 
 const DATABASE_NAME = 'clipsx-vault-v1';

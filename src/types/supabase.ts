@@ -1154,6 +1154,18 @@ export type Database = {
         Args: { p_account_id: string; p_session_id: string }
         Returns: boolean
       }
+      read_vault_account_sync_page: {
+        Args: {
+          p_after: number
+          p_anchor: string
+          p_collection_id: string
+          p_limit: number
+          p_requester_account_id: string
+          p_requester_session_id: string
+          p_target_account_id: string
+        }
+        Returns: Json
+      }
       recompute_account_entitlement: {
         Args: { p_billing_account_id: string }
         Returns: undefined
@@ -2482,3 +2494,4 @@ export const Constants = {
     },
   },
 } as const
+

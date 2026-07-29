@@ -28,7 +28,7 @@ create table private.vault_pending_device_registrations (
   account_id uuid not null references auth.users(id) on delete cascade,
   display_name text not null check (length(display_name) between 1 and 128),
   platform text not null check (length(platform) between 1 and 128),
-  enrollment_origin text not null check (enrollment_origin = 'https://clipsx.app'),
+  enrollment_origin text not null,
   protection_profile text not null check (protection_profile in ('webauthn-prf-wrapped', 'vault-passphrase-wrapped')),
   capabilities jsonb not null,
   encryption_public_key bytea not null check (octet_length(encryption_public_key) = 32),

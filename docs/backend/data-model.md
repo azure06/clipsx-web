@@ -91,9 +91,12 @@ must be present together. A profile may change only by decrypting in an already
 unlocked session and atomically writing a newly encrypted bundle; interruption
 must leave the prior record recoverable. The record is never synced, backed up
 to Supabase, placed in Cache Storage, or copied to another browser device.
-The relying-party ID is `clipsx.app`, with vault operations confined to the
-approved `/[locale]/vault` route. Changing it requires new-device enrollment
-rather than local record mutation.
+The relying-party ID is the current browser hostname, with vault operations
+confined to the approved `/[locale]/vault` route. The server validates the
+signature-bound enrollment origin against its server-only
+`VAULT_ENROLLMENT_ORIGINS` exact-origin allowlist; local non-production work
+may use a loopback origin when that setting is absent. Changing hosts requires
+new-device enrollment rather than local record mutation.
 
 The currently implemented canonical `BrowserDeviceKeyBundle` exists only
 transiently in memory and contains the separate X25519 encryption and Ed25519
@@ -561,6 +564,10 @@ verify and decrypt only current personal-device records.
 
 RLS still checks account, active device, live Auth session, membership, and
 role for all browser-readable data. Browser mutation grants are revoked. RLS
+read policies use the private `can_read_vault_collection` and
+`has_active_bound_vault_device` helpers; the `authenticated` role has `EXECUTE`
+only so those policies can evaluate. It has
+no `USAGE` on the private schema and cannot call the helper directly.
 and TLS are server access controls, not cryptographic public-key authentication
 or browser-vault unlock. The server never receives enough data to reconstruct
 the browser device-key bundle.

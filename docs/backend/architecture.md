@@ -288,13 +288,18 @@ activate while the vault is unlocked; update provenance and rollback behavior
 require explicit operational tests. These controls reduce XSS and supply-chain
 exposure but cannot make server-delivered JavaScript independent of the server.
 
-V1 uses `clipsx.app` as its WebAuthn relying-party ID, with vault operations
-confined to `/[locale]/vault`. Because the vault shares the primary origin,
-sibling same-origin code remains inside its trust boundary. The origin and
-relying-party ID are versioned, security-critical configuration. An
-origin/domain migration enrolls a new browser device through an unlocked
-old-origin device or recovery; it must not
-silently copy or reinterpret the old IndexedDB bundle.
+V1 derives the WebAuthn relying-party ID from the browser's current hostname,
+with vault operations confined to `/[locale]/vault`. Server-only
+`VAULT_ENROLLMENT_ORIGINS` is the comma-separated exact-origin allowlist for
+production and staging. Non-production without that setting additionally
+permits loopback origins so `localhost` can exercise the complete local flow.
+Because
+the vault shares the primary origin, sibling same-origin code remains inside
+its trust boundary. The origin and relying-party ID are versioned,
+security-critical configuration. An origin/domain migration enrolls a new
+browser device through an unlocked old-origin device or recovery; it must not
+silently copy or reinterpret the old IndexedDB bundle. Consequently, a
+localhost passkey is intentionally distinct from a production passkey.
 
 #### Collection epoch keys
 
@@ -478,7 +483,7 @@ before upload, renders and locally restores the QR/SAS exchange, and keeps
 authorizer signing and epoch keys inside the dedicated worker.
 
 Recovery enrollment derives the recovery signing and encryption keys locally
-from the confirmed phrase. The recovery root can authorize the same pending
+from the displayed recovery phrase. The recovery root can authorize the same pending
 proof when no active browser is available. Its recipient envelopes are marked
 as recovery-signed records, and are never presented as if a lost browser device
 had authored them.
@@ -640,8 +645,8 @@ Rollback and reactivation require a new epoch and new key material.
 
 Recovery is a root-level E2EE capability, not a harmless backup code. At every
 v1 onboarding, the browser generates the mandatory 256-bit `RecoverySecret`,
-encodes it as the checksummed 24-word recovery phrase, and requires user
-confirmation before device enrollment completes. It is not a user-selected
+encodes it as the checksummed 24-word recovery phrase, and displays a clear
+offline-storage and loss warning before device enrollment completes. It is not a user-selected
 password and has no additional passphrase. It never reaches the server, logs,
 telemetry, crash reports, support tooling, or analytics in plaintext.
 
@@ -714,7 +719,7 @@ decisions, rather than a second system-design description.
 
 | Flow | Browser-owned action | Hosted-service role | Approval condition |
 | --- | --- | --- | --- |
-| Create account | Select local protection and create recovery material. | Store public recovery keys and non-secret metadata. | E2EE onboarding requires confirmed offline recovery storage. |
+| Create account | Select local protection and create recovery material. | Store public recovery keys and non-secret metadata. | The phrase is displayed with an offline-storage warning; the UI does not claim it can confirm durable storage. |
 | Enroll device | Generate new encryption/signing keys, protect the local bundle, and prove possession. | Authenticate and store public authorization records. | Trust is rooted in recovery; the server never adds a trusted device. |
 | Read/write note | Unlock locally; verify state; encrypt/sign each revision with a fresh key. | Return/append ciphertext and signed records through bounded sync and command routes. | Readers verify signatures, checkpoints, context, and AEAD; writes extend one expected head only. |
 | Add device/member | Verify identity, authorize keys, and distribute only authorized epoch envelopes. | Store public commitments, membership state, and ciphertext envelopes. | No local bundle copying, no envelopes while pending, and no implicit historical access. |

@@ -25,10 +25,11 @@ bundle and non-secret unlock metadata; the recovery phrase and recovery private
 keys are not included in the local bundle.
 The browser WebAuthn helper creates a dedicated user-verifying PRF credential
 and obtains its 32-byte output only in browser memory. Recovery-phrase
-confirmation UI is implemented at `/[locale]/vault`: it shows and confirms the
-mandatory phrase, selects a PRF/passphrase local protection profile, obtains a
-challenge, signs/submits the bootstrap command, and only then saves the local
-encrypted device bundle. The same route discovers this account's local device
+setup UI is implemented at `/[locale]/vault`: it shows the mandatory phrase
+with an explicit offline-storage warning, selects a PRF/passphrase protection
+profile, and obtains a challenge. It stages only the encrypted device bundle,
+submits registration, and reconciles an uncertain response before marking the
+record active. The same route discovers this account's local device
 record and transfers derived unlock material to the dedicated worker using the
 PRF credential or passphrase; locking releases the worker's key references.
 Initial registration binds the device to the authenticated Supabase session;
@@ -53,7 +54,8 @@ includes each collection's authenticated operation head; the worker retains it
 with the verified current epoch key. A `note-append` command creates an
 initial or later immutable revision, binds that head (and, for a later
 revision, its exact prior revision hash), and carries opaque content/key-wrap ciphertext plus
-an independently signed immutable-revision record. The command route verifies
+an independently signed immutable-revision record using the collection's actual
+current epoch. The command route verifies
 both signatures and its hashes before a private transaction atomically inserts
 the note, revision, and next collection-operation entry. The UI refreshes the
 verified bootstrap after acceptance and never presents locally generated text
@@ -88,9 +90,10 @@ an account session. They do not decrypt the vault. A separate vault WebAuthn
 credential or vault passphrase unlocks the browser device bundle.
 
 Every initial vault enrollment creates a mandatory 32-byte recovery secret.
-It is encoded as an English 24-word BIP-39 phrase and the user must confirm
-randomly selected words before onboarding completes. There is no no-recovery
-bootstrap and no extra passphrase for this recovery phrase.
+It is encoded as an English 24-word BIP-39 phrase and displayed with an explicit
+offline-storage and permanent-loss warning. The UI does not test selected words
+or claim that display proves durable storage. There is no no-recovery bootstrap
+and no extra passphrase for this recovery phrase.
 
 The standard unlock profile is `webauthn-prf-wrapped` with `userVerification`
 set to `required`. The browser creates a dedicated vault credential scoped to
@@ -202,7 +205,9 @@ Its `payload` is a deterministic-CBOR map with these contiguous labels:
 2. `recoveryKeyId`
 3. `displayName`
 4. `platform`
-5. `enrollmentOrigin` (`https://clipsx.app`)
+5. `enrollmentOrigin` (the browser's exact current origin; the server admits
+   it only when it appears in the server-only `VAULT_ENROLLMENT_ORIGINS`
+   allowlist, except for non-production loopback development)
 6. `protectionProfile` (`webauthn-prf-wrapped` or `vault-passphrase-wrapped`)
 7. `clientCryptoCapabilitiesHash`
 8. `deviceEncryptionPublicKey` (32 bytes)
@@ -286,29 +291,15 @@ the epoch key nor metadata plaintext. The private transaction inserts the
 collection, active owner membership, current epoch, both envelopes, and the
 first collection-log entry atomically.
 
-`GET /api/vault/bootstrap` returns the bound device and its current authorized
-collection records, transitions, and device envelopes in canonical CBOR. The
-per-collection record also includes the current 32-byte collection-operation
-head. The worker verifies the enclosing record and only then uses that head as
-the optimistic-concurrency precondition for the next command.
-planned `GET /api/vault/collections/{id}/sync?after=<sequence>` endpoint will
-return authorized collection operations, ciphertext, envelopes, and tombstones
-in bounded CBOR pages. The sequence is an availability cursor only; clients
-trust only verified signed heads and local checkpoints. Collection sync is not
-implemented for the current personal-device profile at
-`GET /api/vault/collections/{collectionId}/sync`: it returns no plaintext,
-only canonical operation, revision, and tombstone records. The worker verifies the
-hash-linked command sequence, command signatures, revision signatures and
-ciphertext hashes before unwrapping/decrypting an item. Records from another
-device are rejected until the forthcoming verified device-key directory and
-sharing flow are implemented.
+`GET /api/vault/bootstrap` returns the bound device and its current authorized collection records, transitions, and device envelopes in canonical CBOR. The per-collection record also includes the current 32-byte collection-operation head. The worker verifies the enclosing record and only then uses that head as the optimistic-concurrency precondition for the next command.
+
+`GET /api/vault/account-sync` and `GET /api/vault/collections/{collectionId}/sync?after=<sequence>` return authorized account chains, collection operations, ciphertext, envelopes, and tombstones in bounded CBOR pages (`application/cbor`). The sequence is an availability cursor; clients trust only verified signed heads and local checkpoints. Synchronized pages return no plaintext, serving only canonical operation, revision, and tombstone records. The browser worker verifies the hash-linked command sequence, command signatures, revision signatures, and ciphertext hashes before unwrapping or decrypting any item.
 
 ## Encrypted item payloads
 
 The encrypted revision payload uses one of two fixed maps:
 
 | Item type | Fields in encrypted payload |
-| --- | --- |
 | `note` | schema version, type, title, body, labels, created-at, updated-at |
 | `login` | schema version, type, name, username, password, URL, notes, labels, created-at, updated-at |
 
@@ -341,7 +332,8 @@ revision signature covers the fixed revision identity/hash record using
 never receive content or key plaintext.
 
 Later immutable revisions use the same command with an incremented revision
-number and payload label `13` containing the exact prior revision hash. The
+number and payload label `13` containing the exact prior revision hash. A
+The
 private transaction locks the note and collection-operation head, rejecting
 either stale precondition without writing a partial revision.
 
@@ -422,10 +414,11 @@ On signed item deletion, remove its primary ciphertext and wrapped keys in the
 same transaction and retain a signed non-secret tombstone. Backups and prior
 recipient copies are not cryptographic erasure.
 
-Lock on explicit lock, sign-out, 15 minutes of inactivity, and browser page
-termination. Lock releases application references and clears rendered secrets;
-it does not claim physical memory erasure. Offline cache and conflict drafts
-remain locally encrypted. V1 has no service worker or background sync task.
+The implemented UI locks explicitly, across tabs, on sign-out/component teardown,
+and on browser page termination. Lock releases application references and
+clears rendered secrets; it does not claim physical memory erasure. A 15-minute
+inactivity timer and durable encrypted offline drafts remain future browser UI
+work. V1 has no service worker or background sync task.
 
 ## Device revocation and epoch rotation
 

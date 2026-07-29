@@ -6,6 +6,7 @@ import {
 
 export async function createPendingDeviceRegistrationCommand(input: {
   accountId: string; deviceId: string; displayName: string; platform: string;
+  enrollmentOrigin: string;
   protectionProfile: 'webauthn-prf-wrapped' | 'vault-passphrase-wrapped';
   capabilities: Uint8Array; challenge: { id: string; encapsulatedKey: Uint8Array; ciphertext: Uint8Array; expiresAt: string };
   deviceEncryptionPublicKey: Uint8Array; deviceEncryptionSecretKey: Uint8Array;
@@ -19,7 +20,7 @@ export async function createPendingDeviceRegistrationCommand(input: {
   );
   if (challenge.byteLength !== 32 || Date.parse(input.challenge.expiresAt) <= Date.now()) throw new Error('Invalid or expired device challenge.');
   const payload = encodeCanonicalCbor(new Map<number, CborValue>([
-    [1, input.deviceId], [2, input.displayName], [3, input.platform], [4, 'https://clipsx.app'],
+    [1, input.deviceId], [2, input.displayName], [3, input.platform], [4, input.enrollmentOrigin],
     [5, input.protectionProfile], [6, await sha256(input.capabilities)], [7, input.deviceEncryptionPublicKey],
     [8, input.deviceSigningPublicKey], [9, 1], [10, input.challenge.id], [11, await sha256(challenge)],
     [12, await sha256(input.sasSecret)],

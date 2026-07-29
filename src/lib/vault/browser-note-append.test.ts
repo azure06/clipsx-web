@@ -10,13 +10,14 @@ describe('note append command', () => {
     const signing = ed25519.keygen(new Uint8Array(32).fill(19));
     const result = await createNoteAppendCommand({
       accountId: 'account-1', collectionId: 'collection-1', deviceId: 'device-1', epochKey: new Uint8Array(32).fill(7),
-      deviceSigningSecretKey: signing.secretKey, expectedCollectionHead: new Uint8Array(32).fill(8),
+      deviceSigningSecretKey: signing.secretKey, expectedAccountHead: new Uint8Array(32).fill(6),
+      expectedCollectionHead: new Uint8Array(32).fill(8), epochNumber: 3,
       noteId: 'note-1', operationId: 'operation-1', content: { type: 'note', title: 'Private', body: 'Text', labels: [], createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
     });
     const command = decodeVaultCommand(result.command);
     expect(command.operationType).toBe('note-append');
     expect(command.expectedCollectionHead).toEqual(new Uint8Array(32).fill(8));
     expect(result.noteId).toBe('note-1');
-    await expect(admitNoteAppend(command, signing.publicKey)).resolves.toMatchObject({ noteId: 'note-1', collectionEpoch: 1, revisionNumber: 1 });
+    await expect(admitNoteAppend(command, signing.publicKey)).resolves.toMatchObject({ noteId: 'note-1', collectionEpoch: 3, revisionNumber: 1 });
   });
 });

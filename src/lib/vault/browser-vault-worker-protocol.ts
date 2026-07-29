@@ -9,6 +9,15 @@ export type VaultWorkerRequest =
     bundleNonce: Uint8Array;
     encryptedBundle: Uint8Array;
   }
+  | {
+    id: string;
+    type: 'open-account-sync';
+    accountId: string;
+    deviceId: string;
+    pages: Uint8Array[];
+    checkpointSequence?: number;
+    checkpointHash?: Uint8Array;
+  }
   | { id: string; type: 'lock' }
   | { id: string; type: 'status' }
   | {
@@ -31,13 +40,14 @@ export type VaultWorkerRequest =
   }
   | { id: string; type: 'open-bootstrap'; accountId: string; bootstrap: Uint8Array }
   | { id: string; type: 'authorize-device'; accountId: string; deviceId: string; offer: string; operationId?: string }
-  | { id: string; type: 'open-sync'; accountId: string; deviceId: string; collectionId: string; sync: Uint8Array }
+  | { id: string; type: 'open-sync'; accountId: string; deviceId: string; collectionId: string; pages: Uint8Array[] }
   | { id: string; type: 'create-note'; accountId: string; deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
   | { id: string; type: 'update-note'; accountId: string; deviceId: string; collectionId: string; noteId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
   | { id: string; type: 'delete-note'; accountId: string; deviceId: string; collectionId: string; noteId: string; previousRevisionHash: Uint8Array };
 
 export type VaultWorkerResponse =
   | { id: string; type: 'unlocked' }
+  | { id: string; type: 'account-sync-opened'; sequence: number; accountHead: Uint8Array }
   | { id: string; type: 'locked' }
   | { id: string; type: 'status'; unlocked: boolean }
   | { id: string; type: 'signed-session-bind'; command: Uint8Array }

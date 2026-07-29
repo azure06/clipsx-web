@@ -57,6 +57,7 @@ export type VaultCommand = {
   authorDeviceId?: string; recoveryKeyId?: string; collectionId?: string;
   expectedAccountHead?: Uint8Array; expectedCollectionHead?: Uint8Array;
   payload: Uint8Array; signature: Uint8Array; signedBytes: Uint8Array;
+  operationBytes: Uint8Array; transportAttachment?: CborValue;
 };
 
 function asArrayBuffer(bytes: Uint8Array): ArrayBuffer {
@@ -206,7 +207,8 @@ function requiredText(record: Map<number, CborValue>, label: number, name: strin
 
 export function decodeVaultCommand(bytes: Uint8Array): VaultCommand {
   const record = decodeCanonicalCbor(bytes);
-  if (record.size < 7 || record.size > 10 || record.get(1) !== VAULT_PROTOCOL_VERSION) throw new Error('Unsupported vault command.');
+  if (record.size < 7 || record.size > 11 || record.get(1) !== VAULT_PROTOCOL_VERSION
+    || [...record.keys()].some((key) => key > 11)) throw new Error('Unsupported vault command.');
   const operationType = requiredText(record, 3, 'Operation type');
   if (!VAULT_COMMAND_TYPES.includes(operationType as VaultCommandType)) throw new Error('Unsupported vault operation.');
   const author = record.get(5);
@@ -216,7 +218,11 @@ export function decodeVaultCommand(bytes: Uint8Array): VaultCommand {
   if (!(payload instanceof Uint8Array) || !(signature instanceof Uint8Array) || signature.byteLength !== 64) throw new Error('Invalid command payload or signature.');
   const unsigned = new Map(record);
   unsigned.delete(10);
+  unsigned.delete(11);
   const signedBytes = encodeCanonicalCbor(unsigned);
+  const durable = new Map(record);
+  durable.delete(11);
+  const operationBytes = encodeCanonicalCbor(durable);
   const accountHead = record.get(7); const collectionHead = record.get(8);
   if (accountHead !== undefined && !(accountHead instanceof Uint8Array)) throw new Error('Invalid account head.');
   if (collectionHead !== undefined && !(collectionHead instanceof Uint8Array)) throw new Error('Invalid collection head.');
@@ -226,7 +232,8 @@ export function decodeVaultCommand(bytes: Uint8Array): VaultCommand {
     ...(author.startsWith('device:') ? { authorDeviceId: author.slice(7) } : author.startsWith('recovery:') ? { recoveryKeyId: author.slice(9) } : (() => { throw new Error('Invalid command author.'); })()),
     ...(typeof record.get(6) === 'string' ? { collectionId: record.get(6) as string } : {}),
     ...(accountHead ? { expectedAccountHead: accountHead } : {}), ...(collectionHead ? { expectedCollectionHead: collectionHead } : {}),
-    payload, signature, signedBytes,
+    payload, signature, signedBytes, operationBytes,
+    ...(record.has(11) ? { transportAttachment: record.get(11) } : {}),
   };
 }
 

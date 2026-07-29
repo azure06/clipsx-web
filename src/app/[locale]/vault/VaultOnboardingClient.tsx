@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 
 import { Button } from "@/components/ui/Button";
 import {
+  forgetBrowserDeviceRecord,
   listBrowserDeviceRecords,
   saveBrowserDeviceRecord,
   type BrowserDeviceRecord,
@@ -17,7 +18,7 @@ import {
   wrapDeviceBundle,
   type BrowserVaultIdentity,
 } from "@/lib/vault/browser-onboarding";
-import { createPendingDeviceRegistrationCommand } from "@/lib/vault/browser-device-approval";
+import { createPendingDeviceRegistrationCommand, decodePendingDeviceOffer } from "@/lib/vault/browser-device-approval";
 import {
   createInitialDeviceRegistrationCommand,
   decodeDeviceRegistrationChallenge,
@@ -34,7 +35,6 @@ import {
   type VaultItemHead,
 } from "@/lib/vault/browser-note-conflict";
 import {
-  decodeCanonicalCbor,
   decryptAesGcm,
   deriveVaultKey,
   deriveVaultPassphraseKey,
@@ -44,14 +44,52 @@ import {
   utf8,
 } from "@/lib/vault/protocol";
 import {
+  readVaultCborResponse,
+  readVaultCborResponseBytes,
+  VaultHttpError,
+  vaultErrorMessage,
+} from "@/lib/vault/http";
+import {
   createVaultPrfCredential,
+  currentVaultEnrollmentOrigin,
   getVaultPrfOutput,
+  vaultPrfCapability,
 } from "@/lib/vault/webauthn-prf";
 
 type Profile = "webauthn-prf-wrapped" | "vault-passphrase-wrapped";
 
 function body(bytes: Uint8Array): ArrayBuffer {
   return bytes.slice().buffer as ArrayBuffer;
+}
+
+function base64Url(bytes: Uint8Array): string {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+
+async function readVaultPages(initialUrl: string, kind: "account" | "collection"): Promise<Uint8Array[]> {
+  const pages: Uint8Array[] = [];
+  let after = 0;
+  let anchor: Uint8Array | null = null;
+  for (let pageNumber = 0; pageNumber < 1_000; pageNumber += 1) {
+    const separator = initialUrl.includes("?") ? "&" : "?";
+    const url = `${initialUrl}${separator}after=${after}${anchor ? `&anchor=${base64Url(anchor)}` : ""}`;
+    const response = await fetch(url, { cache: "no-store" });
+    const page = await readVaultCborResponseBytes(response, "Could not sync verified vault records.");
+    pages.push(page.bytes);
+    const next = page.record.get(kind === "account" ? 8 : 7);
+    const nextSequence = page.record.get(kind === "account" ? 7 : 5);
+    const hasMore = page.record.get(kind === "account" ? 9 : 8);
+    if (!Number.isSafeInteger(nextSequence) || (next !== null && !(next instanceof Uint8Array)) || typeof hasMore !== "boolean") {
+      throw new Error("Invalid vault sync cursor.");
+    }
+    after = nextSequence as number;
+    anchor = next as Uint8Array | null;
+    if (!hasMore) return pages;
+    if (!anchor) throw new Error("Vault sync omitted its continuation anchor.");
+  }
+  throw new Error("Vault sync exceeded the supported page limit.");
 }
 
 export function VaultOnboardingClient({ accountId }: { accountId: string }) {
@@ -61,63 +99,89 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
   const [existingRecord, setExistingRecord] = useState<
     BrowserDeviceRecord | null | undefined
   >(undefined);
-  const [checks, setChecks] = useState<Record<number, string>>({});
   const [profile, setProfile] = useState<Profile>("webauthn-prf-wrapped");
   const [passphrase, setPassphrase] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [complete, setComplete] = useState(false);
-  const [serverHasVault, setServerHasVault] = useState<boolean | undefined>();
+  const [serverInspection, setServerInspection] = useState<{
+    deviceId: string | null;
+    hasVault: boolean;
+    deviceStatus: string;
+    failed: boolean;
+  }>();
+  const [prfSupported, setPrfSupported] = useState<boolean | null>(null);
 
+  useEffect(() => {
+    void vaultPrfCapability().then((supported) => {
+      setPrfSupported(supported);
+      if (supported === false) setProfile("vault-passphrase-wrapped");
+    }).catch(() => setPrfSupported(false));
+  }, []);
   useEffect(() => {
     void listBrowserDeviceRecords(accountId).then((records) =>
       setExistingRecord(records[0] ?? null),
     );
   }, [accountId]);
   useEffect(() => {
-    if (existingRecord !== null) return;
-    void fetch("/api/vault/enrollment-status", { cache: "no-store" })
+    if (existingRecord === undefined) return;
+    const inspectedDeviceId = existingRecord?.deviceId ?? null;
+    const query = existingRecord
+      ? `?deviceId=${encodeURIComponent(existingRecord.deviceId)}`
+      : "";
+    void fetch(`/api/vault/enrollment-status${query}`, { cache: "no-store" })
       .then(async (response) => {
-        if (!response.ok) throw new Error();
-        const status = decodeCanonicalCbor(new Uint8Array(await response.arrayBuffer()));
-        setServerHasVault(status.get(2) === true);
+        const status = await readVaultCborResponse(
+          response,
+          "Could not inspect vault enrollment.",
+        );
+        setServerInspection({
+          deviceId: inspectedDeviceId,
+          hasVault: status.get(2) === true,
+          deviceStatus: typeof status.get(3) === "string" ? status.get(3) as string : "unknown",
+          failed: false,
+        });
       })
-      .catch(() => setError("Could not inspect vault enrollment."));
+      .catch(() => setServerInspection({
+        deviceId: inspectedDeviceId,
+        hasVault: false,
+        deviceStatus: "unknown",
+        failed: true,
+      }));
   }, [existingRecord]);
+  const inspectedDeviceId = existingRecord?.deviceId ?? null;
+  const currentInspection = serverInspection?.deviceId === inspectedDeviceId
+    ? serverInspection
+    : undefined;
+  const serverHasVault = currentInspection?.hasVault;
+  const serverDeviceStatus = currentInspection?.deviceStatus;
   useEffect(() => {
     if (existingRecord === null && serverHasVault === false)
       void createBrowserVaultIdentity(accountId, deviceId).then(setIdentity);
   }, [accountId, deviceId, existingRecord, serverHasVault]);
 
-  const positions = [2, 11, 20];
-
   async function enroll() {
     setWorking(true);
     setError(null);
+    let unlockMaterial: Uint8Array | null = null;
+    let staged = false;
+    let accepted = false;
     try {
       if (!identity) throw new Error("Vault keys are still being prepared.");
       const resolvedIdentity = identity;
-      const words = resolvedIdentity.recoveryPhrase.split(" ");
-      if (
-        positions.some(
-          (position) =>
-            checks[position]?.trim().toLowerCase() !== words[position],
-        )
-      ) {
-        throw new Error("The recovery-word confirmation does not match.");
-      }
+      const enrollmentOrigin = currentVaultEnrollmentOrigin();
       if (profile === "vault-passphrase-wrapped" && passphrase.length < 12) {
         throw new Error("Use a vault passphrase of at least 12 characters.");
       }
 
-      let unlockMaterial: Uint8Array;
       let passphraseKdfSalt: Uint8Array | undefined;
       let webauthnCredentialId: Uint8Array | undefined;
+      let webauthnRpId: string | undefined;
       let prfInput: Uint8Array | undefined;
       if (profile === "webauthn-prf-wrapped") {
         const credential = await createVaultPrfCredential(accountId);
         unlockMaterial = await getVaultPrfOutput(credential);
         webauthnCredentialId = credential.credentialId;
+        webauthnRpId = credential.rpId;
         prfInput = credential.prfInput;
       } else {
         passphraseKdfSalt = randomBytes(16);
@@ -126,6 +190,7 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
           passphraseKdfSalt,
         );
       }
+      if (!unlockMaterial) throw new Error("Vault unlock material is unavailable.");
       const devicePublicKey = resolvedIdentity.deviceEncryption.publicKey;
       const challengeRequest = encodeCanonicalCbor(
         new Map<number, number | Uint8Array>([
@@ -138,10 +203,12 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
         headers: { "Content-Type": "application/cbor" },
         body: body(challengeRequest),
       });
-      if (!challengeResponse.ok)
-        throw new Error("Could not start device registration.");
+      const challengeBytes = await readVaultCborResponseBytes(
+        challengeResponse,
+        "Could not start device registration",
+      );
       const challenge = decodeDeviceRegistrationChallenge(
-        new Uint8Array(await challengeResponse.arrayBuffer()),
+        challengeBytes.bytes,
       );
 
       const capabilities = encodeCanonicalCbor(
@@ -156,19 +223,12 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
         recoveryKeyId,
         displayName: "This browser",
         platform: navigator.platform || "browser",
+        enrollmentOrigin,
         protectionProfile: profile,
         capabilities,
         challenge,
         identity: resolvedIdentity,
       });
-      const registrationResponse = await fetch("/api/vault/commands", {
-        method: "POST",
-        headers: { "Content-Type": "application/cbor" },
-        body: body(command),
-      });
-      if (!registrationResponse.ok)
-        throw new Error("Device registration was rejected.");
-
       const encrypted = await wrapDeviceBundle(
         unlockMaterial,
         accountId,
@@ -176,37 +236,55 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
         encodeBrowserDeviceBundle(resolvedIdentity),
       );
       const now = new Date().toISOString();
-      await saveBrowserDeviceRecord({
+      const deviceRecord: BrowserDeviceRecord = {
         accountId,
         deviceId,
         schemaVersion: 1,
         protectionProfile: profile,
+        enrollmentStatus: "registering",
         encryptedBundle: encrypted.encrypted.ciphertext,
         bundleNonce: encrypted.encrypted.nonce,
         bundleSalt: encrypted.salt,
         passphraseKdfSalt,
         webauthnCredentialId,
-        webauthnRpId:
-          profile === "webauthn-prf-wrapped" ? "clipsx.app" : undefined,
+        webauthnRpId,
         prfInput,
         createdAt: now,
         updatedAt: now,
+      };
+      await saveBrowserDeviceRecord(deviceRecord);
+      staged = true;
+      const registrationResponse = await fetch("/api/vault/commands", {
+        method: "POST",
+        headers: { "Content-Type": "application/cbor" },
+        body: body(command),
       });
-      setComplete(true);
-    } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "Vault setup failed.",
+      await readVaultCborResponse(
+        registrationResponse,
+        "Device registration was rejected.",
       );
+      accepted = true;
+      const activeRecord = { ...deviceRecord, enrollmentStatus: "active" as const, updatedAt: new Date().toISOString() };
+      await saveBrowserDeviceRecord(activeRecord);
+      setExistingRecord(activeRecord);
+    } catch (caught) {
+      if (staged && !accepted && caught instanceof VaultHttpError
+        && caught.category !== "network" && caught.category !== "service") {
+        await forgetBrowserDeviceRecord(accountId, deviceId).catch(() => undefined);
+      } else if (staged) {
+        const records = await listBrowserDeviceRecords(accountId).catch(() => []);
+        setExistingRecord(records.find((record) => record.deviceId === deviceId) ?? null);
+      }
+      setError(vaultErrorMessage(caught, "Vault setup failed."));
     } finally {
+      unlockMaterial?.fill(0);
+      setPassphrase("");
       setWorking(false);
     }
   }
 
   const phrase = identity?.recoveryPhrase;
-  if (
-    existingRecord === undefined ||
-    (existingRecord === null && serverHasVault === undefined)
-  )
+  if (existingRecord === undefined)
     return (
       <div className="px-4 py-24 sm:px-6">
         <div className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-300">
@@ -216,6 +294,26 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
     );
   if (existingRecord?.enrollmentStatus === "pending")
     return <PendingDeviceEnrollment accountId={accountId} record={existingRecord} />;
+  if (existingRecord?.enrollmentStatus === "registering")
+    return <RegisteringDeviceEnrollment accountId={accountId} record={existingRecord} />;
+  if (currentInspection?.failed)
+    return <EnrollmentInspectionFailure />;
+  if (serverHasVault === undefined)
+    return (
+      <div className="px-4 py-24 sm:px-6">
+        <div className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-300">
+          Checking this browser’s vault device…
+        </div>
+      </div>
+    );
+  if (existingRecord && serverDeviceStatus !== "active")
+    return (
+      <StaleDeviceEnrollment
+        accountId={accountId}
+        record={existingRecord}
+        serverHasVault={serverHasVault}
+      />
+    );
   if (existingRecord)
     return <VaultUnlock accountId={accountId} record={existingRecord} />;
   if (serverHasVault) return <NewDeviceEnrollment accountId={accountId} />;
@@ -232,18 +330,7 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
             decrypt your vault.
           </p>
         </div>
-        {complete ? (
-          <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6">
-            <h2 className="font-heading text-xl font-bold">
-              Vault device registered
-            </h2>
-            <p className="mt-2 text-sm">
-              This browser now has an encrypted local device bundle. Unlock and
-              notes are the next screen.
-            </p>
-          </div>
-        ) : (
-          <>
+        <>
             <section className="rounded-xl border border-amber-400/50 bg-amber-50 p-6 dark:bg-amber-500/10">
               <h2 className="font-heading text-xl font-bold">
                 Save your 24-word recovery phrase
@@ -251,7 +338,8 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
               <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
                 Write it down offline. It is your only guaranteed recovery path
                 and is never stored in this browser bundle or sent to the
-                server.
+                server. Store it somewhere safe before continuing. If you lose
+                every device and this phrase, the vault cannot be recovered.
               </p>
               <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-white p-4 font-mono text-sm dark:bg-gray-900 sm:grid-cols-3">
                 {phrase?.split(" ").map((word, index) => (
@@ -263,34 +351,12 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
             </section>
             <section className="rounded-xl border border-gray-200 p-6 dark:border-white/10">
               <h2 className="font-heading text-xl font-bold">
-                Confirm your phrase
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {positions.map((position) => (
-                  <label key={position} className="text-sm">
-                    Word {position + 1}
-                    <input
-                      value={checks[position] ?? ""}
-                      onChange={(event) =>
-                        setChecks((current) => ({
-                          ...current,
-                          [position]: event.target.value,
-                        }))
-                      }
-                      className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-                      autoComplete="off"
-                    />
-                  </label>
-                ))}
-              </div>
-            </section>
-            <section className="rounded-xl border border-gray-200 p-6 dark:border-white/10">
-              <h2 className="font-heading text-xl font-bold">
                 Protect this browser
               </h2>
               <label className="mt-4 flex gap-3">
                 <input
                   type="radio"
+                  disabled={prfSupported === false}
                   checked={profile === "webauthn-prf-wrapped"}
                   onChange={() => setProfile("webauthn-prf-wrapped")}
                 />
@@ -299,6 +365,7 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
                   <br />
                   <span className="text-sm text-gray-600 dark:text-gray-300">
                     User-verified passkey protects the local bundle.
+                    {prfSupported === false && " PRF is unavailable in this browser; use a vault passphrase."}
                   </span>
                 </span>
               </label>
@@ -338,11 +405,76 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
             <Button loading={working} onClick={enroll}>
               Create encrypted vault
             </Button>
-          </>
-        )}
+        </>
       </div>
     </div>
   );
+}
+
+function EnrollmentInspectionFailure() {
+  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
+    <h1 className="font-heading text-3xl font-black">Could not inspect your vault</h1>
+    <p className="text-sm">Vault setup is blocked until the server state can be checked. This prevents accidentally creating a second recovery root.</p>
+    <Button onClick={() => window.location.reload()}>Try again</Button>
+  </div></div>;
+}
+
+function StaleDeviceEnrollment({ accountId, record, serverHasVault }: { accountId: string; record: BrowserDeviceRecord; serverHasVault: boolean }) {
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function removeStaleRecord() {
+    setWorking(true);
+    setError(null);
+    try {
+      await forgetBrowserDeviceRecord(accountId, record.deviceId);
+      window.location.reload();
+    } catch (caught) {
+      setError(vaultErrorMessage(caught, "Could not remove the stale browser record."));
+      setWorking(false);
+    }
+  }
+
+  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
+    <h1 className="font-heading text-3xl font-black">This browser is no longer registered</h1>
+    <p className="text-sm">
+      {serverHasVault
+        ? "The encrypted local keys do not belong to an active server device. Remove this local record, then approve this browser as a new device."
+        : "The server vault was reset, but this browser still has its old encrypted device record. Remove it before creating a fresh vault."}
+    </p>
+    <Button loading={working} onClick={removeStaleRecord}>Remove local device record</Button>
+    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+  </div></div>;
+}
+
+function RegisteringDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function reconcile() {
+    setWorking(true); setError(null);
+    try {
+      const response = await fetch(`/api/vault/enrollment-status?deviceId=${encodeURIComponent(record.deviceId)}`, { cache: "no-store" });
+      const status = await readVaultCborResponse(response, "Could not check device registration.");
+      if (status.get(3) === "active") {
+        await saveBrowserDeviceRecord({ ...record, enrollmentStatus: "active", updatedAt: new Date().toISOString() });
+      } else {
+        await forgetBrowserDeviceRecord(accountId, record.deviceId);
+      }
+      window.location.reload();
+    } catch (caught) {
+      setError(vaultErrorMessage(caught, "Could not reconcile device registration."));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
+    <h1 className="font-heading text-3xl font-black">Finish vault registration</h1>
+    <p className="text-sm">The encrypted browser bundle was saved, but the last server response was incomplete. Check the authoritative registration state before retrying.</p>
+    <Button loading={working} onClick={reconcile}>Check registration</Button>
+    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+  </div></div>;
 }
 
 function NewDeviceEnrollment({ accountId }: { accountId: string }) {
@@ -352,26 +484,37 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
   const [profile, setProfile] = useState<Profile>("webauthn-prf-wrapped");
   const [passphrase, setPassphrase] = useState("");
   const [qr, setQr] = useState<string | null>(null);
+  const [offer, setOffer] = useState("");
   const [sas, setSas] = useState("");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prfSupported, setPrfSupported] = useState<boolean | null>(null);
+  useEffect(() => {
+    void vaultPrfCapability().then((supported) => {
+      setPrfSupported(supported);
+      if (supported === false) setProfile("vault-passphrase-wrapped");
+    }).catch(() => setPrfSupported(false));
+  }, []);
 
   async function begin() {
     setWorking(true); setError(null);
     let unlock: Uint8Array | null = null;
+    let staged = false;
+    let accepted = false;
     try {
       if (profile === "vault-passphrase-wrapped" && passphrase.length < 12) throw new Error("Use a vault passphrase of at least 12 characters.");
-      let passphraseKdfSalt: Uint8Array | undefined; let webauthnCredentialId: Uint8Array | undefined; let prfInput: Uint8Array | undefined;
+      const enrollmentOrigin = currentVaultEnrollmentOrigin();
+      let passphraseKdfSalt: Uint8Array | undefined; let webauthnCredentialId: Uint8Array | undefined; let webauthnRpId: string | undefined; let prfInput: Uint8Array | undefined;
       if (profile === "webauthn-prf-wrapped") {
         const credential = await createVaultPrfCredential(accountId); unlock = await getVaultPrfOutput(credential);
-        webauthnCredentialId = credential.credentialId; prfInput = credential.prfInput;
+        webauthnCredentialId = credential.credentialId; webauthnRpId = credential.rpId; prfInput = credential.prfInput;
       } else { passphraseKdfSalt = randomBytes(16); unlock = await deriveVaultPassphraseKey(passphrase, passphraseKdfSalt); }
       const request = encodeCanonicalCbor(new Map<number, number | Uint8Array>([[1, 1], [2, identity.deviceEncryption.publicKey]]));
       const challengeResponse = await fetch("/api/vault/device-challenges", { method: "POST", headers: { "Content-Type": "application/cbor" }, body: body(request) });
-      if (!challengeResponse.ok) throw new Error("Could not start pending-device registration.");
-      const challenge = decodeDeviceRegistrationChallenge(new Uint8Array(await challengeResponse.arrayBuffer()));
+      const challengeBytes = await readVaultCborResponseBytes(challengeResponse, "Could not start pending-device registration");
+      const challenge = decodeDeviceRegistrationChallenge(challengeBytes.bytes);
       const pending = await createPendingDeviceRegistrationCommand({
-        accountId, deviceId, displayName: "This browser", platform: navigator.platform || "browser", protectionProfile: profile,
+        accountId, deviceId, displayName: "This browser", platform: navigator.platform || "browser", enrollmentOrigin, protectionProfile: profile,
         capabilities: encodeCanonicalCbor(new Map<number, number | string>([[1, 1], [2, "browser"]])), challenge,
         deviceEncryptionPublicKey: identity.deviceEncryption.publicKey, deviceEncryptionSecretKey: identity.deviceEncryption.secretKey,
         deviceSigningPublicKey: identity.deviceSigning.publicKey, deviceSigningSecretKey: identity.deviceSigning.secretKey, sasSecret,
@@ -383,21 +526,29 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
       await saveBrowserDeviceRecord({ accountId, deviceId, schemaVersion: 1, protectionProfile: profile, enrollmentStatus: "pending",
         encryptedBundle: wrapped.encrypted.ciphertext, bundleNonce: wrapped.encrypted.nonce, bundleSalt: wrapped.salt,
         pendingOfferCiphertext: protectedOffer.ciphertext, pendingOfferNonce: protectedOffer.nonce,
-        passphraseKdfSalt, webauthnCredentialId, webauthnRpId: profile === "webauthn-prf-wrapped" ? "clipsx.app" : undefined, prfInput, createdAt: now, updatedAt: now });
+        passphraseKdfSalt, webauthnCredentialId, webauthnRpId, prfInput, createdAt: now, updatedAt: now });
+      staged = true;
       const response = await fetch("/api/vault/commands", { method: "POST", headers: { "Content-Type": "application/cbor" }, body: body(pending.command) });
-      if (!response.ok) throw new Error("Pending-device registration was rejected.");
-      setSas(pending.sas); setQr(await QRCode.toDataURL(pending.offer, { width: 320, margin: 2, errorCorrectionLevel: "M" }));
-    } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not enroll this browser."); }
+      await readVaultCborResponse(response, "Pending-device registration was rejected.");
+      accepted = true;
+      setOffer(pending.offer); setSas(pending.sas); setQr(await QRCode.toDataURL(pending.offer, { width: 320, margin: 2, errorCorrectionLevel: "M" }));
+    } catch (caught) {
+      if (staged && !accepted && caught instanceof VaultHttpError
+        && caught.category !== "network" && caught.category !== "service") {
+        await forgetBrowserDeviceRecord(accountId, deviceId).catch(() => undefined);
+      }
+      setError(vaultErrorMessage(caught, "Could not enroll this browser."));
+    }
     finally { unlock?.fill(0); setWorking(false); }
   }
   return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-xl space-y-5 rounded-xl border border-gray-200 p-6 dark:border-white/10"><h1 className="font-heading text-3xl font-black">Approve this browser</h1><p className="text-sm">Protect its new local key bundle first, then scan the QR with an already unlocked device and compare the SAS.</p>
-    {!qr && <><label className="flex gap-2"><input type="radio" checked={profile === "webauthn-prf-wrapped"} onChange={() => setProfile("webauthn-prf-wrapped")} />Vault passkey</label><label className="flex gap-2"><input type="radio" checked={profile === "vault-passphrase-wrapped"} onChange={() => setProfile("vault-passphrase-wrapped")} />Vault passphrase</label>{profile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="w-full rounded-lg border px-3 py-2" autoComplete="new-password" />}<Button loading={working} onClick={begin}>Create approval QR</Button></>}
-    {qr && <div className="text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><p className="mt-3">SAS</p><p className="font-mono text-3xl font-black tracking-widest">{sas}</p><p className="mt-2 text-sm">Keep this page open until the existing device confirms approval.</p></div>}
+    {!qr && <><label className="flex gap-2"><input type="radio" disabled={prfSupported === false} checked={profile === "webauthn-prf-wrapped"} onChange={() => setProfile("webauthn-prf-wrapped")} />Vault passkey</label>{prfSupported === false && <p className="text-sm text-amber-700">Passkey PRF is unavailable here. Use a vault passphrase.</p>}<label className="flex gap-2"><input type="radio" checked={profile === "vault-passphrase-wrapped"} onChange={() => setProfile("vault-passphrase-wrapped")} />Vault passphrase</label>{profile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="w-full rounded-lg border px-3 py-2" autoComplete="new-password" />}<Button loading={working} onClick={begin}>Create approval QR</Button></>}
+    {qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="text-xs text-gray-600">Use this when both vault devices are desktop browsers.</p><p>SAS</p><p className="font-mono text-3xl font-black tracking-widest">{sas}</p><p className="text-sm">Keep this page open until the existing device confirms approval.</p></div>}
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}</div></div>;
 }
 
 function PendingDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
-  const [passphrase, setPassphrase] = useState(""); const [qr, setQr] = useState<string | null>(null); const [working, setWorking] = useState(false); const [error, setError] = useState<string | null>(null);
+  const [passphrase, setPassphrase] = useState(""); const [qr, setQr] = useState<string | null>(null); const [offer, setOffer] = useState(""); const [sas, setSas] = useState(""); const [working, setWorking] = useState(false); const [error, setError] = useState<string | null>(null);
   async function restore() {
     setWorking(true); setError(null); let unlock: Uint8Array | null = null;
     try {
@@ -408,10 +559,11 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       } else { if (!record.passphraseKdfSalt) throw new Error("Passphrase metadata is incomplete."); unlock = await deriveVaultPassphraseKey(passphrase, record.passphraseKdfSalt); }
       const key = await deriveVaultKey(unlock, record.bundleSalt, "browserUnlock", utf8(`${accountId}\0${record.deviceId}\0pending-offer:1`));
       const offer = new TextDecoder().decode(await decryptAesGcm(key, { nonce: record.pendingOfferNonce, ciphertext: record.pendingOfferCiphertext }, utf8(`clipsx/vault/v1/pending-offer\0${accountId}\0${record.deviceId}`)));
+      const decodedOffer = await decodePendingDeviceOffer(offer, accountId);
+      setOffer(offer); setSas(decodedOffer.sas);
       setQr(await QRCode.toDataURL(offer, { width: 320, margin: 2, errorCorrectionLevel: "M" }));
       const statusResponse = await fetch(`/api/vault/enrollment-status?deviceId=${encodeURIComponent(record.deviceId)}`, { cache: "no-store" });
-      if (!statusResponse.ok) throw new Error("Could not check device approval.");
-      const status = decodeCanonicalCbor(new Uint8Array(await statusResponse.arrayBuffer()));
+      const status = await readVaultCborResponse(statusResponse, "Could not check device approval.");
       const accountHead = status.get(4); const sessionId = status.get(5);
       if (status.get(3) === "active") {
         if (!(accountHead instanceof Uint8Array) || typeof sessionId !== "string") throw new Error("Approved device state is incomplete.");
@@ -421,7 +573,7 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
           unlock = null;
           const command = await runtime.signSessionBinding({ deviceId: record.deviceId, sessionId, expectedAccountHead: accountHead });
           const binding = await fetch("/api/vault/commands", { method: "POST", headers: { "Content-Type": "application/cbor" }, body: body(command) });
-          if (!binding.ok) throw new Error("Approved device session binding was rejected.");
+          await readVaultCborResponse(binding, "Approved device session binding was rejected.");
           const { pendingOfferCiphertext: _ciphertext, pendingOfferNonce: _nonce, ...activeRecord } = record;
           void _ciphertext; void _nonce;
           await saveBrowserDeviceRecord({ ...activeRecord, enrollmentStatus: "active", updatedAt: new Date().toISOString() });
@@ -430,7 +582,7 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not restore approval."); } finally { unlock?.fill(0); setWorking(false); }
   }
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6"><h1 className="font-heading text-3xl font-black">Approval pending</h1>{record.protectionProfile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} className="w-full rounded-lg border px-3 py-2" />}<Button loading={working} onClick={restore}>Show approval QR again</Button>{qr && <Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" />}{error && <p role="alert" className="text-red-600">{error}</p>}</div></div>;
+  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6"><h1 className="font-heading text-3xl font-black">Approval pending</h1>{record.protectionProfile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} className="w-full rounded-lg border px-3 py-2" />}<Button loading={working} onClick={restore}>Check approval and show QR</Button>{qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="font-mono text-3xl font-black tracking-widest">{sas}</p></div>}{error && <p role="alert" className="text-red-600">{error}</p>}</div></div>;
 }
 
 function VaultUnlock({
@@ -468,6 +620,10 @@ function VaultUnlock({
   } | null>(null);
   const [sasConfirmed, setSasConfirmed] = useState(false);
   const runtimeRef = useRef<BrowserVaultRuntime | null>(null);
+  const checkpointRef = useRef({
+    sequence: record.accountCheckpointSequence,
+    hash: record.accountCheckpointHash,
+  });
 
   function clearPlaintext() {
     setItems([]);
@@ -540,15 +696,40 @@ function VaultUnlock({
     }
   }
 
+  async function refreshAccountSync() {
+    if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    const pages = await readVaultPages(
+      `/api/vault/account-sync?accountId=${encodeURIComponent(accountId)}`,
+      "account",
+    );
+    const verified = await runtimeRef.current.openAccountSync({
+      deviceId: record.deviceId,
+      pages,
+      checkpointSequence: checkpointRef.current.sequence,
+      checkpointHash: checkpointRef.current.hash,
+    });
+    checkpointRef.current = { sequence: verified.sequence, hash: verified.accountHead };
+    await saveBrowserDeviceRecord({
+      ...record,
+      enrollmentStatus: "active",
+      accountCheckpointSequence: verified.sequence,
+      accountCheckpointHash: verified.accountHead,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
   async function refreshCollections() {
     if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    await refreshAccountSync();
     const bootstrapResponse = await fetch("/api/vault/bootstrap", {
       cache: "no-store",
     });
-    if (!bootstrapResponse.ok)
-      throw new Error("Could not load encrypted vault records.");
+    const bootstrap = await readVaultCborResponseBytes(
+      bootstrapResponse,
+      "Could not load encrypted vault records.",
+    );
     const opened = await runtimeRef.current.openBootstrap(
-      new Uint8Array(await bootstrapResponse.arrayBuffer()),
+      bootstrap.bytes,
     );
     setCollections(opened);
     setSelectedCollectionId((current) =>
@@ -556,6 +737,15 @@ function VaultUnlock({
         ? current
         : (opened[0]?.id ?? ""),
     );
+  }
+
+  async function submitCommand(command: Uint8Array, fallback: string) {
+    const response = await fetch("/api/vault/commands", {
+      method: "POST",
+      headers: { "Content-Type": "application/cbor" },
+      body: body(command),
+    });
+    return readVaultCborResponse(response, fallback);
   }
 
   async function createCollection() {
@@ -572,13 +762,7 @@ function VaultUnlock({
         deviceId: record.deviceId,
         metadataTitle: title,
       });
-      const response = await fetch("/api/vault/commands", {
-        method: "POST",
-        headers: { "Content-Type": "application/cbor" },
-        body: body(created.command),
-      });
-      if (!response.ok)
-        throw new Error("Could not create the encrypted collection.");
+      await submitCommand(created.command, "Could not create the encrypted collection.");
       setCollectionTitle("");
       await refreshCollections();
     } catch (caught) {
@@ -608,15 +792,14 @@ function VaultUnlock({
     collectionId = selectedCollectionId,
   ): Promise<VaultItemHead[]> {
     if (!runtimeRef.current || !collectionId) return [];
-    const response = await fetch(
-      `/api/vault/collections/${collectionId}/sync`,
-      { cache: "no-store" },
+    const pages = await readVaultPages(
+      `/api/vault/collections/${encodeURIComponent(collectionId)}/sync`,
+      "collection",
     );
-    if (!response.ok) throw new Error("Could not sync encrypted items.");
     const opened = await runtimeRef.current.openCollectionSync({
       deviceId: record.deviceId,
       collectionId,
-      sync: new Uint8Array(await response.arrayBuffer()),
+      pages,
     });
     setItems(opened);
     return opened;
@@ -664,7 +847,7 @@ function VaultUnlock({
       setConflict(beginNoteConflict(local, accepted));
       return;
     }
-    if (!response.ok) throw new Error("Could not update the encrypted item.");
+    await readVaultCborResponse(response, "Could not update the encrypted item.");
     setEditing(null);
     setDraft(null);
     setConflict(null);
@@ -745,17 +928,7 @@ function VaultUnlock({
         noteId: item.id,
         previousRevisionHash: item.revisionHash,
       });
-      const response = await fetch("/api/vault/commands", {
-        method: "POST",
-        headers: { "Content-Type": "application/cbor" },
-        body: body(deleted.command),
-      });
-      if (!response.ok)
-        throw new Error(
-          response.status === 409
-            ? "The item changed before it could be deleted. Refresh and try again."
-            : "Could not delete the encrypted item.",
-        );
+      await submitCommand(deleted.command, "Could not delete the encrypted item. Refresh and try again if it changed.");
       setEditing(null);
       setDraft(null);
       setConflict(null);
@@ -783,9 +956,9 @@ function VaultUnlock({
       return;
     }
     setWorking(true);
-    setError(null);
-    try {
-      if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+      setError(null);
+      try {
+        if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
       const created = await runtimeRef.current.createNote({
         deviceId: record.deviceId,
         collectionId: selectedCollectionId,
@@ -806,18 +979,14 @@ function VaultUnlock({
                 labels: [],
               },
       });
-      const response = await fetch("/api/vault/commands", {
-        method: "POST",
-        headers: { "Content-Type": "application/cbor" },
-        body: body(created.command),
-      });
-      if (!response.ok) throw new Error("Could not save the encrypted item.");
+      await submitCommand(created.command, "Could not save the encrypted item.");
       setItemTitle("");
       setItemBody("");
       setUsername("");
       setPassword("");
       setUrl("");
       await refreshCollections();
+      await refreshItems(selectedCollectionId);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -857,12 +1026,7 @@ function VaultUnlock({
     setWorking(true);
     setError(null);
     try {
-      const response = await fetch("/api/vault/commands", {
-        method: "POST",
-        headers: { "Content-Type": "application/cbor" },
-        body: body(deviceApproval.command),
-      });
-      if (!response.ok) throw new Error("Device authorization was rejected.");
+      await submitCommand(deviceApproval.command, "Device authorization was rejected.");
       setDeviceOffer("");
       setDeviceApproval(null);
       setSasConfirmed(false);

@@ -38,6 +38,7 @@ export async function createInitialDeviceRegistrationCommand(input: {
   recoveryKeyId: string;
   displayName: string;
   platform: string;
+  enrollmentOrigin: string;
   protectionProfile: 'webauthn-prf-wrapped' | 'vault-passphrase-wrapped';
   capabilities: Uint8Array;
   challenge: DeviceRegistrationChallenge;
@@ -56,7 +57,7 @@ export async function createInitialDeviceRegistrationCommand(input: {
 
   const payload = new Map<number, CborValue>([
     [1, input.deviceId], [2, input.recoveryKeyId], [3, input.displayName], [4, input.platform],
-    [5, 'https://clipsx.app'], [6, input.protectionProfile], [7, await sha256(input.capabilities)],
+    [5, input.enrollmentOrigin], [6, input.protectionProfile], [7, await sha256(input.capabilities)],
     [8, input.identity.deviceEncryption.publicKey], [9, input.identity.deviceSigning.publicKey],
     [10, input.identity.recoveryEncryption.publicKey], [11, input.identity.recoverySigning.publicKey],
     [12, 1], [13, input.challenge.id], [14, await sha256(challenge)],

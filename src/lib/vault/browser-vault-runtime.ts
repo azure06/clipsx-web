@@ -66,6 +66,21 @@ export class BrowserVaultRuntime {
     }
   }
 
+  async openAccountSync(input: {
+    deviceId: string;
+    pages: Uint8Array[];
+    checkpointSequence?: number;
+    checkpointHash?: Uint8Array;
+  }): Promise<{ sequence: number; accountHead: Uint8Array }> {
+    const response = await this.request({
+      id: crypto.randomUUID(), type: 'open-account-sync', accountId: this.accountId,
+      deviceId: input.deviceId, pages: input.pages.map(copy), checkpointSequence: input.checkpointSequence,
+      checkpointHash: input.checkpointHash ? copy(input.checkpointHash) : undefined,
+    });
+    if (response.type !== 'account-sync-opened') throw new Error('Vault worker rejected account sync.');
+    return { sequence: response.sequence, accountHead: response.accountHead };
+  }
+
   async signSessionBinding(input: {
     deviceId: string;
     sessionId: string;
@@ -126,8 +141,8 @@ export class BrowserVaultRuntime {
     return { noteId: response.noteId, command: response.command };
   }
 
-  async openCollectionSync(input: { deviceId: string; collectionId: string; sync: Uint8Array }) {
-    const response = await this.request({ id: crypto.randomUUID(), type: 'open-sync', accountId: this.accountId, ...input, sync: copy(input.sync) });
+  async openCollectionSync(input: { deviceId: string; collectionId: string; pages: Uint8Array[] }) {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'open-sync', accountId: this.accountId, ...input, pages: input.pages.map(copy) });
     if (response.type !== 'sync-opened') throw new Error('Vault worker rejected collection sync.');
     return response.items;
   }

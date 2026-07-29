@@ -1,28 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
-import { encodeCanonicalCbor } from '@/lib/vault/protocol';
+import { vaultCborError as createVaultCborError, vaultCborResponse as createVaultCborResponse } from '@/lib/vault/http';
+import { decodePostgresBytea } from '@/lib/vault/postgrest-bytea';
+import type { CborValue } from '@/lib/vault/protocol';
 import { createClient, getVaultPrincipal } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
-function response(status: number, values: Map<number, import('@/lib/vault/protocol').CborValue>) {
-  const encoded = encodeCanonicalCbor(values).slice();
-  return new NextResponse(encoded.buffer as ArrayBuffer, { status, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
-}
-
 export async function GET(request: NextRequest) {
-  const principal = await getVaultPrincipal();
-  if (!principal) return response(401, new Map([[1, 'unauthorized']]));
-  const deviceId = request.nextUrl.searchParams.get('deviceId');
-  const supabase = await createClient();
-  const [{ count }, { data: device }, { data: operations }] = await Promise.all([
-    supabase.from('vault_devices').select('id', { count: 'exact', head: true }).eq('account_id', principal.user.id).eq('status', 'active'),
-    deviceId ? supabase.from('vault_devices').select('status').eq('account_id', principal.user.id).eq('id', deviceId).maybeSingle() : Promise.resolve({ data: null }),
-    deviceId ? supabase.from('vault_account_operations').select('operation_hash').eq('account_id', principal.user.id).order('sequence_number', { ascending: false }).limit(1) : Promise.resolve({ data: null }),
-  ]);
-  const head = typeof operations?.[0]?.operation_hash === 'string' ? new Uint8Array(Buffer.from(operations[0].operation_hash, 'base64')) : null;
-  return response(200, new Map<number, import('@/lib/vault/protocol').CborValue>([
-    [1, 1], [2, (count ?? 0) > 0], [3, typeof device?.status === 'string' ? device.status : 'unknown'],
-    ...(head ? [[4, head] as [number, Uint8Array]] : []), [5, principal.sessionId],
-  ]));
+  const requestId = crypto.randomUUID();
+  const vaultCborError = (status: number, code: string) => createVaultCborError(status, code, requestId);
+  const vaultCborResponse = (status: number, value: Map<number, CborValue>) => createVaultCborResponse(status, value, requestId);
+  try {
+    const principal = await getVaultPrincipal();
+    if (!principal) return vaultCborError(401, 'unauthorized');
+    const deviceId = request.nextUrl.searchParams.get('deviceId');
+    const supabase = await createClient();
+    const [deviceCount, deviceResult, operationsResult] = await Promise.all([
+      supabase.from('vault_devices').select('id', { count: 'exact', head: true }).eq('account_id', principal.user.id).eq('status', 'active'),
+      deviceId
+        ? supabase.from('vault_devices').select('status').eq('account_id', principal.user.id).eq('id', deviceId).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      deviceId
+        ? supabase.from('vault_account_operations').select('operation_hash').eq('account_id', principal.user.id).order('sequence_number', { ascending: false }).limit(1)
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+    if (deviceCount.error || deviceResult.error || operationsResult.error) {
+      console.error({
+        requestId,
+        endpoint: 'enrollment-status',
+        stage: 'query',
+        code: deviceCount.error?.code ?? deviceResult.error?.code ?? operationsResult.error?.code,
+      });
+      return vaultCborError(503, 'enrollment-status-unavailable');
+    }
+    const head = decodePostgresBytea(operationsResult.data?.[0]?.operation_hash);
+    return vaultCborResponse(200, new Map<number, CborValue>([
+      [1, 1],
+      [2, (deviceCount.count ?? 0) > 0],
+      [3, typeof deviceResult.data?.status === 'string' ? deviceResult.data.status : 'unknown'],
+      ...(head ? [[4, head] as [number, Uint8Array]] : []),
+      [5, principal.sessionId],
+    ]));
+  } catch {
+    console.error({ requestId, endpoint: 'enrollment-status', stage: 'unexpected' });
+    return vaultCborError(503, 'enrollment-status-unavailable');
+  }
 }

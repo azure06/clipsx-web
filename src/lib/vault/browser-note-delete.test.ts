@@ -10,7 +10,8 @@ describe('note delete command', () => {
     const signing = ed25519.keygen(new Uint8Array(32).fill(23));
     const command = decodeVaultCommand(await createNoteDeleteCommand({
       accountId: 'account-1', collectionId: 'collection-1', deviceId: 'device-1', deviceSigningSecretKey: signing.secretKey,
-      expectedCollectionHead: new Uint8Array(32).fill(7), noteId: 'note-1', expectedRevisionHash: new Uint8Array(32).fill(8), operationId: 'operation-1',
+      expectedAccountHead: new Uint8Array(32).fill(6), expectedCollectionHead: new Uint8Array(32).fill(7),
+      noteId: 'note-1', expectedRevisionHash: new Uint8Array(32).fill(8), operationId: 'operation-1',
     }));
     expect(command.operationType).toBe('note-delete');
     expect(command.expectedCollectionHead).toEqual(new Uint8Array(32).fill(7));

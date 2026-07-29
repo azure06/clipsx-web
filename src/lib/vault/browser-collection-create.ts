@@ -42,10 +42,12 @@ export async function createCollectionCommand(input: {
   recoveryKeyId: string;
   recoveryEncryptionPublicKey: Uint8Array;
   deviceSigningSecretKey: Uint8Array;
+  expectedAccountHead: Uint8Array;
   metadataTitle: string;
   collectionId?: string;
   operationId?: string;
 }): Promise<CollectionCreateCommand> {
+  if (input.expectedAccountHead.byteLength !== 32) throw new Error('Expected account head must be 32 bytes.');
   const collectionId = input.collectionId ?? crypto.randomUUID();
   const epochKey = randomBytes(32);
   if (!input.metadataTitle.trim()) throw new Error('Collection title is required.');
@@ -77,7 +79,7 @@ export async function createCollectionCommand(input: {
   ]));
   const unsigned = new Map<number, CborValue>([
     [1, 1], [2, input.operationId ?? crypto.randomUUID()], [3, 'collection-create'], [4, input.accountId],
-    [5, `device:${input.deviceId}`], [6, collectionId], [9, payload],
+    [5, `device:${input.deviceId}`], [6, collectionId], [7, input.expectedAccountHead], [9, payload],
   ]);
   const signed = encodeCanonicalCbor(unsigned);
   unsigned.set(10, await signProtocolRecord('clipsx/vault/v1/command/collection-create', signed, input.deviceSigningSecretKey));

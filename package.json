@@ -19,7 +19,7 @@
     "supabase:generate-types": "supabase gen types typescript --linked > src/types/supabase.ts",
     "supabase:generate-types:local": "supabase gen types typescript --local > src/types/supabase.ts",
     "test:unit": "vitest run",
-    "test:db": "supabase test db --local supabase/tests",
+    "test:db": "supabase test db --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres supabase/tests",
     "test:backend": "npm run test:unit && npm run supabase:reset && npm run test:db && npm run typecheck && npm run lint"
   },
   "dependencies": {

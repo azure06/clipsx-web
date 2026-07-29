@@ -55,14 +55,14 @@ create unique index vault_devices_one_active_session_idx
 create table public.vault_collections (
   id uuid primary key default gen_random_uuid(),
   owner_account_id uuid not null references auth.users(id) on delete restrict,
-  encrypted_metadata bytea,
+  encrypted_metadata bytea check (encrypted_metadata is null or octet_length(encrypted_metadata) >= 16),
   metadata_nonce bytea check (metadata_nonce is null or octet_length(metadata_nonce) = 12),
   metadata_algorithm text not null default 'aes-256-gcm',
   metadata_key_version integer not null default 1 check (metadata_key_version >= 1),
   associated_data_version integer not null default 1 check (associated_data_version >= 1),
   current_epoch_number integer not null default 1 check (current_epoch_number >= 1),
-  current_epoch_transition_hash bytea,
-  membership_log_head_hash bytea,
+  current_epoch_transition_hash bytea check (current_epoch_transition_hash is null or octet_length(current_epoch_transition_hash) = 32),
+  membership_log_head_hash bytea check (membership_log_head_hash is null or octet_length(membership_log_head_hash) = 32),
   crypto_format text not null default 'epoch-revision-key' check (crypto_format = 'epoch-revision-key'),
   migration_state text not null default 'complete' check (migration_state = 'complete'),
   created_at timestamptz not null default now(),
@@ -138,12 +138,12 @@ create table public.vault_collection_epochs (
   epoch_number integer not null check (epoch_number >= 1),
   created_by_device_id uuid not null references public.vault_devices(id) on delete restrict,
   rotation_reason text not null,
-  previous_epoch_hash bytea,
-  membership_state_hash bytea not null,
-  recipient_set_commitment bytea not null,
+  previous_epoch_hash bytea check (previous_epoch_hash is null or octet_length(previous_epoch_hash) = 32),
+  membership_state_hash bytea not null check (octet_length(membership_state_hash) = 32),
+  recipient_set_commitment bytea not null check (octet_length(recipient_set_commitment) = 32),
   transition_payload bytea not null,
   transition_signature bytea not null check (octet_length(transition_signature) = 64),
-  transition_hash bytea not null unique,
+  transition_hash bytea not null unique check (octet_length(transition_hash) = 32),
   algorithm text not null default 'hpke-x25519-hkdf-sha256-aes-256-gcm',
   key_version integer not null default 1 check (key_version >= 1),
   protocol_version integer not null default 1 check (protocol_version = 1),
@@ -160,9 +160,13 @@ create table public.vault_device_epoch_envelopes (
   recipient_device_id uuid not null references public.vault_devices(id) on delete restrict,
   sender_device_id uuid references public.vault_devices(id) on delete restrict,
   sender_recovery_key_id uuid references public.vault_recovery_keys(id) on delete restrict,
-  encapsulation bytea not null, ciphertext bytea not null, nonce bytea,
+  encapsulation bytea not null check (octet_length(encapsulation) = 32),
+  ciphertext bytea not null check (octet_length(ciphertext) >= 16),
+  nonce bytea check (nonce is null or octet_length(nonce) = 12),
   algorithm text not null, key_version integer not null check (key_version >= 1), protocol_version integer not null check (protocol_version = 1),
-  envelope_payload bytea not null, envelope_payload_hash bytea not null, signature bytea not null check (octet_length(signature) = 64),
+  envelope_payload bytea not null,
+  envelope_payload_hash bytea not null check (octet_length(envelope_payload_hash) = 32),
+  signature bytea not null check (octet_length(signature) = 64),
   created_at timestamptz not null default now(),
   foreign key (collection_id, epoch_number) references public.vault_collection_epochs(collection_id, epoch_number) on delete cascade,
   unique (collection_id, epoch_number, recipient_device_id, key_version),
@@ -179,13 +183,15 @@ create table public.vault_collection_operations (
     'member-add', 'member-remove', 'epoch-rotate'
   )),
   canonical_payload bytea not null,
-  previous_operation_hash bytea,
-  operation_hash bytea not null unique,
-  author_device_id uuid not null references public.vault_devices(id) on delete restrict,
+  previous_operation_hash bytea check (previous_operation_hash is null or octet_length(previous_operation_hash) = 32),
+  operation_hash bytea not null unique check (octet_length(operation_hash) = 32),
+  author_device_id uuid references public.vault_devices(id) on delete restrict,
+  recovery_key_id uuid references public.vault_recovery_keys(id) on delete restrict,
   signature bytea not null check (octet_length(signature) = 64),
   protocol_version integer not null check (protocol_version = 1),
   created_at timestamptz not null default now(),
-  unique (collection_id, sequence_number)
+  unique (collection_id, sequence_number),
+  check ((author_device_id is null) <> (recovery_key_id is null))
 );
 
 create table public.vault_notes (
@@ -193,7 +199,7 @@ create table public.vault_notes (
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   created_by_device_id uuid not null references public.vault_devices(id) on delete restrict,
   current_revision integer not null default 0 check (current_revision >= 0),
-  current_revision_hash bytea,
+  current_revision_hash bytea check (current_revision_hash is null or octet_length(current_revision_hash) = 32),
   created_at timestamptz not null default now(), deleted_at timestamptz,
   check ((current_revision = 0) = (current_revision_hash is null))
 );
@@ -202,11 +208,14 @@ create table public.vault_note_revisions (
   id uuid primary key default gen_random_uuid(), note_id uuid not null references public.vault_notes(id) on delete cascade,
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   revision_number integer not null check (revision_number >= 1), collection_epoch integer not null check (collection_epoch >= 1),
-  encrypted_content bytea not null check (octet_length(encrypted_content) <= 1048576), content_nonce bytea not null check (octet_length(content_nonce) = 12),
-  wrapped_revision_key bytea not null, key_wrap_nonce bytea not null check (octet_length(key_wrap_nonce) = 12),
+  encrypted_content bytea not null check (octet_length(encrypted_content) between 16 and 1048576), content_nonce bytea not null check (octet_length(content_nonce) = 12),
+  wrapped_revision_key bytea not null check (octet_length(wrapped_revision_key) >= 16), key_wrap_nonce bytea not null check (octet_length(key_wrap_nonce) = 12),
   encryption_algorithm text not null default 'aes-256-gcm', key_wrap_algorithm text not null default 'aes-256-gcm',
   key_version integer not null check (key_version >= 1), protocol_version integer not null check (protocol_version = 1), associated_data_version integer not null check (associated_data_version >= 1),
-  previous_revision_hash bytea, ciphertext_hash bytea not null, wrapped_revision_key_hash bytea not null, revision_hash bytea not null unique,
+  previous_revision_hash bytea check (previous_revision_hash is null or octet_length(previous_revision_hash) = 32),
+  ciphertext_hash bytea not null check (octet_length(ciphertext_hash) = 32),
+  wrapped_revision_key_hash bytea not null check (octet_length(wrapped_revision_key_hash) = 32),
+  revision_hash bytea not null unique check (octet_length(revision_hash) = 32),
   author_device_id uuid not null references public.vault_devices(id) on delete restrict, author_signature bytea not null check (octet_length(author_signature) = 64),
   operation_id uuid not null unique, operation_type text not null check (operation_type in ('create', 'update', 'merge', 'delete')),
   created_at timestamptz not null default now(), logical_clock bigint not null check (logical_clock >= 0),
@@ -232,6 +241,7 @@ returns boolean language sql stable security definer set search_path = '' as $$
   select exists (select 1 from public.vault_collection_memberships m where m.collection_id = p_collection_id and m.account_id = p_account_id and m.status = 'active')
 $$;
 revoke all on function private.can_read_vault_collection(uuid, uuid) from public, anon, authenticated;
+grant execute on function private.can_read_vault_collection(uuid, uuid) to authenticated;
 
 create or replace function private.has_active_bound_vault_device(
   p_account_id uuid,
@@ -255,6 +265,7 @@ $$;
 
 revoke all on function private.has_active_bound_vault_device(uuid, text)
   from public, anon, authenticated;
+grant execute on function private.has_active_bound_vault_device(uuid, text) to authenticated;
 
 alter table public.vault_devices enable row level security;
 alter table public.vault_recovery_keys enable row level security;
@@ -309,7 +320,8 @@ create policy vault_note_revisions_read_member on public.vault_note_revisions fo
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 create policy vault_tombstones_read_member on public.vault_tombstones for select to authenticated using (
-  private.can_read_vault_collection(collection_id, (select auth.uid()))
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
+  and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 
 revoke all on all tables in schema public from anon;
