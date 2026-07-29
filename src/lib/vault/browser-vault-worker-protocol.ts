@@ -30,6 +30,7 @@ export type VaultWorkerRequest =
     operationId?: string;
   }
   | { id: string; type: 'open-bootstrap'; accountId: string; bootstrap: Uint8Array }
+  | { id: string; type: 'open-sync'; accountId: string; deviceId: string; collectionId: string; sync: Uint8Array }
   | { id: string; type: 'create-note'; accountId: string; deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } };
 
 export type VaultWorkerResponse =
@@ -39,5 +40,6 @@ export type VaultWorkerResponse =
   | { id: string; type: 'signed-session-bind'; command: Uint8Array }
   | { id: string; type: 'collection-created'; collectionId: string; command: Uint8Array }
   | { id: string; type: 'bootstrap-opened'; collections: Array<{ id: string; title: string }> }
+  | { id: string; type: 'sync-opened'; items: Array<{ id: string; type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] }> }
   | { id: string; type: 'note-created'; noteId: string; command: Uint8Array }
   | { id: string; type: 'error'; message: string };

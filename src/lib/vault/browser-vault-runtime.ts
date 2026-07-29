@@ -106,6 +106,12 @@ export class BrowserVaultRuntime {
     return { noteId: response.noteId, command: response.command };
   }
 
+  async openCollectionSync(input: { deviceId: string; collectionId: string; sync: Uint8Array }) {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'open-sync', accountId: this.accountId, ...input, sync: copy(input.sync) });
+    if (response.type !== 'sync-opened') throw new Error('Vault worker rejected collection sync.');
+    return response.items;
+  }
+
   dispose() {
     this.channel?.close();
     this.stopWorker();

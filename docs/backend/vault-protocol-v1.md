@@ -242,7 +242,13 @@ planned `GET /api/vault/collections/{id}/sync?after=<sequence>` endpoint will
 return authorized collection operations, ciphertext, envelopes, and tombstones
 in bounded CBOR pages. The sequence is an availability cursor only; clients
 trust only verified signed heads and local checkpoints. Collection sync is not
-implemented yet.
+implemented for the current personal-device profile at
+`GET /api/vault/collections/{collectionId}/sync`: it returns no plaintext,
+only canonical operation and revision records. The worker verifies the
+hash-linked command sequence, command signatures, revision signatures and
+ciphertext hashes before unwrapping/decrypting an item. Records from another
+device are rejected until the forthcoming verified device-key directory and
+sharing flow are implemented.
 
 ## Encrypted item payloads
 
@@ -266,8 +272,8 @@ hash, the collection epoch, and the author device.
 `src/lib/vault/encrypted-revision.ts` implements this browser-side envelope
 with separate contextual AAD for content and revision-key wrapping. It supports
 the fixed note/login content maps and validates that a ciphertext cannot be
-replayed under a different note identity. Persisting these revisions remains
-is persisted by the initial `note-append` command transaction.
+replayed under a different note identity. Initial revisions are persisted by
+the `note-append` command transaction.
 
 ### Initial note append payload
 

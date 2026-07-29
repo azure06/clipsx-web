@@ -5,6 +5,8 @@ import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
 import { openVaultBootstrap } from './browser-vault-bootstrap';
 import { createNoteAppendCommand } from './browser-note-append';
+import { openVaultCollectionSync } from './browser-vault-sync';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { x25519 } from '@noble/curves/ed25519.js';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
@@ -124,6 +126,13 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           content: { ...request.content, createdAt: now, updatedAt: now },
         });
         respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
+        return;
+      }
+      case 'open-sync': {
+        if (!bundle) throw new Error('Vault is locked.');
+        const epoch = epochKeys.get(request.collectionId);
+        if (!epoch) throw new Error('Collection epoch key is unavailable.');
+        respond({ id: request.id, type: 'sync-opened', items: await openVaultCollectionSync({ bytes: request.sync, accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId, signingPublicKey: ed25519.getPublicKey(bundle.deviceSigningSecretKey), epochKey: epoch.key }) });
         return;
       }
     }

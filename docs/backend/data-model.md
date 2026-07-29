@@ -506,6 +506,11 @@ session binding, and the collection epoch, then inserts `notes`, immutable
 revision `1`, and the next operation row in one transaction. Duplicate note or
 operation IDs and any failed validation leave no partial rows.
 
+The collection sync route reads the existing RLS-protected operation and
+revision tables. It returns canonical CBOR, never plaintext; a browser worker
+uses `canonical_payload`, operation hashes/signatures, and revision evidence to
+verify and decrypt only current personal-device records.
+
 RLS still checks account, active device, live Auth session, membership, and
 role for all browser-readable data. Browser mutation grants are revoked. RLS
 and TLS are server access controls, not cryptographic public-key authentication

@@ -886,6 +886,13 @@ embedded immutable-revision signature before a private transaction locks the
 head, validates the bound session, owner/editor membership and current epoch,
 then atomically appends revision one and the collection ledger entry.
 
+Verified read sync is also implemented for the current single-device personal
+collection profile. A no-store route returns only canonical signed operation
+and ciphertext records; the worker validates the chain, signatures, hashes and
+AEAD context before returning decrypted item fields to React. Lock clears the
+rendered item state and terminates the worker. Multi-device/member records are
+intentionally rejected until their signed public-key directory is implemented.
+
 ## Enforceable invariants
 
 - Device private keys exist in plaintext only transiently inside an unlocked
