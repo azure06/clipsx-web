@@ -2,15 +2,17 @@
 
 ## Status and scope
 
-This document is the normative target design for the browser-based ClipsX
-encrypted vault. The billing backend described below is implemented; the
-encrypted-vault schema and protocol are design requirements that must be
-implemented before cloud notes or collection sharing are advertised as
-end-to-end encrypted (E2EE). All vault key generation, encryption, decryption,
-signing, verification, invitation, recovery, and key-rotation operations happen
-inside the browser. Pseudocode and example algorithm families in this document
-are protocol requirements and review aids, not production-ready cryptographic
-code.
+This document is the normative design for the browser-based ClipsX encrypted
+vault. The billing backend, encrypted notes/tombstones, device and recovery
+authorization, verified collection invitations, and atomic member add/remove
+epoch rotations are implemented. Multi-device authorization-chain sync,
+rollback checkpoints, centralized teardown, delivery hardening, compatibility
+fixtures, and staging rehearsal remain release blockers before these features
+are advertised as end-to-end encrypted (E2EE). All vault key generation,
+encryption, decryption, signing, verification, invitation, recovery, and
+key-rotation operations happen inside the browser. Pseudocode and example
+algorithm families in this document are protocol requirements and review aids,
+not production-ready cryptographic code.
 
 [Vault protocol v1](vault-protocol-v1.md) freezes the first implementation
 profile. It is authoritative for v1 cryptographic suites, recovery enrollment,
@@ -537,6 +539,18 @@ The inviter verifies the recipient's active device authorization chain and the
 invitation transcript before creating any epoch envelopes. A mismatch,
 changed key, invalid chain, expired invitation, or failed commitment aborts.
 
+The implemented browser flow carries the signed invitation and 32-byte secret
+only in `#vault-invite=...`. The stored row contains two domain-separated
+commitments and signed evidence, never that secret. The recipient signs an
+acceptance transcript binding the invitation command hash plus its active
+device signing and encryption keys. The inviter recomputes that transcript
+from locally protected invitation state, compares the grouped 20-digit safety
+number over an authenticated channel, and signs confirmation. Only then can a
+separate owner-signed `member-add` command activate the invited membership and
+rotate the collection epoch. The private functions serialize these commands on
+the signed collection head. An invited account can read its invitation row but
+does not pass collection RLS until activation.
+
 ### Historical access
 
 Every active collection membership has an explicit
@@ -779,7 +793,9 @@ verification, authorization chain, or checkpoint consistency aborts.
 
 ### 6. Inviting another user
 
-The inviter creates a signed verified invitation with expiry and commitment.
+The implemented inviter builder creates a signed verified invitation with
+expiry and commitments, returns a user-carried URL fragment, and submits only
+the signed command to `POST /api/vault/commands`.
 The recipient proves control of an active authorized device and both parties
 compare the invitation transcript through an authenticated channel. The
 user-carried link keeps its high-entropy secret in a URL fragment, so only
@@ -789,7 +805,7 @@ mismatches abort. TOFU is not offered.
 
 ### 7. Adding a member with or without historical access
 
-After invitation acceptance, the inviter selects and signs
+After verified acceptance and confirmation, the owner selects and signs
 `historyAccessFromEpoch`, creates a fresh joining epoch and key, signs the
 membership and epoch transition, and encrypts the joining key to all current
 devices and eligible recovery keys. For full/selected history it additionally
@@ -800,6 +816,13 @@ server sees membership and the chosen epoch boundary, not key plaintext. An
 implicit history default, missing recipient authorization, stale membership
 head, unauthorized history grant, or envelope outside the allowed range
 aborts.
+
+This is implemented as one private transaction for membership activation,
+invitation acceptance, old-epoch supersession, the new current epoch,
+membership/recipient commitments, all current device/recovery envelopes, any
+explicit historical envelope grants, and the `member-add` collection-log row.
+The default builder sets `historyAccessFromEpoch = joinedEpoch` and emits no
+historical envelopes.
 
 ### 8. Revoking a device
 
@@ -820,6 +843,12 @@ authorized devices and policy-enabled recovery keys. Removal and rotation
 commit before subsequent writes. The server sees membership removal and
 recipient set. Missing owner authority, stale log head, absent rotation, or an
 envelope to the removed member or that member's recovery key aborts.
+
+The implemented `member-remove` transaction locks the collection head and
+membership, marks that lifecycle terminal, creates the next epoch, validates
+the exact remaining active-device/recovery recipient sets before its first
+write, and appends the signed operation atomically. It does not erase keys or
+plaintext the removed member previously copied.
 
 ### 10. Recovering after all devices are lost
 

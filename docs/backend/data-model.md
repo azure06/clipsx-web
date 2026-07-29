@@ -6,15 +6,16 @@ The billing tables are implemented. Migration
 `20260728064659_add_vault_read_schema.sql` and
 `20260728073117_add_vault_trust_ledger.sql` implement core browser-readable
 vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
-mutation grants. The first signed collection-create, immutable revision, and
-item-deletion transactions are implemented. Invitations and checkpoints remain
-planned.
+mutation grants. Signed collection creation, immutable revisions/deletion,
+verified invitations, and membership epoch rotations are implemented.
+Security checkpoints remain planned.
 `20260728143159_add_vault_device_register_transaction.sql` adds private,
 all-or-nothing first-device registration, pending-device registration, QR/SAS
 device authorization plus current personal-epoch delivery, collection-create,
-immutable-revision, and item-deletion transactions. The HTTP dispatcher
-validates and executes those command types; other command transactions remain
-pending.
+immutable-revision, item-deletion, invitation evidence, and atomic member
+add/remove epoch-rotation transactions. The HTTP dispatcher validates and
+executes those command types; checkpoint and generic envelope-grant
+transactions remain pending.
 Browser IndexedDB records remain local-only target records. The descriptions
 below use logical names; implemented database names carry the `vault_` prefix.
 Cryptographic
@@ -435,6 +436,9 @@ silently overwritten. The product does not claim automatic merge safety.
 | `expires_at`, `accepted_at`, `accepted_by_device_id` | Lifecycle and accepting active device. |
 | `invitation_key_commitment`, `verification_commitment` | Domain-separated commitments to any server-unknown invitation secret and canonical verification transcript. |
 | `invitation_payload`, `inviter_signature` | Canonical invitation and inviter-device signature. |
+| `membership_id`, `requested_role` | The one invited membership lifecycle and its non-owner role. |
+| `acceptance_payload`, `acceptance_payload_hash`, `acceptance_transcript_hash`, `acceptance_signature` | Recipient-device-signed acceptance evidence binding the fragment transcript and recipient keys. |
+| `confirmation_payload`, `confirmation_payload_hash`, `confirmation_signature` | Inviter-device confirmation over that exact acceptance/transcript. |
 | `created_at` | Signed creation/append time. |
 
 No high-entropy invitation secret intended to resist server substitution is
@@ -447,8 +451,10 @@ device. Unique commitments prevent replay across invitations.
 
 Append-only signed history for membership, invitation, epoch, note-head,
 revocation-reference, and checkpoint operations. The current implementation
-stores the initial `collection-create` entry; later operation types remain
-reserved until their corresponding transaction is implemented.
+stores `collection-create`, note append/delete, invitation
+create/accept/confirm, and member add/remove entries. Checkpoint and standalone
+generic epoch operations remain reserved until their transactions are
+implemented.
 
 | Column | Meaning |
 | --- | --- |
@@ -503,8 +509,10 @@ collection epoch.
 Some security invariants span tables and cannot be expressed as simple check
 constraints. `POST /api/vault/commands` verifies canonical CBOR and Ed25519
 signatures, then calls narrow private transaction functions with pinned
-`search_path`, restricted execution grants, row locks, and one transaction. The
-transactions must enforce:
+`search_path`, restricted execution grants, row locks, and one transaction.
+The private schema grants execution to the server-held `service_role` only;
+`anon` and `authenticated` have neither direct mutation-table privileges nor
+private mutation-function execution. The transactions must enforce:
 
 - authorization activation only after possession proofs and authorizer
   signature verification;
@@ -532,6 +540,19 @@ operation IDs and any failed validation leave no partial rows.
 
 Later revisions additionally require the note's exact current revision hash;
 this is the optimistic-concurrency boundary for encrypted item updates.
+
+`private.create_vault_collection_invitation` creates the commitment-only
+invitation and `invited` membership lifecycle while extending the collection
+head. Recipient acceptance and inviter confirmation retain their signed
+evidence but do not grant collection access. Only
+`private.add_vault_collection_member_and_rotate_epoch` changes that membership
+to `active`; it also accepts the invitation, rotates the epoch, validates exact
+current and explicit historical envelope sets, updates both commitments, and
+appends `member-add` atomically.
+`private.remove_vault_collection_member_and_rotate_epoch` marks a non-owner
+membership terminal and commits the next epoch only when its device/recovery
+envelopes exactly cover remaining active members. Neither transaction claims
+to erase keys or plaintext already learned.
 
 The collection sync route reads the existing RLS-protected operation and
 revision tables. It returns canonical CBOR, never plaintext; a browser worker
@@ -630,8 +651,10 @@ row with a monotonic `key_version`. Replacement rows in
 `sender_recovery_key_id`; exactly one of `sender_recovery_key_id` and
 `sender_device_id` is present. The corresponding `vault_account_operations`
 row has type `recovery-rotate`, names the new recovery key, and is appended in
-the same private transaction. This is implemented for personal collections;
-sharing and invitation membership are still future work.
+the same private transaction. Recovery-root rotation currently covers personal
+collections owned by that account. Verified invitation membership is now
+implemented separately; extending recovery-root rotation across collections
+shared from another owner remains part of multi-device/member sync hardening.
 
 - Signed deletion removes primary revision ciphertext/wrapped keys immediately
   and retains a non-secret tombstone. Superseded revisions remain until note or

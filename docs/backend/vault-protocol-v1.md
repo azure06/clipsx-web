@@ -33,8 +33,9 @@ record and transfers derived unlock material to the dedicated worker using the
 PRF credential or passphrase; locking releases the worker's key references.
 Initial registration binds the device to the authenticated Supabase session;
 an unlocked active device can submit the signed `device-session-bind` command
-after later account sign-in changes that session. The next implementation phase
-implements the remaining command transactions, sync, and encrypted-item UI.
+after later account sign-in changes that session. Remaining phases add
+authorization-chain sync verification, rollback checkpoints, teardown and
+delivery hardening, deterministic fixtures, and staging acceptance.
 The current unlock flow transfers the derived unlock material to a dedicated
 module worker, which unwraps and retains the device keys without returning them
 to React. Lock, page exit, and a same-account cross-tab lock event zeroize the
@@ -65,6 +66,15 @@ teardown clear the draft and rendered plaintext; no conflict draft is persisted
 yet.
 Cross-runtime fixture files remain a required follow-up before desktop
 compatibility is claimed.
+
+Verified collection sharing is implemented by
+`src/lib/vault/browser-collection-sharing.ts`, command-specific admission, the
+shared command route, and private Supabase transactions. Invitation creation,
+recipient acceptance, and inviter confirmation are separate signed
+collection-head operations. `member-add` and `member-remove` each combine the
+membership transition, clean next epoch, exact envelope set, commitments, and
+operation-log append in one transaction. Pending/invited accounts receive no
+collection RLS access.
 
 V1 supports encrypted notes and login/password records, personal and shared
 collections, device approval, recovery, revocation, conflicts, and browser
@@ -365,6 +375,43 @@ commitment. The inviter and recipient compare a QR transcript or grouped
 20-digit safety number; both sign confirmation before membership activation or
 epoch envelopes. New members receive only the joining epoch unless the owner
 explicitly grants selected or all retained earlier epochs.
+
+### Verified invitation and membership payloads
+
+`invitation-create` is owner/device signed and carries: invitation ID,
+membership-lifecycle ID, recipient account ID, requested `editor`/`viewer`
+role, expiry, invitation-secret commitment, verification-transcript
+commitment, and the inviter signing public key. The user-carried fragment is a
+canonical record containing the signed command and random 32-byte secret. That
+secret is absent from the HTTP body, URL path/query, logs, and database.
+
+`invitation-accept` is signed by the recipient's active session-bound device.
+It carries the invitation-command hash, verification commitment, acceptance
+transcript hash, and that device's signing/encryption public keys. The
+transcript hash binds those keys, both account/device contexts, the invitation
+command, and the fragment secret. `invitation-confirm` is signed by the
+inviter device and binds the accepted command hash, the same transcript hash,
+and verification commitment. The grouped 20-digit SAS is computed locally
+from the fragment secret and invitation command and must be compared through
+an authenticated channel. Account-session-only acceptance and TOFU are not
+available.
+
+`member-add` carries invitation/membership/recipient IDs, role, joining epoch,
+explicit earliest historical epoch, membership-state and recipient-set
+commitments, the signed epoch transition, exact new-epoch device/recovery
+envelope arrays, and separate historical envelope arrays. Historical arrays
+must cover every selected retained epoch for every active endpoint of the new
+member; the default boundary equals the joining epoch and both arrays are
+empty. The private transaction requires completed acceptance and confirmation,
+then atomically activates membership, accepts the invitation, supersedes the
+old epoch, creates the next epoch/envelopes, and appends `member-add`.
+
+`member-remove` carries the terminal membership/account IDs, next epoch,
+commitments, signed transition, and exact device/recovery envelope arrays for
+remaining active members. The transaction excludes all endpoints and recovery
+roots belonging to the removed account and commits removal, rotation, and
+`member-remove` together. No standalone `epoch-rotate` command is needed for
+these membership transitions.
 
 Removing a member or revoking a device creates a new epoch for every affected
 collection, commits the removal/revocation and recipient set atomically, and

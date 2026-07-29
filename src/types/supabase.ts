@@ -839,11 +839,115 @@ export type Database = {
         }
         Relationships: []
       }
+      vault_pending_device_registrations: {
+        Row: {
+          account_id: string
+          capabilities: Json
+          created_at: string
+          device_id: string
+          display_name: string
+          encryption_public_key: string
+          enrollment_origin: string
+          expires_at: string
+          platform: string
+          proof_hash: string
+          proof_payload: string
+          proof_signature: string
+          protection_profile: string
+          sas_commitment: string
+          signing_public_key: string
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          capabilities: Json
+          created_at?: string
+          device_id: string
+          display_name: string
+          encryption_public_key: string
+          enrollment_origin: string
+          expires_at?: string
+          platform: string
+          proof_hash: string
+          proof_payload: string
+          proof_signature: string
+          protection_profile: string
+          sas_commitment: string
+          signing_public_key: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          capabilities?: Json
+          created_at?: string
+          device_id?: string
+          display_name?: string
+          encryption_public_key?: string
+          enrollment_origin?: string
+          expires_at?: string
+          platform?: string
+          proof_hash?: string
+          proof_payload?: string
+          proof_signature?: string
+          protection_profile?: string
+          sas_commitment?: string
+          signing_public_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      accept_vault_collection_invitation: {
+        Args: {
+          p_acceptance_transcript_hash: string
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_id: string
+          p_expected_collection_head: string
+          p_invitation_command_hash: string
+          p_invitation_id: string
+          p_operation_id: string
+          p_session_id: string
+          p_verification_commitment: string
+        }
+        Returns: boolean
+      }
+      add_vault_collection_member_and_rotate_epoch: {
+        Args: {
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_envelopes: Json
+          p_device_id: string
+          p_expected_collection_head: string
+          p_historical_device_envelopes: Json
+          p_historical_recovery_envelopes: Json
+          p_history_access_from_epoch: number
+          p_invitation_id: string
+          p_joined_epoch: number
+          p_membership_id: string
+          p_membership_state_hash: string
+          p_operation_id: string
+          p_recipient_account_id: string
+          p_recipient_set_commitment: string
+          p_recovery_envelopes: Json
+          p_requested_role: Database["public"]["Enums"]["vault_member_role"]
+          p_session_id: string
+          p_transition_hash: string
+          p_transition_payload: string
+          p_transition_signature: string
+        }
+        Returns: boolean
+      }
       append_vault_note_revision: {
         Args: {
           p_account_id: string
@@ -879,6 +983,41 @@ export type Database = {
         }
         Returns: boolean
       }
+      authorize_pending_vault_device: {
+        Args: {
+          p_account_id: string
+          p_authorization_payload: string
+          p_authorization_payload_hash: string
+          p_authorizer_device_id: string
+          p_command_hash: string
+          p_device_id: string
+          p_envelopes: Json
+          p_expected_previous_operation_hash: string
+          p_operation_id: string
+          p_pending_command_hash: string
+          p_sas_hash: string
+          p_session_id: string
+          p_signature: string
+        }
+        Returns: boolean
+      }
+      authorize_pending_vault_device_with_recovery: {
+        Args: {
+          p_account_id: string
+          p_authorization_payload: string
+          p_authorization_payload_hash: string
+          p_command_hash: string
+          p_device_id: string
+          p_envelopes: Json
+          p_expected_previous_operation_hash: string
+          p_operation_id: string
+          p_pending_command_hash: string
+          p_recovery_key_id: string
+          p_session_id: string
+          p_signature: string
+        }
+        Returns: boolean
+      }
       bind_vault_device_session: {
         Args: {
           p_account_id: string
@@ -908,6 +1047,24 @@ export type Database = {
           p_stripe_event_id: string
         }
         Returns: string
+      }
+      confirm_vault_collection_invitation: {
+        Args: {
+          p_acceptance_payload_hash: string
+          p_acceptance_transcript_hash: string
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_id: string
+          p_expected_collection_head: string
+          p_invitation_id: string
+          p_operation_id: string
+          p_session_id: string
+          p_verification_commitment: string
+        }
+        Returns: boolean
       }
       consume_vault_device_registration_challenge: {
         Args: {
@@ -944,6 +1101,27 @@ export type Database = {
           p_transition_hash: string
           p_transition_payload: string
           p_transition_signature: string
+        }
+        Returns: boolean
+      }
+      create_vault_collection_invitation: {
+        Args: {
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_id: string
+          p_expected_collection_head: string
+          p_expires_at: string
+          p_invitation_id: string
+          p_invitation_key_commitment: string
+          p_membership_id: string
+          p_operation_id: string
+          p_recipient_account_id: string
+          p_requested_role: Database["public"]["Enums"]["vault_member_role"]
+          p_session_id: string
+          p_verification_commitment: string
         }
         Returns: boolean
       }
@@ -1005,6 +1183,86 @@ export type Database = {
           p_recovery_encryption_public_key: string
           p_recovery_key_id: string
           p_recovery_signing_public_key: string
+        }
+        Returns: boolean
+      }
+      register_pending_vault_device: {
+        Args: {
+          p_account_id: string
+          p_auth_session_id: string
+          p_capabilities: Json
+          p_challenge_id: string
+          p_challenge_response_hash: string
+          p_device_encryption_public_key: string
+          p_device_id: string
+          p_device_signing_public_key: string
+          p_display_name: string
+          p_enrollment_origin: string
+          p_platform: string
+          p_proof_hash: string
+          p_proof_payload: string
+          p_proof_signature: string
+          p_protection_profile: string
+          p_sas_commitment: string
+        }
+        Returns: boolean
+      }
+      remove_vault_collection_member_and_rotate_epoch: {
+        Args: {
+          p_account_id: string
+          p_collection_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_command_signature: string
+          p_device_envelopes: Json
+          p_device_id: string
+          p_epoch_number: number
+          p_expected_collection_head: string
+          p_membership_id: string
+          p_membership_state_hash: string
+          p_operation_id: string
+          p_recipient_set_commitment: string
+          p_recovery_envelopes: Json
+          p_removed_account_id: string
+          p_session_id: string
+          p_transition_hash: string
+          p_transition_payload: string
+          p_transition_signature: string
+        }
+        Returns: boolean
+      }
+      revoke_vault_device_and_rotate_epochs: {
+        Args: {
+          p_account_id: string
+          p_author_device_id: string
+          p_command_hash: string
+          p_command_payload: string
+          p_expected_previous_operation_hash: string
+          p_operation_id: string
+          p_reason: string
+          p_revoked_device_id: string
+          p_rotations: Json
+          p_session_id: string
+          p_signature: string
+        }
+        Returns: boolean
+      }
+      rotate_vault_recovery_root: {
+        Args: {
+          p_account_id: string
+          p_active_device_id: string
+          p_active_device_signature: string
+          p_authorization_payload: string
+          p_command_hash: string
+          p_envelopes: Json
+          p_expected_previous_operation_hash: string
+          p_new_encryption_public_key: string
+          p_new_recovery_key_id: string
+          p_new_signing_public_key: string
+          p_old_recovery_key_id: string
+          p_operation_id: string
+          p_recovery_signature: string
+          p_session_id: string
         }
         Returns: boolean
       }
@@ -1114,10 +1372,10 @@ export type Database = {
           created_by_device_id: string
           epoch_number: number
           id?: string
-          key_version: number
+          key_version?: number
           membership_state_hash: string
           previous_epoch_hash?: string | null
-          protocol_version: number
+          protocol_version?: number
           recipient_set_commitment: string
           rotation_reason: string
           state: string
@@ -1156,6 +1414,116 @@ export type Database = {
             columns: ["created_by_device_id"]
             isOneToOne: false
             referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vault_collection_invitations: {
+        Row: {
+          acceptance_payload: string | null
+          acceptance_payload_hash: string | null
+          acceptance_signature: string | null
+          acceptance_transcript_hash: string | null
+          accepted_at: string | null
+          accepted_by_device_id: string | null
+          collection_id: string
+          confirmation_payload: string | null
+          confirmation_payload_hash: string | null
+          confirmation_signature: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_key_commitment: string
+          invitation_operation_hash: string
+          invitation_payload: string
+          inviter_device_id: string
+          inviter_signature: string
+          membership_id: string
+          recipient_account_id: string
+          requested_role: Database["public"]["Enums"]["vault_member_role"]
+          status: Database["public"]["Enums"]["vault_invitation_status"]
+          verification_commitment: string
+          verification_mode: string
+        }
+        Insert: {
+          acceptance_payload?: string | null
+          acceptance_payload_hash?: string | null
+          acceptance_signature?: string | null
+          acceptance_transcript_hash?: string | null
+          accepted_at?: string | null
+          accepted_by_device_id?: string | null
+          collection_id: string
+          confirmation_payload?: string | null
+          confirmation_payload_hash?: string | null
+          confirmation_signature?: string | null
+          created_at?: string
+          expires_at: string
+          id: string
+          invitation_key_commitment: string
+          invitation_operation_hash: string
+          invitation_payload: string
+          inviter_device_id: string
+          inviter_signature: string
+          membership_id: string
+          recipient_account_id: string
+          requested_role: Database["public"]["Enums"]["vault_member_role"]
+          status?: Database["public"]["Enums"]["vault_invitation_status"]
+          verification_commitment: string
+          verification_mode: string
+        }
+        Update: {
+          acceptance_payload?: string | null
+          acceptance_payload_hash?: string | null
+          acceptance_signature?: string | null
+          acceptance_transcript_hash?: string | null
+          accepted_at?: string | null
+          accepted_by_device_id?: string | null
+          collection_id?: string
+          confirmation_payload?: string | null
+          confirmation_payload_hash?: string | null
+          confirmation_signature?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_key_commitment?: string
+          invitation_operation_hash?: string
+          invitation_payload?: string
+          inviter_device_id?: string
+          inviter_signature?: string
+          membership_id?: string
+          recipient_account_id?: string
+          requested_role?: Database["public"]["Enums"]["vault_member_role"]
+          status?: Database["public"]["Enums"]["vault_invitation_status"]
+          verification_commitment?: string
+          verification_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_collection_invitations_accepted_by_device_id_fkey"
+            columns: ["accepted_by_device_id"]
+            isOneToOne: false
+            referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_collection_invitations_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "vault_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_collection_invitations_inviter_device_id_fkey"
+            columns: ["inviter_device_id"]
+            isOneToOne: false
+            referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_collection_invitations_membership_id_fkey"
+            columns: ["membership_id"]
+            isOneToOne: true
+            referencedRelation: "vault_collection_memberships"
             referencedColumns: ["id"]
           },
         ]
@@ -1410,7 +1778,8 @@ export type Database = {
           nonce: string | null
           protocol_version: number
           recipient_device_id: string
-          sender_device_id: string
+          sender_device_id: string | null
+          sender_recovery_key_id: string | null
           signature: string
         }
         Insert: {
@@ -1427,7 +1796,8 @@ export type Database = {
           nonce?: string | null
           protocol_version: number
           recipient_device_id: string
-          sender_device_id: string
+          sender_device_id?: string | null
+          sender_recovery_key_id?: string | null
           signature: string
         }
         Update: {
@@ -1444,7 +1814,8 @@ export type Database = {
           nonce?: string | null
           protocol_version?: number
           recipient_device_id?: string
-          sender_device_id?: string
+          sender_device_id?: string | null
+          sender_recovery_key_id?: string | null
           signature?: string
         }
         Relationships: [
@@ -1474,6 +1845,13 @@ export type Database = {
             columns: ["sender_device_id"]
             isOneToOne: false
             referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_device_epoch_envelopes_sender_recovery_key_id_fkey"
+            columns: ["sender_recovery_key_id"]
+            isOneToOne: false
+            referencedRelation: "vault_recovery_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -1773,7 +2151,8 @@ export type Database = {
           nonce: string | null
           protocol_version: number
           recovery_key_id: string
-          sender_device_id: string
+          sender_device_id: string | null
+          sender_recovery_key_id: string | null
           signature: string
         }
         Insert: {
@@ -1790,7 +2169,8 @@ export type Database = {
           nonce?: string | null
           protocol_version: number
           recovery_key_id: string
-          sender_device_id: string
+          sender_device_id?: string | null
+          sender_recovery_key_id?: string | null
           signature: string
         }
         Update: {
@@ -1807,7 +2187,8 @@ export type Database = {
           nonce?: string | null
           protocol_version?: number
           recovery_key_id?: string
-          sender_device_id?: string
+          sender_device_id?: string | null
+          sender_recovery_key_id?: string | null
           signature?: string
         }
         Relationships: [
@@ -1830,6 +2211,13 @@ export type Database = {
             columns: ["sender_device_id"]
             isOneToOne: false
             referencedRelation: "vault_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_recovery_epoch_envelopes_sender_recovery_key_id_fkey"
+            columns: ["sender_recovery_key_id"]
+            isOneToOne: false
+            referencedRelation: "vault_recovery_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -1938,6 +2326,7 @@ export type Database = {
     }
     Enums: {
       vault_device_status: "pending" | "active" | "revoked"
+      vault_invitation_status: "created" | "accepted" | "expired" | "cancelled"
       vault_member_role: "owner" | "editor" | "viewer"
       vault_member_status: "invited" | "active" | "removed"
     }
@@ -2087,6 +2476,7 @@ export const Constants = {
   public: {
     Enums: {
       vault_device_status: ["pending", "active", "revoked"],
+      vault_invitation_status: ["created", "accepted", "expired", "cancelled"],
       vault_member_role: ["owner", "editor", "viewer"],
       vault_member_status: ["invited", "active", "removed"],
     },

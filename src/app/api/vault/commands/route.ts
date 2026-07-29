@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitRecoveryRotation, admitVaultCommand } from '@/lib/vault/command-admission';
-import { decodeCanonicalCbor, encodeCanonicalCbor, sha256 } from '@/lib/vault/protocol';
+import { decodeCanonicalCbor, encodeCanonicalCbor, sha256, type CborValue } from '@/lib/vault/protocol';
+import {
+  admitInvitationAccept,
+  admitInvitationConfirm,
+  admitInvitationCreate,
+  admitMemberAdd,
+  admitMemberRemove,
+  type SharingEnvelope,
+} from '@/lib/vault/sharing-command-admission';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getVaultPrincipal } from '@/lib/supabase/server';
 
@@ -18,6 +26,17 @@ function cborError(status: number, code: string) {
 function bytea(value: unknown): Uint8Array | null {
   if (typeof value !== 'string') return null;
   return new Uint8Array(Buffer.from(value, 'base64'));
+}
+
+function encodeSharingEnvelope(envelope: SharingEnvelope) {
+  return {
+    recipient_id: envelope.recipientId,
+    epoch_number: envelope.epochNumber,
+    encapsulation: Buffer.from(envelope.encapsulation).toString('base64'),
+    ciphertext: Buffer.from(envelope.ciphertext).toString('base64'),
+    payload: Buffer.from(envelope.payload).toString('base64'),
+    signature: Buffer.from(envelope.signature).toString('base64'),
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -144,6 +163,158 @@ export async function POST(request: NextRequest) {
       const { data, error } = await admin.schema('private').rpc('rotate_vault_recovery_root', { p_account_id: principal.user.id, p_session_id: principal.sessionId, p_old_recovery_key_id: command.recoveryKeyId!, p_active_device_id: rotation.activeDeviceId, p_new_recovery_key_id: rotation.newRecoveryKeyId, p_new_encryption_public_key: Buffer.from(rotation.encryptionPublicKey).toString('base64'), p_new_signing_public_key: Buffer.from(rotation.signingPublicKey).toString('base64'), p_expected_previous_operation_hash: Buffer.from(command.expectedAccountHead!).toString('base64'), p_authorization_payload: Buffer.from(command.signedBytes).toString('base64'), p_active_device_signature: Buffer.from(rotation.activeSignature).toString('base64'), p_envelopes: envelopes, p_operation_id: command.operationId, p_command_hash: Buffer.from(await sha256(body)).toString('base64'), p_recovery_signature: Buffer.from(command.signature).toString('base64') });
       if (error || !data) return cborError(409, 'recovery-rotation-rejected');
       return new NextResponse(encodeCanonicalCbor(new Map([[1, command.operationId]])).slice().buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'invitation-create') {
+      const { command } = admission;
+      const { data: author } = await admin.from('vault_devices').select('signing_public_key')
+        .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
+      const signingPublicKey = bytea(author?.signing_public_key);
+      if (!signingPublicKey) return cborError(422, 'invitation-create-rejected');
+      const invitation = admitInvitationCreate(command, signingPublicKey);
+      const { data, error } = await admin.schema('private').rpc('create_vault_collection_invitation', {
+        p_account_id: principal.user.id,
+        p_session_id: principal.sessionId,
+        p_device_id: command.authorDeviceId!,
+        p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'),
+        p_invitation_id: invitation.invitationId,
+        p_membership_id: invitation.membershipId,
+        p_recipient_account_id: invitation.recipientAccountId,
+        p_requested_role: invitation.role,
+        p_expires_at: invitation.expiresAt,
+        p_invitation_key_commitment: Buffer.from(invitation.invitationKeyCommitment).toString('base64'),
+        p_verification_commitment: Buffer.from(invitation.verificationCommitment).toString('base64'),
+        p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'invitation-create-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, invitation.invitationId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'invitation-accept') {
+      const { command } = admission;
+      const { data: author } = await admin.from('vault_devices').select('signing_public_key, encryption_public_key')
+        .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
+      const signingPublicKey = bytea(author?.signing_public_key);
+      const encryptionPublicKey = bytea(author?.encryption_public_key);
+      if (!signingPublicKey || !encryptionPublicKey) return cborError(422, 'invitation-accept-rejected');
+      const acceptance = admitInvitationAccept(command, signingPublicKey, encryptionPublicKey);
+      const { data, error } = await admin.schema('private').rpc('accept_vault_collection_invitation', {
+        p_account_id: principal.user.id,
+        p_session_id: principal.sessionId,
+        p_device_id: command.authorDeviceId!,
+        p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'),
+        p_invitation_id: acceptance.invitationId,
+        p_invitation_command_hash: Buffer.from(acceptance.invitationCommandHash).toString('base64'),
+        p_verification_commitment: Buffer.from(acceptance.verificationCommitment).toString('base64'),
+        p_acceptance_transcript_hash: Buffer.from(acceptance.transcriptHash).toString('base64'),
+        p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'invitation-accept-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, acceptance.invitationId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'invitation-confirm') {
+      const { command } = admission;
+      const confirmation = admitInvitationConfirm(command);
+      const { data, error } = await admin.schema('private').rpc('confirm_vault_collection_invitation', {
+        p_account_id: principal.user.id,
+        p_session_id: principal.sessionId,
+        p_device_id: command.authorDeviceId!,
+        p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'),
+        p_invitation_id: confirmation.invitationId,
+        p_acceptance_payload_hash: Buffer.from(confirmation.acceptanceCommandHash).toString('base64'),
+        p_acceptance_transcript_hash: Buffer.from(confirmation.transcriptHash).toString('base64'),
+        p_verification_commitment: Buffer.from(confirmation.verificationCommitment).toString('base64'),
+        p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'invitation-confirm-rejected');
+      const result = encodeCanonicalCbor(new Map([[1, command.operationId], [2, confirmation.invitationId]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'member-add') {
+      const { command } = admission;
+      const { data: author } = await admin.from('vault_devices').select('signing_public_key')
+        .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
+      const signingPublicKey = bytea(author?.signing_public_key);
+      if (!signingPublicKey) return cborError(422, 'member-add-rejected');
+      const member = await admitMemberAdd(command, signingPublicKey);
+      const { data, error } = await admin.schema('private').rpc('add_vault_collection_member_and_rotate_epoch', {
+        p_account_id: principal.user.id,
+        p_session_id: principal.sessionId,
+        p_device_id: command.authorDeviceId!,
+        p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'),
+        p_invitation_id: member.invitationId,
+        p_membership_id: member.membershipId,
+        p_recipient_account_id: member.recipientAccountId,
+        p_requested_role: member.role,
+        p_joined_epoch: member.joinedEpoch,
+        p_history_access_from_epoch: member.historyAccessFromEpoch,
+        p_membership_state_hash: Buffer.from(member.membershipStateHash).toString('base64'),
+        p_recipient_set_commitment: Buffer.from(member.recipientSetCommitment).toString('base64'),
+        p_transition_payload: Buffer.from(member.transitionPayload).toString('base64'),
+        p_transition_signature: Buffer.from(member.transitionSignature).toString('base64'),
+        p_transition_hash: Buffer.from(member.transitionHash).toString('base64'),
+        p_device_envelopes: member.deviceEnvelopes.map(encodeSharingEnvelope),
+        p_recovery_envelopes: member.recoveryEnvelopes.map(encodeSharingEnvelope),
+        p_historical_device_envelopes: member.historicalDeviceEnvelopes.map(encodeSharingEnvelope),
+        p_historical_recovery_envelopes: member.historicalRecoveryEnvelopes.map(encodeSharingEnvelope),
+        p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'member-add-rejected');
+      const result = encodeCanonicalCbor(new Map<number, CborValue>([[1, command.operationId], [2, member.membershipId], [3, member.joinedEpoch]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
+    }
+
+    if (admission.command.operationType === 'member-remove') {
+      const { command } = admission;
+      const { data: author } = await admin.from('vault_devices').select('signing_public_key')
+        .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
+      const signingPublicKey = bytea(author?.signing_public_key);
+      if (!signingPublicKey) return cborError(422, 'member-remove-rejected');
+      const member = await admitMemberRemove(command, signingPublicKey);
+      const { data, error } = await admin.schema('private').rpc('remove_vault_collection_member_and_rotate_epoch', {
+        p_account_id: principal.user.id,
+        p_session_id: principal.sessionId,
+        p_device_id: command.authorDeviceId!,
+        p_collection_id: command.collectionId!,
+        p_expected_collection_head: Buffer.from(command.expectedCollectionHead!).toString('base64'),
+        p_membership_id: member.membershipId,
+        p_removed_account_id: member.recipientAccountId,
+        p_epoch_number: member.epochNumber,
+        p_membership_state_hash: Buffer.from(member.membershipStateHash).toString('base64'),
+        p_recipient_set_commitment: Buffer.from(member.recipientSetCommitment).toString('base64'),
+        p_transition_payload: Buffer.from(member.transitionPayload).toString('base64'),
+        p_transition_signature: Buffer.from(member.transitionSignature).toString('base64'),
+        p_transition_hash: Buffer.from(member.transitionHash).toString('base64'),
+        p_device_envelopes: member.deviceEnvelopes.map(encodeSharingEnvelope),
+        p_recovery_envelopes: member.recoveryEnvelopes.map(encodeSharingEnvelope),
+        p_operation_id: command.operationId,
+        p_command_payload: Buffer.from(command.signedBytes).toString('base64'),
+        p_command_hash: Buffer.from(await sha256(body)).toString('base64'),
+        p_command_signature: Buffer.from(command.signature).toString('base64'),
+      });
+      if (error || !data) return cborError(409, 'member-remove-rejected');
+      const result = encodeCanonicalCbor(new Map<number, CborValue>([[1, command.operationId], [2, member.membershipId], [3, member.epochNumber]])).slice();
+      return new NextResponse(result.buffer as ArrayBuffer, { status: 201, headers: { 'Cache-Control': 'no-store', 'Content-Type': 'application/cbor' } });
     }
 
     if (admission.command.operationType === 'collection-create') {

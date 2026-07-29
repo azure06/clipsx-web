@@ -59,7 +59,7 @@ npm run lint
 | Layer | Purpose |
 | --- | --- |
 | SQL/pgTAP | constraints, indexes, triggers, RLS, RPC authorization, atomic allowance accounting, and tombstones |
-| TypeScript unit tests | Stripe event-to-projection mapping, stale/duplicate handling, entitlement status calculation, and date-window calculation |
+| TypeScript unit tests | Stripe projections plus deterministic vault command/admission checks, including verified invitation transcripts and membership envelope sets |
 | Stripe sandbox + CLI | raw signature verification, actual subscription lifecycle events, portal changes, failure cases |
 | Stripe Test Clocks | annual renewal, monthly anniversary allowance, upgrade/downgrade, cancellation, and payment failure without waiting |
 | App integration | authenticated checkout start, portal launch, safe billing summary, device revocation, collection sharing, and sync conflicts |
@@ -114,6 +114,26 @@ npm run lint
   collection exactly once, and make no state change when validation fails.
   Verify that browser roles have no execute privilege on the private rotation
   transaction.
+- Verified sharing must keep the 32-byte invitation secret in the
+  `#vault-invite` fragment/local protected state. Assert that serialized
+  `invitation-create` bytes and `vault_collection_invitations` contain only
+  domain-separated commitments.
+- Invitation acceptance must come from the named recipient's active bound
+  device and bind its current signing/encryption public keys. Inviter
+  confirmation must match the exact acceptance command and transcript hash;
+  expired, stale-head, TOFU, or account-session-only paths are rejected.
+- Member activation must atomically accept the invitation, activate the
+  invited lifecycle, create the clean next epoch, append `member-add`, and
+  store exact active device/recovery envelope sets. The default historical
+  boundary equals the joining epoch and stores no older envelope.
+- Explicit historical access must name a contiguous retained epoch boundary
+  and provide one signed envelope for each selected epoch and each active
+  recipient endpoint. Missing, duplicate, earlier-than-authorized, or
+  unrelated-account envelopes reject the entire transaction.
+- Member removal must atomically make the lifecycle terminal and rotate before
+  a later write. No new envelope may name any removed-account device or
+  recovery root. Tests and support text must not claim deletion of material
+  the former member already copied.
 - A tombstoned item never returns ciphertext during sync.
 - A signed note deletion requires both the collection and current revision
   heads, atomically removes revision ciphertext/key wraps, and emits an

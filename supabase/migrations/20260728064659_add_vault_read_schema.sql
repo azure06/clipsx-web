@@ -3,6 +3,7 @@
 create type public.vault_device_status as enum ('pending', 'active', 'revoked');
 create type public.vault_member_role as enum ('owner', 'editor', 'viewer');
 create type public.vault_member_status as enum ('invited', 'active', 'removed');
+create type public.vault_invitation_status as enum ('created', 'accepted', 'expired', 'cancelled');
 
 create table public.vault_devices (
   id uuid primary key default gen_random_uuid(),
@@ -83,12 +84,53 @@ create table public.vault_collection_memberships (
   invited_by_device_id uuid references public.vault_devices(id) on delete restrict,
   membership_operation_id uuid not null,
   check (history_access_from_epoch <= joined_epoch),
-  check ((status = 'active') = (joined_at is not null)),
+  check ((status in ('active', 'removed')) = (joined_at is not null)),
   check ((status = 'removed') = (removed_at is not null and removed_epoch is not null)),
   check (removed_epoch is null or removed_epoch > joined_epoch)
 );
 create unique index vault_collection_memberships_one_live on public.vault_collection_memberships(collection_id, account_id) where status in ('invited', 'active');
 create index vault_collection_memberships_account_active_idx on public.vault_collection_memberships(account_id, collection_id) where status = 'active';
+
+create table public.vault_collection_invitations (
+  id uuid primary key,
+  collection_id uuid not null references public.vault_collections(id) on delete cascade,
+  membership_id uuid not null unique references public.vault_collection_memberships(id) on delete restrict,
+  inviter_device_id uuid not null references public.vault_devices(id) on delete restrict,
+  recipient_account_id uuid not null references auth.users(id) on delete cascade,
+  requested_role public.vault_member_role not null check (requested_role <> 'owner'),
+  verification_mode text not null check (verification_mode = 'verified'),
+  status public.vault_invitation_status not null default 'created',
+  expires_at timestamptz not null,
+  accepted_at timestamptz,
+  accepted_by_device_id uuid references public.vault_devices(id) on delete restrict,
+  invitation_key_commitment bytea not null unique check (octet_length(invitation_key_commitment) = 32),
+  verification_commitment bytea not null unique check (octet_length(verification_commitment) = 32),
+  invitation_payload bytea not null,
+  invitation_operation_hash bytea not null unique check (octet_length(invitation_operation_hash) = 32),
+  inviter_signature bytea not null check (octet_length(inviter_signature) = 64),
+  acceptance_payload bytea,
+  acceptance_payload_hash bytea unique,
+  acceptance_transcript_hash bytea,
+  acceptance_signature bytea,
+  confirmation_payload bytea,
+  confirmation_payload_hash bytea unique,
+  confirmation_signature bytea,
+  created_at timestamptz not null default now(),
+  check ((acceptance_payload is null) = (acceptance_payload_hash is null)),
+  check ((acceptance_payload is null) = (acceptance_signature is null)),
+  check (acceptance_payload_hash is null or octet_length(acceptance_payload_hash) = 32),
+  check ((acceptance_payload is null) = (acceptance_transcript_hash is null)),
+  check (acceptance_transcript_hash is null or octet_length(acceptance_transcript_hash) = 32),
+  check (acceptance_signature is null or octet_length(acceptance_signature) = 64),
+  check ((confirmation_payload is null) = (confirmation_payload_hash is null)),
+  check ((confirmation_payload is null) = (confirmation_signature is null)),
+  check (confirmation_payload_hash is null or octet_length(confirmation_payload_hash) = 32),
+  check (confirmation_signature is null or octet_length(confirmation_signature) = 64),
+  check ((status = 'accepted') = (accepted_at is not null and accepted_by_device_id is not null))
+);
+create index vault_collection_invitations_recipient_pending_idx
+  on public.vault_collection_invitations(recipient_account_id, expires_at)
+  where status = 'created';
 
 create table public.vault_collection_epochs (
   id uuid primary key default gen_random_uuid(),
@@ -103,8 +145,8 @@ create table public.vault_collection_epochs (
   transition_signature bytea not null check (octet_length(transition_signature) = 64),
   transition_hash bytea not null unique,
   algorithm text not null default 'hpke-x25519-hkdf-sha256-aes-256-gcm',
-  key_version integer not null check (key_version >= 1),
-  protocol_version integer not null check (protocol_version = 1),
+  key_version integer not null default 1 check (key_version >= 1),
+  protocol_version integer not null default 1 check (protocol_version = 1),
   state text not null check (state in ('created', 'current', 'superseded')),
   created_at timestamptz not null default now(),
   unique (collection_id, epoch_number)
@@ -131,7 +173,11 @@ create table public.vault_collection_operations (
   operation_id uuid primary key,
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   sequence_number bigint not null check (sequence_number >= 1),
-  operation_type text not null check (operation_type in ('collection-create', 'note-append', 'note-delete')),
+  operation_type text not null check (operation_type in (
+    'collection-create', 'note-append', 'note-delete',
+    'invitation-create', 'invitation-accept', 'invitation-confirm',
+    'member-add', 'member-remove', 'epoch-rotate'
+  )),
   canonical_payload bytea not null,
   previous_operation_hash bytea,
   operation_hash bytea not null unique,
@@ -214,6 +260,7 @@ alter table public.vault_devices enable row level security;
 alter table public.vault_recovery_keys enable row level security;
 alter table public.vault_collections enable row level security;
 alter table public.vault_collection_memberships enable row level security;
+alter table public.vault_collection_invitations enable row level security;
 alter table public.vault_collection_epochs enable row level security;
 alter table public.vault_device_epoch_envelopes enable row level security;
 alter table public.vault_collection_operations enable row level security;
@@ -224,34 +271,41 @@ alter table public.vault_tombstones enable row level security;
 create policy vault_devices_read_own on public.vault_devices for select to authenticated using ((select auth.uid()) = account_id);
 create policy vault_recovery_keys_read_own on public.vault_recovery_keys for select to authenticated using ((select auth.uid()) = account_id);
 create policy vault_collections_read_member on public.vault_collections for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(id, (select auth.uid()))
 );
 create policy vault_memberships_read_member on public.vault_collection_memberships for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
+create policy vault_invitations_read_party on public.vault_collection_invitations for select to authenticated using (
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
+  and (
+    recipient_account_id = (select auth.uid())
+    or private.can_read_vault_collection(collection_id, (select auth.uid()))
+  )
+);
 create policy vault_epochs_read_member on public.vault_collection_epochs for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 create policy vault_device_envelopes_read_recipient on public.vault_device_epoch_envelopes for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and recipient_device_id in (
     select d.id from public.vault_devices d
     where d.account_id = (select auth.uid()) and d.status = 'active'
   )
 );
 create policy vault_collection_operations_read_member on public.vault_collection_operations for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 create policy vault_notes_read_member on public.vault_notes for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 create policy vault_note_revisions_read_member on public.vault_note_revisions for select to authenticated using (
-  private.has_active_bound_vault_device((select auth.uid()), auth.jwt() ->> 'session_id')
+  private.has_active_bound_vault_device((select auth.uid()), (select auth.jwt()) ->> 'session_id')
   and private.can_read_vault_collection(collection_id, (select auth.uid()))
 );
 create policy vault_tombstones_read_member on public.vault_tombstones for select to authenticated using (
@@ -259,5 +313,5 @@ create policy vault_tombstones_read_member on public.vault_tombstones for select
 );
 
 revoke all on all tables in schema public from anon;
-revoke insert, update, delete, truncate on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions, public.vault_tombstones from authenticated;
-grant select on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions, public.vault_tombstones to authenticated;
+revoke insert, update, delete, truncate on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_invitations, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions, public.vault_tombstones from authenticated;
+grant select on public.vault_devices, public.vault_recovery_keys, public.vault_collections, public.vault_collection_memberships, public.vault_collection_invitations, public.vault_collection_epochs, public.vault_device_epoch_envelopes, public.vault_collection_operations, public.vault_notes, public.vault_note_revisions, public.vault_tombstones to authenticated;
