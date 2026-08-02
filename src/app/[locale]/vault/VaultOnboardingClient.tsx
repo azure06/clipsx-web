@@ -24,6 +24,7 @@ import {
   decodeDeviceRegistrationChallenge,
 } from "@/lib/vault/browser-registration";
 import { BrowserVaultRuntime } from "@/lib/vault/browser-vault-runtime";
+import { loadVaultSettings } from "@/lib/vault/browser-vault-settings";
 import {
   beginNoteConflict,
   isStaleNoteUpdate,
@@ -687,6 +688,18 @@ function VaultUnlock({
       runtime.dispose();
       runtimeRef.current = null;
     };
+  }, [accountId]);
+  useEffect(() => {
+    let timeout: number | undefined;
+    const reset = () => {
+      if (timeout) window.clearTimeout(timeout);
+      void loadVaultSettings(accountId).then((settings) => {
+        if (settings.autoLockMinutes !== "never") timeout = window.setTimeout(() => void runtimeRef.current?.lock(), settings.autoLockMinutes * 60_000);
+      }).catch(() => undefined);
+    };
+    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart"];
+    events.forEach((event) => window.addEventListener(event, reset)); reset();
+    return () => { if (timeout) window.clearTimeout(timeout); events.forEach((event) => window.removeEventListener(event, reset)); };
   }, [accountId]);
 
   async function unlock() {

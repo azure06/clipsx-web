@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, ClipboardPaste, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { VaultAppShell } from "../VaultAppShell";
 import { useVaultSession } from "../VaultOnboardingClient";
+import { CLIPBOARD_CLEAR_CHOICES, AUTO_LOCK_CHOICES, defaultVaultSettings, loadVaultSettings, saveVaultSettings, type VaultSettings } from "@/lib/vault/browser-vault-settings";
 
 export function VaultSettingsClient() {
-  const { reviewDeviceApproval, approveDevice, working, error, clearError } = useVaultSession();
+  const { record, reviewDeviceApproval, approveDevice, working, error, clearError } = useVaultSession();
   const [offer, setOffer] = useState("");
   const [approval, setApproval] = useState<{ command: Uint8Array; sas: string; deviceId: string } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [settings, setSettings] = useState<VaultSettings>(() => defaultVaultSettings(record.accountId));
+  useEffect(() => { void loadVaultSettings(record.accountId).then(setSettings).catch(() => undefined); }, [record.accountId]);
+  function change<K extends keyof VaultSettings>(key: K, value: VaultSettings[K]) { const next = { ...settings, [key]: value }; setSettings(next); void saveVaultSettings(next); }
 
   async function review() {
     try {
@@ -44,7 +48,10 @@ export function VaultSettingsClient() {
         </section>
 
         <section className="mt-5 rounded-xl border border-amber-400/40 bg-amber-50 p-5 dark:bg-amber-500/10"><h3 className="font-heading text-lg font-bold">Recovery phrase</h3><p className="mt-2 text-sm text-gray-700 dark:text-gray-200">Your recovery phrase is shown only during first-time setup. Keep the original offline copy; it cannot be displayed again from this browser.</p></section>
+        <section className="mt-5 rounded-xl border border-[var(--vault-border)] p-5 sm:p-6"><h3 className="font-heading text-xl font-bold">Workspace preferences</h3><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">These local preferences never leave this browser.</p><div className="mt-5 grid gap-4 sm:grid-cols-2"><SettingSelect label="Auto-lock after inactivity" value={settings.autoLockMinutes} choices={AUTO_LOCK_CHOICES} suffix="minutes" onChange={(value) => change("autoLockMinutes", value as VaultSettings["autoLockMinutes"])} /><SettingSelect label="Clear copied secrets after" value={settings.clipboardClearSeconds} choices={CLIPBOARD_CLEAR_CHOICES} suffix="seconds" onChange={(value) => change("clipboardClearSeconds", value as VaultSettings["clipboardClearSeconds"])} /><SettingSelect label="Document width" value={settings.documentWidth} choices={["comfortable", "wide"]} onChange={(value) => change("documentWidth", value as VaultSettings["documentWidth"])} /><SettingSelect label="Editor mode" value={settings.editorMode} choices={["split", "edit", "preview"]} onChange={(value) => change("editorMode", value as VaultSettings["editorMode"])} /></div><div className="mt-5 flex flex-wrap gap-5 text-sm"><label><input type="checkbox" checked={settings.lineWrap} onChange={(event) => change("lineWrap", event.target.checked)} /> Wrap lines</label><label><input type="checkbox" checked={settings.spellcheck} onChange={(event) => change("spellcheck", event.target.checked)} /> Spellcheck</label><label><input type="checkbox" checked={settings.showMetadata} onChange={(event) => change("showMetadata", event.target.checked)} /> Show metadata</label></div></section>
       </section>
     </VaultAppShell>
   );
 }
+
+function SettingSelect({ label, value, choices, suffix, onChange }: { label: string; value: string | number; choices: readonly (string | number)[]; suffix?: string; onChange: (value: string | number) => void }) { return <label className="text-sm font-medium">{label}<select value={String(value)} onChange={(event) => { const match = choices.find((choice) => String(choice) === event.target.value)!; onChange(match); }} className="mt-1.5 block w-full rounded-lg border border-[var(--vault-border)] bg-transparent px-3 py-2">{choices.map((choice) => <option key={String(choice)} value={String(choice)}>{choice === "never" ? "Never" : `${choice} ${suffix ?? ""}`}</option>)}</select></label>; }
