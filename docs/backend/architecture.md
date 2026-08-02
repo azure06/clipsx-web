@@ -1131,8 +1131,9 @@ retry path. Billing tables live in `private` and are exposed only to
   selected or all retained history explicitly.
 - Signed local checkpoints and cross-device comparison ship in v1. An
   independently witnessed transparency service is deferred.
-- WebAuthn PRF is the preferred unlock profile; the scrypt vault-passphrase
-  profile is the explicit fallback; direct `CryptoKey` persistence is excluded.
+- A browser bundle key can have one or more local unlock slots. WebAuthn PRF
+  and scrypt vault-passphrase slots are alternative local wrappers for that
+  same bundle key; direct `CryptoKey` persistence is excluded.
 - The vault shares `clipsx.app` with the web app and therefore requires the
   compensating same-origin CSP, release, telemetry, and service-worker controls
   stated above.

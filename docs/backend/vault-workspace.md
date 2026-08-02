@@ -42,6 +42,19 @@ adoption.
 The pre-production rebuild uses `clipsx-vault-v2`; it intentionally does not
 read the former local browser vault database.
 
+## Local unlock slots
+
+Each browser vault has one random bundle key. A passkey PRF output or a
+passphrase-derived key only wraps that bundle key in an independent local
+unlock slot; neither is uploaded. Users can add either method as an
+alternative, after freshly confirming an existing method. Removing a slot also
+requires fresh confirmation and the final remaining slot cannot be removed.
+
+Passkey creation and confirmation both require a browser WebAuthn gesture.
+Passphrase slots use a distinct random scrypt salt per slot. The browser record
+retains the wrapped bundle key plus public/local credential metadata necessary
+to request the selected method; it never retains a passphrase or PRF output.
+
 ## Browser approval
 
 Adding a browser starts with a pending record and an approval offer. The
@@ -56,7 +69,3 @@ activation.
 Cross-account collection collaboration and encrypted binary attachments are
 planned. Attachments require per-file keys, signed manifests, chunking,
 quotas, retention, and deletion design; they are not implemented.
-
-Multi-slot local unlock (passkey and passphrase as alternatives to one browser
-vault) is planned security work. Current enrollment chooses one local unlock
-profile per browser.

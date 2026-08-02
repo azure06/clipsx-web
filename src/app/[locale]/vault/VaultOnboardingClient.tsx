@@ -17,7 +17,7 @@ import {
   encodeBrowserDeviceBundle,
   type BrowserVaultIdentity,
 } from "@/lib/vault/browser-onboarding";
-import { createUnlockSlot, encryptBundle } from "@/lib/vault/browser-unlock-slots";
+import { createUnlockSlot, encryptBundle, removeUnlockSlot, unwrapBundleKey } from "@/lib/vault/browser-unlock-slots";
 import { createPendingDeviceRegistrationCommand, decodePendingDeviceOffer } from "@/lib/vault/browser-device-approval";
 import {
   createInitialDeviceRegistrationCommand,
@@ -79,6 +79,9 @@ type VaultSession = {
   deleteItem: (collectionId: string, item: VaultItemHead) => Promise<VaultItemHead[]>;
   reviewDeviceApproval: (offer: string) => Promise<{ command: Uint8Array; sas: string; deviceId: string }>;
   approveDevice: (command: Uint8Array) => Promise<void>;
+  addPasskeyUnlockSlot: (confirmationSlotId: string, confirmationPassphrase: string) => Promise<void>;
+  addPassphraseUnlockSlot: (confirmationSlotId: string, confirmationPassphrase: string, newPassphrase: string) => Promise<void>;
+  removeUnlockSlot: (confirmationSlotId: string, confirmationPassphrase: string, slotId: string) => Promise<void>;
   lock: () => Promise<void>;
 };
 
@@ -1239,6 +1242,80 @@ function VaultUnlock({
     }
   }
 
+  async function confirmBundleKey(confirmationSlotId: string, confirmationPassphrase: string): Promise<Uint8Array> {
+    const slot = record.unlockSlots?.find((candidate) => candidate.id === confirmationSlotId);
+    if (!slot) throw new Error("Choose a current unlock method to confirm this change.");
+    let material: Uint8Array | null = null;
+    try {
+      if (slot.kind === "passkey") {
+        if (!slot.webauthnCredentialId || !slot.prfInput || !slot.webauthnRpId) throw new Error("This passkey's metadata is incomplete.");
+        material = await getVaultPrfOutput({ credentialId: slot.webauthnCredentialId, prfInput: slot.prfInput, rpId: slot.webauthnRpId });
+      } else {
+        if (!slot.passphraseKdfSalt) throw new Error("This passphrase's metadata is incomplete.");
+        material = await deriveVaultPassphraseKey(confirmationPassphrase, slot.passphraseKdfSalt);
+      }
+      return await unwrapBundleKey({ slot, unlockMaterial: material, accountId, deviceId: record.deviceId });
+    } finally {
+      material?.fill(0);
+    }
+  }
+
+  async function saveUpdatedSlots(slots: NonNullable<BrowserDeviceRecord["unlockSlots"]>) {
+    await saveBrowserDeviceRecord({ ...record, schemaVersion: 2, unlockSlots: slots, updatedAt: new Date().toISOString() });
+    window.location.reload();
+  }
+
+  async function addPasskeyUnlockSlot(confirmationSlotId: string, confirmationPassphrase: string) {
+    setWorking(true); setError(null);
+    let bundleKey: Uint8Array | null = null;
+    let material: Uint8Array | null = null;
+    try {
+      bundleKey = await confirmBundleKey(confirmationSlotId, confirmationPassphrase);
+      const credential = await createVaultPrfCredential(accountId);
+      material = await getVaultPrfOutput(credential);
+      const slot = { ...(await createUnlockSlot({ kind: "passkey", unlockMaterial: material, bundleKey, accountId, deviceId: record.deviceId })), webauthnCredentialId: credential.credentialId, webauthnRpId: credential.rpId, prfInput: credential.prfInput };
+      await saveUpdatedSlots([...(record.unlockSlots ?? []), slot]);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not add the vault passkey.";
+      setError(message); throw new Error(message);
+    } finally {
+      material?.fill(0); bundleKey?.fill(0); setWorking(false);
+    }
+  }
+
+  async function addPassphraseUnlockSlot(confirmationSlotId: string, confirmationPassphrase: string, newPassphrase: string) {
+    if (newPassphrase.length < 12) throw new Error("Use a new vault passphrase of at least 12 characters.");
+    setWorking(true); setError(null);
+    let bundleKey: Uint8Array | null = null;
+    let material: Uint8Array | null = null;
+    try {
+      bundleKey = await confirmBundleKey(confirmationSlotId, confirmationPassphrase);
+      const passphraseKdfSalt = randomBytes(16);
+      material = await deriveVaultPassphraseKey(newPassphrase, passphraseKdfSalt);
+      const slot = { ...(await createUnlockSlot({ kind: "passphrase", unlockMaterial: material, bundleKey, accountId, deviceId: record.deviceId })), passphraseKdfSalt };
+      await saveUpdatedSlots([...(record.unlockSlots ?? []), slot]);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not add the vault passphrase.";
+      setError(message); throw new Error(message);
+    } finally {
+      material?.fill(0); bundleKey?.fill(0); setWorking(false);
+    }
+  }
+
+  async function removeVaultUnlockSlot(confirmationSlotId: string, confirmationPassphrase: string, slotId: string) {
+    setWorking(true); setError(null);
+    let bundleKey: Uint8Array | null = null;
+    try {
+      bundleKey = await confirmBundleKey(confirmationSlotId, confirmationPassphrase);
+      await saveUpdatedSlots(removeUnlockSlot(record.unlockSlots ?? [], slotId));
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not remove the vault unlock method.";
+      setError(message); throw new Error(message);
+    } finally {
+      bundleKey?.fill(0); setWorking(false);
+    }
+  }
+
   if (unlocked) {
     const session: VaultSession = {
       record,
@@ -1254,6 +1331,9 @@ function VaultUnlock({
       deleteItem: deleteVaultItem,
       reviewDeviceApproval: reviewVaultDeviceApproval,
       approveDevice: approveVaultDevice,
+      addPasskeyUnlockSlot,
+      addPassphraseUnlockSlot,
+      removeUnlockSlot: removeVaultUnlockSlot,
       lock,
     };
     return <VaultSessionContext.Provider value={session}>{children}</VaultSessionContext.Provider>;

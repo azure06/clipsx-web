@@ -106,12 +106,15 @@ offline-storage and permanent-loss warning. The UI does not test selected words
 or claim that display proves durable storage. There is no no-recovery bootstrap
 and no extra passphrase for this recovery phrase.
 
-The standard unlock profile is `webauthn-prf-wrapped` with `userVerification`
-set to `required`. The browser creates a dedicated vault credential scoped to
-the `clipsx.app` relying-party ID. It retains a random 32-byte PRF input,
-credential ID, and bundle salt locally. The PRF output is used only in the
-browser. A `vault-passphrase-wrapped` profile is the explicit fallback; the
-direct `indexeddb-nonextractable` profile is not supported in v1.
+The standard initial unlock profile is `webauthn-prf-wrapped` with
+`userVerification` set to `required`. The browser creates a dedicated vault
+credential scoped to the `clipsx.app` relying-party ID. It retains a random
+32-byte PRF input and credential ID locally. The PRF output is used only in
+the browser. A browser bundle key may have multiple local unlock slots: a
+WebAuthn PRF slot and an independently salted `vault-passphrase-wrapped` slot
+are alternative wrappers for the same bundle key. Changes require fresh local
+confirmation and the final slot cannot be removed. The direct
+`indexeddb-nonextractable` profile is not supported in v1.
 
 The schema reserves an optional `PasskeyRecoveryWrapper`: recovery-secret
 ciphertext under a distinct key derived from an eligible vault credential's PRF

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, ClipboardPaste, ShieldCheck } from "lucide-react";
+import { CheckCircle2, ClipboardPaste, KeyRound, ShieldCheck, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { VaultAppShell } from "../VaultAppShell";
@@ -9,12 +9,16 @@ import { useVaultSession } from "../VaultOnboardingClient";
 import { CLIPBOARD_CLEAR_CHOICES, AUTO_LOCK_CHOICES, defaultVaultSettings, loadVaultSettings, saveVaultSettings, type VaultSettings } from "@/lib/vault/browser-vault-settings";
 
 export function VaultSettingsClient() {
-  const { record, reviewDeviceApproval, approveDevice, working, error, clearError } = useVaultSession();
+  const { record, reviewDeviceApproval, approveDevice, addPasskeyUnlockSlot, addPassphraseUnlockSlot, removeUnlockSlot, working, error, clearError } = useVaultSession();
   const [offer, setOffer] = useState("");
   const [approval, setApproval] = useState<{ command: Uint8Array; sas: string; deviceId: string } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [approvalReceipt, setApprovalReceipt] = useState<string | null>(null);
   const [settings, setSettings] = useState<VaultSettings>(() => defaultVaultSettings(record.accountId));
+  const slots = record.unlockSlots ?? [];
+  const [confirmationSlotId, setConfirmationSlotId] = useState(() => slots[0]?.id ?? "");
+  const [confirmationPassphrase, setConfirmationPassphrase] = useState("");
+  const [newPassphrase, setNewPassphrase] = useState("");
   useEffect(() => { void loadVaultSettings(record.accountId).then(setSettings).catch(() => undefined); }, [record.accountId]);
   function change<K extends keyof VaultSettings>(key: K, value: VaultSettings[K]) { const next = { ...settings, [key]: value }; setSettings(next); void saveVaultSettings(next); }
 
@@ -36,11 +40,35 @@ export function VaultSettingsClient() {
     } catch { /* session error is visible below */ }
   }
 
+  async function addPasskey() {
+    try { await addPasskeyUnlockSlot(confirmationSlotId, confirmationPassphrase); } catch { /* session error is visible below */ }
+  }
+
+  async function addPassphrase() {
+    try { await addPassphraseUnlockSlot(confirmationSlotId, confirmationPassphrase, newPassphrase); } catch { /* session error is visible below */ }
+  }
+
+  async function remove(slotId: string) {
+    try { await removeUnlockSlot(confirmationSlotId, confirmationPassphrase, slotId); } catch { /* session error is visible below */ }
+  }
+
+  const confirmationSlot = slots.find((slot) => slot.id === confirmationSlotId);
+
   return (
     <VaultAppShell title="Vault settings">
       <section className="max-w-2xl">
         <h2 className="font-heading text-3xl font-bold tracking-tight">Security settings</h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Manage security actions separately from your encrypted documents.</p>
+
+        <section className="mt-8 rounded-xl border border-[var(--vault-border)] p-5 sm:p-6">
+          <div className="flex gap-3"><KeyRound className="mt-0.5 shrink-0 text-cyan-700 dark:text-cyan-300" size={22} /><div><h3 className="font-heading text-xl font-bold">Local unlock methods</h3><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Each method unlocks the same encrypted browser vault. Confirm an existing method before changing them.</p></div></div>
+          {slots.length === 0 ? <p role="alert" className="mt-4 text-sm text-red-600 dark:text-red-400">This browser record has no upgradeable unlock slots. Reset this pre-production browser vault and enroll again.</p> : <>
+            <label className="mt-5 block text-sm font-medium">Confirm with<select value={confirmationSlotId} onChange={(event) => { clearError(); setConfirmationSlotId(event.target.value); setConfirmationPassphrase(""); }} className="mt-1.5 block w-full rounded-lg border border-[var(--vault-border)] bg-transparent px-3 py-2">{slots.map((slot, index) => <option key={slot.id} value={slot.id}>{slot.kind === "passkey" ? "Vault passkey" : "Vault passphrase"} {index + 1}</option>)}</select></label>
+            {confirmationSlot?.kind === "passphrase" && <label className="mt-4 block text-sm font-medium">Current vault passphrase<input type="password" value={confirmationPassphrase} onChange={(event) => { clearError(); setConfirmationPassphrase(event.target.value); }} className="mt-1.5 block w-full rounded-lg border border-[var(--vault-border)] bg-transparent px-3 py-2" autoComplete="current-password" /></label>}
+            <div className="mt-5 space-y-2">{slots.map((slot, index) => <div key={slot.id} className="flex items-center justify-between gap-3 rounded-lg border border-[var(--vault-border)] px-3 py-2 text-sm"><span>{slot.kind === "passkey" ? "Vault passkey" : "Vault passphrase"} {index + 1}</span><Button variant="ghost" className="text-red-700 dark:text-red-300" loading={working} disabled={slots.length <= 1} onClick={() => void remove(slot.id)}><Trash2 size={15} /> Remove</Button></div>)}</div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2"><Button variant="secondary" loading={working} onClick={() => void addPasskey()}><KeyRound size={16} /> Add passkey</Button><div><label className="block text-sm font-medium">New vault passphrase<input type="password" value={newPassphrase} onChange={(event) => { clearError(); setNewPassphrase(event.target.value); }} className="mt-1.5 block w-full rounded-lg border border-[var(--vault-border)] bg-transparent px-3 py-2" autoComplete="new-password" /></label><Button className="mt-2 w-full" variant="secondary" loading={working} disabled={newPassphrase.length < 12} onClick={() => void addPassphrase()}>Add passphrase</Button></div></div>
+          </>}
+        </section>
 
         <section className="mt-8 rounded-xl border border-gray-200 p-5 dark:border-white/10 sm:p-6">
           <div className="flex gap-3"><ShieldCheck className="mt-0.5 shrink-0 text-cyan-700 dark:text-cyan-300" size={22} /><div><h3 className="font-heading text-xl font-bold">Approve another browser</h3><p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Paste the approval payload shown on a new browser, then compare the security code on both devices before confirming.</p></div></div>

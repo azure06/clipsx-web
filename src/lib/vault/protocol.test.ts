@@ -33,7 +33,7 @@ describe('vault protocol v1 primitives', () => {
 
     expect(browserUnlock).toEqual(await deriveVaultKey(material, salt, 'browserUnlock', context));
     expect(browserUnlock).not.toEqual(recoveryWrapper);
-    expect(Object.values(VAULT_KDF_LABELS)).toHaveLength(4);
+    expect(Object.values(VAULT_KDF_LABELS)).toHaveLength(5);
   });
 
   it('authenticates AES-GCM ciphertext and associated data', async () => {
@@ -73,13 +73,13 @@ describe('vault protocol v1 primitives', () => {
 
   it('accepts only a canonical v1 command shape', () => {
     const command = new Map<number, number | string | Uint8Array>([
-      [1, 1], [2, 'operation-1'], [3, 'note-append'], [4, 'account-1'],
+      [1, 1], [2, 'operation-1'], [3, 'item-append'], [4, 'account-1'],
       [5, 'device:device-1'], [9, new Uint8Array([1])], [10, new Uint8Array(64)],
     ]);
     const parsed = decodeVaultCommand(encodeCanonicalCbor(command));
 
     expect(parsed.authorDeviceId).toBe('device-1');
-    expect(parsed.operationType).toBe('note-append');
+    expect(parsed.operationType).toBe('item-append');
     expect(parsed.signedBytes).toEqual(encodeCanonicalCbor(new Map([...command].slice(0, -1))));
   });
 
