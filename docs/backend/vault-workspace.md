@@ -41,7 +41,7 @@ Page exit, explicit lock, and cross-tab lock are mandatory and cannot be
 disabled. Settings also retain editor/display preferences for progressive UI
 adoption.
 
-The pre-production rebuild uses `clipsx-vault-v2`; it intentionally does not
+The pre-production rebuild uses `clipsx-vault-v1`; it intentionally does not
 read the former local browser vault database.
 
 ## Local unlock slots
