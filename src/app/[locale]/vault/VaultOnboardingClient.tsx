@@ -580,7 +580,23 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
 }
 
 function PendingDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
-  const [passphrase, setPassphrase] = useState(""); const [qr, setQr] = useState<string | null>(null); const [offer, setOffer] = useState(""); const [sas, setSas] = useState(""); const [working, setWorking] = useState(false); const [error, setError] = useState<string | null>(null);
+  const [passphrase, setPassphrase] = useState(""); const [qr, setQr] = useState<string | null>(null); const [offer, setOffer] = useState(""); const [sas, setSas] = useState(""); const [working, setWorking] = useState(false); const [error, setError] = useState<string | null>(null); const [approved, setApproved] = useState(false);
+  useEffect(() => {
+    let cancelled = false; let timer: number | undefined; let attempts = 0;
+    const delays = [2_000, 5_000, 10_000];
+    const poll = async () => {
+      if (cancelled || document.visibilityState === "hidden" || !navigator.onLine) return;
+      try {
+        const response = await fetch(`/api/vault/enrollment-status?deviceId=${encodeURIComponent(record.deviceId)}`, { cache: "no-store" });
+        const status = await readVaultCborResponse(response, "Could not check device approval.");
+        if (!cancelled && status.get(3) === "active") { setApproved(true); return; }
+      } catch { /* transient polling errors remain non-blocking */ }
+      if (!cancelled) { timer = window.setTimeout(() => void poll(), delays[Math.min(attempts++, delays.length - 1)]); }
+    };
+    const resume = () => { if (document.visibilityState === "visible" && navigator.onLine) void poll(); };
+    document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume); void poll();
+    return () => { cancelled = true; if (timer) window.clearTimeout(timer); document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
+  }, [accountId, record.deviceId]);
   async function restore() {
     setWorking(true); setError(null); let unlock: Uint8Array | null = null;
     try {
@@ -614,7 +630,7 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not restore approval."); } finally { unlock?.fill(0); setWorking(false); }
   }
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6"><h1 className="font-heading text-3xl font-black">Approval pending</h1>{record.protectionProfile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} className="w-full rounded-lg border px-3 py-2" />}<Button loading={working} onClick={restore}>Check approval and show QR</Button>{qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="font-mono text-3xl font-black tracking-widest">{sas}</p></div>}{error && <p role="alert" className="text-red-600">{error}</p>}</div></div>;
+  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6"><h1 className="font-heading text-3xl font-black">Add browser</h1><p className="text-sm text-slate-600 dark:text-slate-300">{approved ? "Approved. Confirm your local unlock method to finish binding this browser." : "Waiting for approval from an existing browser. This page checks automatically while it is open."}</p>{record.protectionProfile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} className="w-full rounded-lg border px-3 py-2" />}<Button loading={working} onClick={restore}>{approved ? "Unlock and finish" : "Show approval QR"}</Button>{qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="font-mono text-3xl font-black tracking-widest">{sas}</p></div>}{error && <p role="alert" className="text-red-600">{error}</p>}</div></div>;
 }
 
 function VaultUnlock({
