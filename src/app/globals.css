@@ -10,6 +10,19 @@
 @layer base {
   :root {
     color-scheme: light dark;
+    --vault-canvas: #f8fafc;
+    --vault-surface: #ffffff;
+    --vault-muted: #f1f5f9;
+    --vault-border: rgb(148 163 184 / 0.35);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --vault-canvas: #172033;
+      --vault-surface: #202b40;
+      --vault-muted: #27344b;
+      --vault-border: rgb(203 213 225 / 0.16);
+    }
   }
 }
 
@@ -19,6 +32,10 @@
 
 html {
   scroll-behavior: smooth;
+}
+
+button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
 }
 
 ::selection {
@@ -33,6 +50,12 @@ html {
     background: white;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+  }
+
+  .vault-panel {
+    border: 1px solid var(--vault-border);
+    background: var(--vault-surface);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
   }
 
   .input-vault:focus {

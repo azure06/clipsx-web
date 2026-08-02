@@ -17,8 +17,8 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
   ];
 
   return (
-    <div className="mx-auto min-h-[calc(100vh-4rem)] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-5 dark:border-white/10">
+    <div className="min-h-[calc(100dvh-4rem)] bg-[var(--vault-canvas)] px-4 py-5 sm:px-6 lg:px-8">
+      <header className="mx-auto mb-5 flex max-w-[120rem] flex-wrap items-center justify-between gap-4 border-b border-[var(--vault-border)] pb-5">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-300"><LockKeyhole size={20} /></div>
           <div>
@@ -33,8 +33,8 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
           </Button>
         </div>
       </header>
-      <div className="grid gap-8 lg:grid-cols-[12rem_minmax(0,1fr)]">
-        <nav className="flex gap-2 overflow-x-auto border-b border-gray-200 pb-4 dark:border-white/10 lg:block lg:border-b-0 lg:border-r lg:pb-0 lg:pr-5">
+      <div className="mx-auto grid max-w-[120rem] gap-5 lg:grid-cols-[14rem_minmax(0,1fr)]">
+        <nav className="flex gap-2 overflow-x-auto border-b border-[var(--vault-border)] pb-4 lg:block lg:border-b-0 lg:border-r lg:pb-0 lg:pr-5">
           {nav.map(({ href, label, icon: Icon, active }) => (
             <Link
               key={href}

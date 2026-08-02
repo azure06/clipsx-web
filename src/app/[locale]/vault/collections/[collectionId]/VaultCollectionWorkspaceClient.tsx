@@ -149,8 +149,8 @@ export function VaultCollectionWorkspaceClient({ collectionId }: { collectionId:
         <Link href="/vault/collections" className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"><ArrowLeft size={16} /> Collections</Link>
         <div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => startNew("note")}><Plus size={16} /> Note</Button><Button size="sm" onClick={() => startNew("login")}><Plus size={16} /> Login</Button></div>
       </div>
-      <div className="grid min-h-[38rem] overflow-hidden rounded-xl border border-gray-200 bg-white md:grid-cols-[minmax(15rem,22rem)_minmax(0,1fr)] dark:border-white/10 dark:bg-gray-950/30">
-        <aside className="min-w-0 border-b border-gray-200 dark:border-white/10 md:border-b-0 md:border-r">
+      <div className="vault-panel grid min-h-[calc(100dvh-12rem)] overflow-hidden rounded-2xl md:grid-cols-[minmax(17rem,24rem)_minmax(0,1fr)]">
+        <aside className="min-w-0 border-b border-[var(--vault-border)] bg-[var(--vault-muted)]/50 md:border-b-0 md:border-r">
           <div className="border-b border-gray-200 p-3 dark:border-white/10">
             <label className="relative block"><Search className="absolute left-3 top-2.5 text-gray-400" size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm dark:border-white/20 dark:bg-gray-900" placeholder="Search this collection" /></label>
             <div className="mt-3 flex gap-2 text-xs"><FilterButton active={filter === "all"} onClick={() => setFilter("all")}>All</FilterButton><FilterButton active={filter === "note"} onClick={() => setFilter("note")}>Notes</FilterButton><FilterButton active={filter === "login"} onClick={() => setFilter("login")}>Logins</FilterButton></div>
