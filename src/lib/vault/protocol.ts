@@ -15,6 +15,7 @@ export const MAX_NOTE_CIPHERTEXT_BYTES = 1024 * 1024;
 
 export const VAULT_KDF_LABELS = {
   browserUnlock: 'clipsx/vault/v1/browser-unlock',
+  browserUnlockSlot: 'clipsx/vault/v1/browser-unlock-slot',
   passkeyRecoveryWrapper: 'clipsx/vault/v1/passkey-recovery-wrapper',
   recoveryEncryptionKey: 'clipsx/vault/v1/recovery-encryption-key',
   recoverySigningKey: 'clipsx/vault/v1/recovery-signing-key',
