@@ -1,6 +1,6 @@
 import { decryptRevisionContent } from './encrypted-revision';
 import { decodeCanonicalCbor, encodeCanonicalCbor, sha256, verifyProtocolRecord, type CborValue } from './protocol';
-import { decodeVaultItem, type VaultItemContent } from './vault-item';
+import { decodeItemText, decodeVaultItem, type VaultItemContent } from './vault-item';
 
 export type SyncedVaultItem = VaultItemContent & { id: string; revisionNumber: number; revisionHash: Uint8Array; authorDeviceId: string };
 const bytes = (record: Map<number, CborValue>, label: number, size?: number) => { const value = record.get(label); if (!(value instanceof Uint8Array) || (size && value.byteLength !== size)) throw new Error('Invalid vault sync record.'); return value; };
@@ -54,7 +54,9 @@ export async function openVaultCollectionSync(input: {
       const signed = encodeCanonicalCbor(new Map<number, CborValue>([[1, 1], [2, operationId], [3, input.collectionId], [4, id], [5, epochNumber], [6, revisionNumber], [7, previous as Uint8Array | null], [8, ciphertextHash], [9, wrappedHash], [10, authorId]]));
       if (!same(await sha256(signed), revisionHash) || !await verifyProtocolRecord('clipsx/vault/v1/item-revision', signed, signature, signingKey)) throw new Error('Unverified vault revision.');
       const content = decodeVaultItem(await decryptRevisionContent({ accountId: input.accountId, collectionId: input.collectionId, itemId: id, epoch: epochNumber, revision: revisionNumber, epochKey: input.epochKey, encryptedContent: { ciphertext, nonce: contentNonce }, wrappedRevisionKey: { ciphertext: wrapped, nonce: wrapNonce } }));
-      const item: SyncedVaultItem = { id, revisionNumber, revisionHash, authorDeviceId: authorId, ...content };
+      // Temporary presentation adapter for the legacy shell. The encrypted
+      // envelope remains generic and has no persisted `type` field.
+      const item: SyncedVaultItem = { id, revisionNumber, revisionHash, authorDeviceId: authorId, ...content, type: 'note', body: content.mediaType?.startsWith('text/') || content.mediaType === 'application/vnd.clipsx.env' ? decodeItemText(content) : undefined };
       const prior = items.findIndex((candidate) => candidate.id === id); if (prior >= 0) items[prior] = item; else items.push(item);
     }
     for (const entry of tombstones) {
