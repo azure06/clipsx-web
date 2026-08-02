@@ -328,7 +328,7 @@ hash, the collection epoch, and the author device.
 with separate contextual AAD for content and revision-key wrapping. It supports
 the fixed note/login content maps and validates that a ciphertext cannot be
 replayed under a different note identity. Initial revisions are persisted by
-the `note-append` command transaction.
+the `item-append` command transaction.
 
 ### Initial note append payload
 
@@ -363,7 +363,7 @@ draft is never reported as synchronized or durable before a `201` response.
 current revision hash. The private transaction locks both heads, verifies the
 bound active owner/editor session, marks the note deleted, deletes its stored
 revision ciphertext and wrapped revision keys, appends the signed
-`note-delete` collection operation, and stores a non-secret tombstone in the
+`item-delete` collection operation, and stores a non-secret tombstone in the
 same transaction. A stale or repeated deletion returns `409` without a partial
 change. Sync returns tombstones bound to their signed operation; the worker
 verifies that operation and removes the matching item from rendered results.

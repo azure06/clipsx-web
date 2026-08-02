@@ -19,7 +19,9 @@ export type BrowserDeviceRecord = {
   accountCheckpointHash?: Uint8Array;
 };
 
-const DATABASE_NAME = 'clipsx-vault-v1';
+// Pre-production reset: generic encrypted items and local settings intentionally
+// start from a fresh browser vault database with no compatibility migration.
+const DATABASE_NAME = 'clipsx-vault-v2';
 const STORE_NAME = 'browser-device-records';
 
 function database(): Promise<IDBDatabase> {

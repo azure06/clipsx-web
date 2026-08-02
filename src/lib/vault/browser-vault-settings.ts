@@ -22,7 +22,7 @@ export function validateVaultSettings(value: Partial<VaultSettings>, accountId: 
   };
 }
 
-const DATABASE_NAME = "clipsx-vault-v1"; const STORE_NAME = "vault-settings";
+const DATABASE_NAME = "clipsx-vault-v2"; const STORE_NAME = "vault-settings";
 function database(): Promise<IDBDatabase> { if (typeof indexedDB === "undefined") throw new Error("Vault settings require a browser."); return new Promise((resolve, reject) => { const request = indexedDB.open(DATABASE_NAME, 2); request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(STORE_NAME)) request.result.createObjectStore(STORE_NAME, { keyPath: "accountId" }); }; request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error ?? new Error("Unable to open vault settings.")); }); }
 function result<T>(request: IDBRequest<T>): Promise<T> { return new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error ?? new Error("Vault settings request failed.")); }); }
 export async function loadVaultSettings(accountId: string): Promise<VaultSettings> { const db = await database(); try { return validateVaultSettings(await result(db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).get(accountId)), accountId); } finally { db.close(); } }
