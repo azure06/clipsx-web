@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 import { getTranslations } from 'next-intl/server';
@@ -21,7 +22,9 @@ export default async function AccountPage({
     <div className="py-24 px-4 sm:px-6">
       <div className="mx-auto max-w-xl">
         <h1 className="font-heading text-3xl font-black text-gray-900 mb-10 dark:text-white">{t('title')}</h1>
-        <AccountClient user={user} />
+        <Suspense>
+          <AccountClient user={user} />
+        </Suspense>
       </div>
     </div>
   );

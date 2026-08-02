@@ -1,25 +1,40 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { Bell, ChevronUp, FolderKey, LockKeyhole, Settings } from "lucide-react";
 
 import { Link, usePathname } from "@/i18n/routing";
 import { Button } from "@/components/ui/Button";
+import { Sheet, SheetTitle } from "@/components/ui/Sheet";
 import { ToastProvider } from "@/components/ui/Toast";
+import { SettingsLayout, isSectionId, DEFAULT_SECTION, type SectionId } from "@/components/settings/SettingsLayout";
 import { cn } from "@/lib/utils";
 import { useVaultSession } from "./VaultOnboardingClient";
 
 export function VaultAppShell({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   const pathname = usePathname();
-  const { lock, working, email } = useVaultSession();
+  const session = useVaultSession();
+  const { lock, working, email } = session;
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>(DEFAULT_SECTION);
+  const settingsTriggerRef = useRef<HTMLButtonElement>(null);
+
+  function openSettings(section?: SectionId) {
+    setActiveSection(section ?? DEFAULT_SECTION);
+    setSettingsOpen(true);
+  }
+
+  function closeSettings() {
+    setSettingsOpen(false);
+    settingsTriggerRef.current?.focus();
+  }
 
   const topNav = [
     { href: "/vault/collections", label: "Collections", icon: FolderKey, active: pathname === "/vault/collections" || pathname.startsWith("/vault/collections/") },
   ];
 
-  const settingsActive = pathname === "/vault/settings";
   const initial = email ? email[0].toUpperCase() : "?";
-  const allNavMobile = [...topNav, { href: "/vault/settings", label: "Settings", icon: Settings, active: settingsActive }];
 
   return (
     <ToastProvider>
@@ -47,9 +62,22 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Settings link */}
+          {/* Settings trigger */}
           <div className="px-2 pb-2">
-            <SidebarLink href="/vault/settings" label="Settings" icon={<Settings size={15} />} active={settingsActive} />
+            <button
+              ref={settingsTriggerRef}
+              type="button"
+              onClick={() => openSettings()}
+              className={cn(
+                "relative flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                settingsOpen
+                  ? "bg-(--vault-accent-subtle) text-(--vault-accent)"
+                  : "text-gray-600 hover:bg-(--vault-muted) hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
+              )}
+            >
+              <Settings size={15} />
+              Settings
+            </button>
           </div>
 
           {/* User / account card */}
@@ -95,7 +123,7 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
 
           {/* Mobile bottom nav */}
           <nav className="flex border-t border-(--vault-border) bg-(--vault-canvas) lg:hidden">
-            {allNavMobile.map(({ href, label, icon: Icon, active }) => (
+            {topNav.map(({ href, label, icon: Icon, active }) => (
               <Link
                 key={href}
                 href={href}
@@ -108,6 +136,18 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
                 {label}
               </Link>
             ))}
+            {/* Mobile Settings button */}
+            <button
+              type="button"
+              onClick={() => openSettings()}
+              className={cn(
+                "flex flex-1 flex-col items-center gap-0.5 px-2 py-2.5 text-[10px] font-medium transition-colors",
+                settingsOpen ? "text-(--vault-accent)" : "text-gray-500 dark:text-gray-400",
+              )}
+            >
+              <Settings size={18} />
+              Settings
+            </button>
             {/* Mobile user avatar */}
             <Link
               href="/account"
@@ -121,6 +161,22 @@ export function VaultAppShell({ title, actions, children }: { title: string; act
           </nav>
         </div>
       </div>
+
+      {/* Settings overlay — rendered outside the scrollable area so it overlays everything */}
+      <Sheet open={settingsOpen} onClose={closeSettings} className="grid max-h-[90dvh] grid-rows-[auto_1fr] lg:max-h-[85dvh]">
+        <div className="flex shrink-0 items-center border-b border-(--vault-border) px-5 py-4">
+          <SheetTitle>Settings</SheetTitle>
+        </div>
+        <div className="min-h-0 overflow-hidden">
+          <SettingsLayout
+            activeSection={activeSection}
+            onSectionChange={(id) => {
+              if (isSectionId(id)) setActiveSection(id);
+            }}
+            session={session}
+          />
+        </div>
+      </Sheet>
     </ToastProvider>
   );
 }

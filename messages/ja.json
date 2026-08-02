@@ -241,5 +241,17 @@
     "manage_billing": "請求を管理",
     "upgrade": "Proにアップグレード",
     "sign_out": "サインアウト"
+  },
+  "SettingsPage": {
+    "coming_soon": "Coming soon",
+    "not_enforced": "Not enforced yet",
+    "group_account": "アカウント",
+    "group_vault": "Vault",
+    "section_account": "アカウント",
+    "section_security": "セキュリティ",
+    "section_recovery": "リカバリー",
+    "section_vault": "Vault",
+    "section_devices": "デバイス",
+    "section_collection": "コレクション"
   }
 }

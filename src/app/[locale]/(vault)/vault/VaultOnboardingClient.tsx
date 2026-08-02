@@ -66,7 +66,7 @@ export type VaultUpdateResult =
   | { kind: "saved"; items: VaultItemHead[] }
   | { kind: "conflict"; conflict: NoteConflict };
 
-type VaultSession = {
+export type VaultSession = {
   email: string;
   record: BrowserDeviceRecord;
   collections: VaultCollection[];

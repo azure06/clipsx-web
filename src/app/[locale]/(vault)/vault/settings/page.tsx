@@ -1,5 +1,10 @@
-import { VaultSettingsClient } from "./VaultSettingsClient";
+import { Suspense } from "react";
+import { VaultSettingsPageClient } from "./VaultSettingsPageClient";
 
 export default function VaultSettingsPage() {
-  return <VaultSettingsClient />;
+  return (
+    <Suspense>
+      <VaultSettingsPageClient />
+    </Suspense>
+  );
 }

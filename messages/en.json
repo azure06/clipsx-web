@@ -241,5 +241,17 @@
     "manage_billing": "Manage billing",
     "upgrade": "Upgrade to Pro",
     "sign_out": "Sign out"
+  },
+  "SettingsPage": {
+    "coming_soon": "Coming soon",
+    "not_enforced": "Not enforced yet",
+    "group_account": "Account",
+    "group_vault": "Vault",
+    "section_account": "Account",
+    "section_security": "Security",
+    "section_recovery": "Recovery",
+    "section_vault": "Vault",
+    "section_devices": "Devices",
+    "section_collection": "Collection"
   }
 }
