@@ -13,19 +13,20 @@
     --vault-canvas: #f8fafc;
     --vault-surface: #ffffff;
     --vault-muted: #f1f5f9;
-    --vault-border: rgb(148 163 184 / 0.35);
+    --vault-border: rgb(148 163 184 / 0.3);
     --vault-accent: #0891b2;
-    --vault-accent-subtle: rgb(8 145 178 / 0.1);
+    --vault-accent-subtle: rgb(8 145 178 / 0.09);
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --vault-canvas: #172033;
-      --vault-surface: #202b40;
-      --vault-muted: #27344b;
-      --vault-border: rgb(203 213 225 / 0.16);
+      /* gray-950 canvas, surface just barely lifted (+4% white) */
+      --vault-canvas: #030712;
+      --vault-surface: #0d1117;
+      --vault-muted: #161b24;
+      --vault-border: rgb(255 255 255 / 0.05);
       --vault-accent: #22d3ee;
-      --vault-accent-subtle: rgb(34 211 238 / 0.1);
+      --vault-accent-subtle: rgb(34 211 238 / 0.09);
     }
   }
 }

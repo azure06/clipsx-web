@@ -8,5 +8,5 @@ export default async function VaultLayout({ children, params }: { children: Reac
   const user = await getUser();
   if (!user) redirect(`/${locale}/signin`);
 
-  return <VaultOnboardingClient accountId={user.id}>{children}</VaultOnboardingClient>;
+  return <VaultOnboardingClient accountId={user.id} email={user.email ?? ""}>{children}</VaultOnboardingClient>;
 }

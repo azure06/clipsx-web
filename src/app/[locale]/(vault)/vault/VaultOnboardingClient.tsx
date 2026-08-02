@@ -67,6 +67,7 @@ export type VaultUpdateResult =
   | { kind: "conflict"; conflict: NoteConflict };
 
 type VaultSession = {
+  email: string;
   record: BrowserDeviceRecord;
   collections: VaultCollection[];
   working: boolean;
@@ -128,7 +129,7 @@ async function readVaultPages(initialUrl: string, kind: "account" | "collection"
   throw new Error("Vault sync exceeded the supported page limit.");
 }
 
-export function VaultOnboardingClient({ accountId, children }: { accountId: string; children?: ReactNode }) {
+export function VaultOnboardingClient({ accountId, email = "", children }: { accountId: string; email?: string; children?: ReactNode }) {
   const deviceId = useMemo(() => crypto.randomUUID(), []);
   const recoveryKeyId = useMemo(() => crypto.randomUUID(), []);
   const [identity, setIdentity] = useState<BrowserVaultIdentity | null>(null);
@@ -337,7 +338,7 @@ export function VaultOnboardingClient({ accountId, children }: { accountId: stri
       />
     );
   if (existingRecord)
-    return <VaultUnlock accountId={accountId} record={existingRecord}>{children}</VaultUnlock>;
+    return <VaultUnlock accountId={accountId} email={email} record={existingRecord}>{children}</VaultUnlock>;
   if (serverHasVault) return <NewDeviceEnrollment accountId={accountId} />;
   return <CreateVaultScreen phrase={phrase} profile={profile} setProfile={setProfile} passphrase={passphrase} setPassphrase={setPassphrase} prfSupported={prfSupported} error={error} working={working} onEnroll={enroll} />;
 }
@@ -484,7 +485,7 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
     finally { unlock?.fill(0); setWorking(false); }
   }
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
@@ -580,7 +581,7 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not restore approval."); } finally { unlock?.fill(0); setWorking(false); }
   }
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
@@ -631,10 +632,12 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
 
 function VaultUnlock({
   accountId,
+  email,
   record,
   children,
 }: {
   accountId: string;
+  email: string;
   record: BrowserDeviceRecord;
   children?: ReactNode;
 }) {
@@ -1311,6 +1314,7 @@ function VaultUnlock({
 
   if (unlocked) {
     const session: VaultSession = {
+      email,
       record,
       collections,
       working,
@@ -1334,7 +1338,7 @@ function VaultUnlock({
 
   const selectedSlotKind = record.unlockSlots?.find((s) => s.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase");
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-sm space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg shadow-(--vault-accent)/5">
         <div className="text-center">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
@@ -1396,7 +1400,7 @@ function VaultUnlock({
 
 function VaultLoadingCard() {
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4">
+    <div className="flex min-h-dvh items-center justify-center px-4">
       <div className="flex flex-col items-center gap-4 rounded-2xl border border-(--vault-border) bg-(--vault-surface) px-10 py-10 shadow-lg">
         <div className="relative grid h-14 w-14 place-items-center rounded-2xl bg-(--vault-accent-subtle)">
           <LockKeyhole size={24} className="text-(--vault-accent) animate-pulse" />
@@ -1427,7 +1431,7 @@ function EnrollmentErrorCard({
 }) {
   const isError = variant === "error";
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-lg space-y-5 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
         <div className="flex items-center gap-3">
           <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ring-1 ${isError ? "bg-red-500/10 text-red-600 ring-red-500/20 dark:text-red-400" : "bg-amber-500/10 text-amber-600 ring-amber-500/20 dark:text-amber-400"}`}>
