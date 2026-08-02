@@ -6,6 +6,10 @@ export type BrowserUnlockSlot = {
   salt: Uint8Array;
   wrappedBundleKey: AesGcmCiphertext;
   createdAt: string;
+  passphraseKdfSalt?: Uint8Array;
+  webauthnCredentialId?: Uint8Array;
+  webauthnRpId?: string;
+  prfInput?: Uint8Array;
 };
 
 const bundleAad = (accountId: string, deviceId: string) => utf8(`clipsx/vault/v1/device-bundle-v2\0${accountId}\0${deviceId}`);
