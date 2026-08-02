@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitNoteAppend, admitNoteDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitRecoveryRotation, admitVaultCommand } from '@/lib/vault/command-admission';
+import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitItemAppend, admitItemDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitRecoveryRotation, admitVaultCommand } from '@/lib/vault/command-admission';
 import { MAX_VAULT_COMMAND_BYTES, readVaultCborRequest, VaultHttpError, vaultCborError as createVaultCborError, vaultCborResponse as createVaultCborResponse } from '@/lib/vault/http';
 import { decodePostgresBytea, encodeJsonBase64, encodePostgresBytea } from '@/lib/vault/postgrest-bytea';
 import { decodeCanonicalCbor, sha256, type CborValue } from '@/lib/vault/protocol';
@@ -319,22 +319,22 @@ export async function POST(request: NextRequest) {
       return vaultCborResponse(201, new Map([[1, command.operationId], [2, creation.collectionId]]));
     }
 
-    if (admission.command.operationType === 'note-append') {
+    if (admission.command.operationType === 'item-append') {
       const { command } = admission;
       const { data: author, error: authorError } = await userClient.from('vault_devices').select('signing_public_key')
         .eq('id', command.authorDeviceId!).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
       if (authorError) throw authorError;
       const signingPublicKey = decodePostgresBytea(author?.signing_public_key);
-      if (!signingPublicKey) return vaultCborError(422, 'note-append-rejected');
-      const note = await admitNoteAppend(command, signingPublicKey);
+      if (!signingPublicKey) return vaultCborError(422, 'item-append-rejected');
+      const item = await admitItemAppend(command, signingPublicKey);
       const { data, error } = await admin.schema('private').rpc('append_vault_note_revision', {
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: command.collectionId!,
         p_expected_account_head: encodePostgresBytea(command.expectedAccountHead!),
-        p_expected_collection_head: encodePostgresBytea(command.expectedCollectionHead!), p_note_id: note.noteId, p_expected_previous_revision_hash: note.previousRevisionHash ? encodePostgresBytea(note.previousRevisionHash) : null, p_collection_epoch: note.collectionEpoch,
-        p_encrypted_content: encodePostgresBytea(note.encryptedContent), p_content_nonce: encodePostgresBytea(note.contentNonce),
-        p_wrapped_revision_key: encodePostgresBytea(note.wrappedRevisionKey), p_key_wrap_nonce: encodePostgresBytea(note.keyWrapNonce),
-        p_ciphertext_hash: encodePostgresBytea(note.ciphertextHash), p_wrapped_revision_key_hash: encodePostgresBytea(note.wrappedRevisionKeyHash),
-        p_revision_hash: encodePostgresBytea(note.revisionHash), p_revision_signature: encodePostgresBytea(note.revisionSignature),
+        p_expected_collection_head: encodePostgresBytea(command.expectedCollectionHead!), p_note_id: item.itemId, p_expected_previous_revision_hash: item.previousRevisionHash ? encodePostgresBytea(item.previousRevisionHash) : null, p_collection_epoch: item.collectionEpoch,
+        p_encrypted_content: encodePostgresBytea(item.encryptedContent), p_content_nonce: encodePostgresBytea(item.contentNonce),
+        p_wrapped_revision_key: encodePostgresBytea(item.wrappedRevisionKey), p_key_wrap_nonce: encodePostgresBytea(item.keyWrapNonce),
+        p_ciphertext_hash: encodePostgresBytea(item.ciphertextHash), p_wrapped_revision_key_hash: encodePostgresBytea(item.wrappedRevisionKeyHash),
+        p_revision_hash: encodePostgresBytea(item.revisionHash), p_revision_signature: encodePostgresBytea(item.revisionSignature),
         p_operation_id: command.operationId, p_command_payload: encodePostgresBytea(command.signedBytes),
         p_command_hash: encodePostgresBytea(await sha256(command.operationBytes)), p_command_signature: encodePostgresBytea(command.signature),
       });
@@ -342,28 +342,28 @@ export async function POST(request: NextRequest) {
         console.error({
           requestId,
           endpoint: 'commands',
-          stage: 'note-append-transaction',
+          stage: 'item-append-transaction',
           code: error.code,
         });
         return vaultCborError(503, 'command-service-unavailable');
       }
-      if (!data) return vaultCborError(409, 'note-append-rejected');
-      return vaultCborResponse(201, new Map([[1, command.operationId], [2, note.noteId]]));
+      if (!data) return vaultCborError(409, 'item-append-rejected');
+      return vaultCborResponse(201, new Map([[1, command.operationId], [2, item.itemId]]));
     }
 
-    if (admission.command.operationType === 'note-delete') {
+    if (admission.command.operationType === 'item-delete') {
       const { command } = admission;
-      const deleted = admitNoteDelete(command);
+      const deleted = admitItemDelete(command);
       const { data, error } = await admin.schema('private').rpc('delete_vault_note', {
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: command.collectionId!,
         p_expected_account_head: encodePostgresBytea(command.expectedAccountHead!),
-        p_expected_collection_head: encodePostgresBytea(command.expectedCollectionHead!), p_note_id: deleted.noteId,
+        p_expected_collection_head: encodePostgresBytea(command.expectedCollectionHead!), p_note_id: deleted.itemId,
         p_expected_revision_hash: encodePostgresBytea(deleted.expectedRevisionHash), p_operation_id: command.operationId,
         p_command_payload: encodePostgresBytea(command.signedBytes), p_command_hash: encodePostgresBytea(await sha256(command.operationBytes)),
         p_command_signature: encodePostgresBytea(command.signature),
       });
-      if (error || !data) return vaultCborError(409, 'note-delete-rejected');
-      return vaultCborResponse(201, new Map([[1, command.operationId], [2, deleted.noteId]]));
+      if (error || !data) return vaultCborError(409, 'item-delete-rejected');
+      return vaultCborResponse(201, new Map([[1, command.operationId], [2, deleted.itemId]]));
     }
 
     // No mutation is enabled until its command-specific private transaction is
@@ -382,7 +382,7 @@ export async function POST(request: NextRequest) {
       });
       return vaultCborError(503, 'command-service-unavailable');
     }
-    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|unbound-session|invalid-note-append)$/.test(error.message)
+    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|unbound-session|invalid-item-append)$/.test(error.message)
       ? error.message : 'invalid-command';
     return vaultCborError(code === 'command-size' ? 413 : code === 'unbound-session' ? 403 : 422, code);
   }

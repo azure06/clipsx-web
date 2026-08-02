@@ -56,19 +56,19 @@ bootstrap result has been re-fetched and verified. The dashboard intentionally
 shows only verified decrypted collection names: bootstrap does not include
 item counts, previews, timestamps, ownership, or sharing metadata, and the UI
 does not synchronize every collection merely to fabricate them. An opened
-collection synchronizes its own items and presents the note/login workspace.
+collection synchronizes its own items and presents the encrypted workspace.
 Device approval is isolated at `/[locale]/vault/settings`.
 Collection rename and collection deletion are not implemented by v1 and are not
 presented as UI actions; they require new authenticated protocol operations.
-The collection workspace can also create an encrypted note or login. Bootstrap now
+The collection workspace can create generic encrypted items. Bootstrap now
 includes each collection's authenticated operation head; the worker retains it
-with the verified current epoch key. A `note-append` command creates an
+with the verified current epoch key. An `item-append` command creates an
 initial or later immutable revision, binds that head (and, for a later
 revision, its exact prior revision hash), and carries opaque content/key-wrap ciphertext plus
 an independently signed immutable-revision record using the collection's actual
 current epoch. The command route verifies
 both signatures and its hashes before a private transaction atomically inserts
-the note, revision, and next collection-operation entry. The UI refreshes the
+the item, revision, and next collection-operation entry. The UI refreshes the
 verified bootstrap after acceptance and never presents locally generated text
 as persisted state. On a `409` note-update rejection it keeps the plaintext
 draft only in worker/UI memory, re-fetches and verifies bootstrap and
@@ -185,7 +185,7 @@ UTF-8(domain-label) || 0x00 || deterministic-CBOR(record-without-signature)
 The command domain label is `clipsx/vault/v1/command/<operationType>`. Valid
 operations in v1 are `device-register`, `device-session-bind`,
 `device-authorize`, `device-revoke`, `recovery-rotate`, `collection-create`,
-`note-append`, `note-delete`, `checkpoint-append`, `invitation-create`,
+`item-append`, `item-delete`, `checkpoint-append`, `invitation-create`,
 `invitation-accept`, `invitation-confirm`, `member-add`, `member-remove`,
 `epoch-rotate`, and `epoch-envelope-grant`.
 
@@ -332,7 +332,7 @@ the `note-append` command transaction.
 
 ### Initial note append payload
 
-`note-append` is device-signed and requires a 32-byte
+`item-append` is device-signed and requires a 32-byte
 `expectedCollectionHead`. Its payload has labels `1` note ID, `2` collection
 epoch (currently `1`), `3` revision number (currently `1`), `4` content
 ciphertext, `5` content nonce, `6` wrapped revision key, `7` key-wrap nonce,
@@ -358,7 +358,7 @@ draft is never reported as synchronized or durable before a `201` response.
 
 ### Signed item deletion and tombstones
 
-`note-delete` is device-signed and requires the current 32-byte
+`item-delete` is device-signed and requires the current 32-byte
 `expectedCollectionHead`. Its two-field payload contains the note ID and exact
 current revision hash. The private transaction locks both heads, verifies the
 bound active owner/editor session, marks the note deleted, deletes its stored

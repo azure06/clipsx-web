@@ -1,3 +1,5 @@
+import type { VaultItemContent } from './vault-item';
+
 export type VaultWorkerRequest =
   | {
     id: string;
@@ -41,9 +43,9 @@ export type VaultWorkerRequest =
   | { id: string; type: 'open-bootstrap'; accountId: string; bootstrap: Uint8Array }
   | { id: string; type: 'authorize-device'; accountId: string; deviceId: string; offer: string; operationId?: string }
   | { id: string; type: 'open-sync'; accountId: string; deviceId: string; collectionId: string; pages: Uint8Array[] }
-  | { id: string; type: 'create-note'; accountId: string; deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
-  | { id: string; type: 'update-note'; accountId: string; deviceId: string; collectionId: string; noteId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }
-  | { id: string; type: 'delete-note'; accountId: string; deviceId: string; collectionId: string; noteId: string; previousRevisionHash: Uint8Array };
+  | { id: string; type: 'create-item'; accountId: string; deviceId: string; collectionId: string; content: Omit<VaultItemContent, 'createdAt' | 'updatedAt'> }
+  | { id: string; type: 'update-item'; accountId: string; deviceId: string; collectionId: string; itemId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: VaultItemContent }
+  | { id: string; type: 'delete-item'; accountId: string; deviceId: string; collectionId: string; itemId: string; previousRevisionHash: Uint8Array };
 
 export type VaultWorkerResponse =
   | { id: string; type: 'unlocked' }
@@ -54,7 +56,7 @@ export type VaultWorkerResponse =
   | { id: string; type: 'collection-created'; collectionId: string; command: Uint8Array }
   | { id: string; type: 'bootstrap-opened'; collections: Array<{ id: string; title: string }> }
   | { id: string; type: 'device-authorized'; deviceId: string; sas: string; command: Uint8Array }
-  | { id: string; type: 'sync-opened'; items: Array<{ id: string; revisionNumber: number; revisionHash: Uint8Array; type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] }> }
-  | { id: string; type: 'note-created'; noteId: string; command: Uint8Array }
-  | { id: string; type: 'note-deleted'; noteId: string; command: Uint8Array }
+  | { id: string; type: 'sync-opened'; items: Array<VaultItemContent & { id: string; revisionNumber: number; revisionHash: Uint8Array; authorDeviceId: string }> }
+  | { id: string; type: 'item-created'; itemId: string; command: Uint8Array }
+  | { id: string; type: 'item-deleted'; itemId: string; command: Uint8Array }
   | { id: string; type: 'error'; message: string };

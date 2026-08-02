@@ -43,15 +43,15 @@ export type RecoveryDeviceAuthorization = {
   deviceId: string; pendingCommandHash: Uint8Array;
   envelopes: DeviceAuthorization['envelopes'];
 };
-export type NoteAppend = {
-  noteId: string; collectionEpoch: number; revisionNumber: number; encryptedContent: Uint8Array;
+export type ItemAppend = {
+  itemId: string; collectionEpoch: number; revisionNumber: number; encryptedContent: Uint8Array;
   contentNonce: Uint8Array; wrappedRevisionKey: Uint8Array; keyWrapNonce: Uint8Array;
   ciphertextHash: Uint8Array; wrappedRevisionKeyHash: Uint8Array; revisionHash: Uint8Array;
-  revisionSignature: Uint8Array; itemType: 'note' | 'login';
+  revisionSignature: Uint8Array;
   previousRevisionHash: Uint8Array | null;
 };
 
-export type NoteDelete = { noteId: string; expectedRevisionHash: Uint8Array };
+export type ItemDelete = { itemId: string; expectedRevisionHash: Uint8Array };
 export type DeviceRevocation = { deviceId: string; reason: string; rotations: Array<{ collectionId: string; epochNumber: number; membershipHash: Uint8Array; recipientCommitment: Uint8Array; transitionPayload: Uint8Array; transitionSignature: Uint8Array; transitionHash: Uint8Array; deviceEnvelopes: Map<number, unknown>[]; recoveryEnvelopes: Map<number, unknown>[] }> };
 export type RecoveryRotation = { newRecoveryKeyId: string; encryptionPublicKey: Uint8Array; signingPublicKey: Uint8Array; activeDeviceId: string; activeSignature: Uint8Array; envelopes: Map<number, unknown>[]; activeSignedPayload: Uint8Array };
 
@@ -91,49 +91,51 @@ export function admitCollectionCreation(command: VaultCommand): CollectionCreati
 }
 
 /** Strictly decodes the opaque, first immutable revision.  The server learns no content. */
-export async function admitNoteAppend(command: VaultCommand, signingPublicKey: Uint8Array): Promise<NoteAppend> {
-  if (command.operationType !== 'note-append' || !command.authorDeviceId || !command.collectionId
+export async function admitItemAppend(command: VaultCommand, signingPublicKey: Uint8Array): Promise<ItemAppend> {
+  if (command.operationType !== 'item-append' || !command.authorDeviceId || !command.collectionId
     || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32
-    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-append');
+    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-item-append');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
   const attachment = command.transportAttachment;
   const revisionNumber = payload.get(3);
   const collectionEpoch = payload.get(2);
-  if ((payload.size !== 10 && payload.size !== 11) || !(attachment instanceof Map)
+  if ((payload.size !== 9 && payload.size !== 10) || !(attachment instanceof Map)
     || attachment.size !== 2 || typeof collectionEpoch !== 'number'
     || !Number.isSafeInteger(collectionEpoch) || collectionEpoch < 1 || typeof revisionNumber !== 'number'
-    || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('invalid-note-append');
-  const itemType = payload.get(10);
-  if (itemType !== 'note' && itemType !== 'login') throw new Error('invalid-note-append');
-  const result: NoteAppend = {
-    noteId: text(payload, 1), collectionEpoch, revisionNumber,
+    || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('invalid-item-append');
+  const result: ItemAppend = {
+    itemId: text(payload, 1), collectionEpoch, revisionNumber,
     encryptedContent: payloadBytes(attachment, 1, 16), contentNonce: bytes(payload, 4, 12),
     wrappedRevisionKey: payloadBytes(attachment, 2, 16), keyWrapNonce: bytes(payload, 5, 12),
     ciphertextHash: bytes(payload, 6, 32), wrappedRevisionKeyHash: bytes(payload, 7, 32),
-    revisionHash: bytes(payload, 8, 32), revisionSignature: bytes(payload, 9, 64), itemType,
-    previousRevisionHash: payload.size === 11 ? bytes(payload, 11, 32) : null,
+    revisionHash: bytes(payload, 8, 32), revisionSignature: bytes(payload, 9, 64),
+    previousRevisionHash: payload.size === 10 ? bytes(payload, 11, 32) : null,
   };
-  if ((result.revisionNumber === 1) !== (result.previousRevisionHash === null)) throw new Error('invalid-note-append');
+  if ((result.revisionNumber === 1) !== (result.previousRevisionHash === null)) throw new Error('invalid-item-append');
   if (result.encryptedContent.byteLength > 1_048_576
     || !sameBytes(await sha256(result.encryptedContent), result.ciphertextHash)
-    || !sameBytes(await sha256(result.wrappedRevisionKey), result.wrappedRevisionKeyHash)) throw new Error('invalid-note-append');
+    || !sameBytes(await sha256(result.wrappedRevisionKey), result.wrappedRevisionKeyHash)) throw new Error('invalid-item-append');
   const revisionRecord = encodeCanonicalCbor(new Map<number, import('./protocol').CborValue>([
-    [1, 1], [2, command.operationId], [3, command.collectionId], [4, result.noteId], [5, result.collectionEpoch],
+    [1, 1], [2, command.operationId], [3, command.collectionId], [4, result.itemId], [5, result.collectionEpoch],
     [6, result.revisionNumber], [7, result.previousRevisionHash], [8, result.ciphertextHash], [9, result.wrappedRevisionKeyHash], [10, command.authorDeviceId],
   ]));
   if (!sameBytes(await sha256(revisionRecord), result.revisionHash)
-    || !await verifyProtocolRecord('clipsx/vault/v1/note-revision', revisionRecord, result.revisionSignature, signingPublicKey)) throw new Error('invalid-note-append');
+    || !await verifyProtocolRecord('clipsx/vault/v1/item-revision', revisionRecord, result.revisionSignature, signingPublicKey)) throw new Error('invalid-item-append');
   return result;
 }
 
-export function admitNoteDelete(command: VaultCommand): NoteDelete {
-  if (command.operationType !== 'note-delete' || !command.authorDeviceId || !command.collectionId
+export function admitItemDelete(command: VaultCommand): ItemDelete {
+  if (command.operationType !== 'item-delete' || !command.authorDeviceId || !command.collectionId
     || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32
-    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-note-delete');
+    || !command.expectedCollectionHead || command.expectedCollectionHead.byteLength !== 32) throw new Error('invalid-item-delete');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
-  if (payload.size !== 2) throw new Error('invalid-note-delete');
-  return { noteId: text(payload, 1), expectedRevisionHash: bytes(payload, 2, 32) };
+  if (payload.size !== 2) throw new Error('invalid-item-delete');
+  return { itemId: text(payload, 1), expectedRevisionHash: bytes(payload, 2, 32) };
 }
+/** @deprecated use admitItemAppend */
+export const admitNoteAppend = admitItemAppend;
+/** @deprecated use admitItemDelete */
+export const admitNoteDelete = admitItemDelete;
 
 export function admitDeviceRevocation(command: VaultCommand): DeviceRevocation {
   if (command.operationType !== 'device-revoke' || !command.authorDeviceId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-device-revocation');

@@ -4,8 +4,8 @@ import { unwrapDeviceBundle, type BrowserDeviceBundle } from './browser-onboardi
 import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
 import { openVaultBootstrap } from './browser-vault-bootstrap';
-import { createNoteAppendCommand } from './browser-note-append';
-import { createNoteDeleteCommand } from './browser-note-delete';
+import { createItemAppendCommand } from './browser-note-append';
+import { createItemDeleteCommand } from './browser-note-delete';
 import { openVaultCollectionSync } from './browser-vault-sync';
 import { createDeviceAuthorizationCommand } from './browser-device-approval';
 import { verifyVaultAccountSync } from './browser-account-sync';
@@ -39,7 +39,7 @@ function lock() {
 }
 
 function respond(message: VaultWorkerResponse) {
-  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'note-created' || message.type === 'note-deleted' || message.type === 'device-authorized') {
+  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'item-created' || message.type === 'item-deleted' || message.type === 'device-authorized') {
     self.postMessage(message, [message.command.buffer]);
     return;
   }
@@ -157,41 +157,40 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         respond({ id: request.id, type: 'device-authorized', ...authorized });
         return;
       }
-      case 'create-note': {
-        if (!bundle || !accountHead) throw new Error('Verified account head is required before note creation.');
+      case 'create-item': {
+        if (!bundle || !accountHead) throw new Error('Verified account head is required before item creation.');
         const epoch = epochKeys.get(request.collectionId);
         if (!epoch?.operationHead) throw new Error('A verified collection head is unavailable. Refresh the vault first.');
         const now = new Date().toISOString();
-        const result = await createNoteAppendCommand({
+        const result = await createItemAppendCommand({
           accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId,
           epochKey: epoch.key, deviceSigningSecretKey: bundle.deviceSigningSecretKey,
           expectedAccountHead: accountHead, expectedCollectionHead: epoch.operationHead,
           epochNumber: epoch.epochNumber,
           content: { ...request.content, createdAt: now, updatedAt: now },
         });
-        respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
+        respond({ id: request.id, type: 'item-created', itemId: result.itemId, command: result.command });
         return;
       }
-      case 'update-note': {
-        if (!bundle || !accountHead) throw new Error('Verified account head is required before note update.');
+      case 'update-item': {
+        if (!bundle || !accountHead) throw new Error('Verified account head is required before item update.');
         const epoch = epochKeys.get(request.collectionId);
         if (!epoch?.operationHead) throw new Error('A verified collection head is unavailable. Refresh the vault first.');
-        const now = new Date().toISOString();
-        const result = await createNoteAppendCommand({ accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId, noteId: request.noteId, revisionNumber: request.revisionNumber, previousRevisionHash: request.previousRevisionHash, epochNumber: epoch.epochNumber, epochKey: epoch.key, deviceSigningSecretKey: bundle.deviceSigningSecretKey, expectedAccountHead: accountHead, expectedCollectionHead: epoch.operationHead, content: { ...request.content, createdAt: now, updatedAt: now } });
-        respond({ id: request.id, type: 'note-created', noteId: result.noteId, command: result.command });
+        const result = await createItemAppendCommand({ accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId, itemId: request.itemId, revisionNumber: request.revisionNumber, previousRevisionHash: request.previousRevisionHash, epochNumber: epoch.epochNumber, epochKey: epoch.key, deviceSigningSecretKey: bundle.deviceSigningSecretKey, expectedAccountHead: accountHead, expectedCollectionHead: epoch.operationHead, content: { ...request.content, updatedAt: new Date().toISOString() } });
+        respond({ id: request.id, type: 'item-created', itemId: result.itemId, command: result.command });
         return;
       }
-      case 'delete-note': {
-        if (!bundle || !accountHead) throw new Error('Verified account head is required before note deletion.');
+      case 'delete-item': {
+        if (!bundle || !accountHead) throw new Error('Verified account head is required before item deletion.');
         const epoch = epochKeys.get(request.collectionId);
         if (!epoch?.operationHead) throw new Error('A verified collection head is unavailable. Refresh the vault first.');
         respond({
-          id: request.id, type: 'note-deleted', noteId: request.noteId,
-          command: await createNoteDeleteCommand({
+          id: request.id, type: 'item-deleted', itemId: request.itemId,
+          command: await createItemDeleteCommand({
             accountId: request.accountId, collectionId: request.collectionId, deviceId: request.deviceId,
             deviceSigningSecretKey: bundle.deviceSigningSecretKey, expectedAccountHead: accountHead,
             expectedCollectionHead: epoch.operationHead,
-            noteId: request.noteId, expectedRevisionHash: request.previousRevisionHash,
+            itemId: request.itemId, expectedRevisionHash: request.previousRevisionHash,
           }),
         });
         return;

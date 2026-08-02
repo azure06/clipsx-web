@@ -24,7 +24,7 @@ create table public.vault_account_operations (
   operation_type text not null check (operation_type in (
     'device-register', 'device-session-bind', 'device-authorize', 'device-revoke',
     'recovery-rotate', 'passkey-recovery-wrapper-create', 'passkey-recovery-wrapper-revoke',
-    'collection-create', 'note-append', 'note-delete', 'invitation-create',
+    'collection-create', 'item-append', 'item-delete', 'invitation-create',
     'invitation-accept', 'invitation-confirm', 'member-add', 'member-remove',
     'epoch-rotate', 'epoch-envelope-grant'
   )),

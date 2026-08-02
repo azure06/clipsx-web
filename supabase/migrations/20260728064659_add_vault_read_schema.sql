@@ -178,7 +178,7 @@ create table public.vault_collection_operations (
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   sequence_number bigint not null check (sequence_number >= 1),
   operation_type text not null check (operation_type in (
-    'collection-create', 'note-append', 'note-delete',
+    'collection-create', 'item-append', 'item-delete',
     'invitation-create', 'invitation-accept', 'invitation-confirm',
     'member-add', 'member-remove', 'epoch-rotate'
   )),

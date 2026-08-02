@@ -1,12 +1,5 @@
-export type VaultItemContent = {
-  type: 'note' | 'login';
-  title: string;
-  body?: string;
-  username?: string;
-  password?: string;
-  url?: string;
-  labels: string[];
-};
+import type { VaultItemContent } from './vault-item';
+export type { VaultItemContent } from './vault-item';
 
 export type VaultItemHead = VaultItemContent & {
   id: string;
@@ -19,23 +12,26 @@ export type NoteConflict = {
   remote: VaultItemHead;
 };
 
-export function isStaleNoteUpdate(status: number): boolean {
+export function isStaleItemUpdate(status: number): boolean {
   return status === 409;
 }
+/** @deprecated use isStaleItemUpdate */
+export const isStaleNoteUpdate = isStaleItemUpdate;
 
-export function beginNoteConflict(local: VaultItemContent, remote: VaultItemHead): NoteConflict {
-  return { local: { ...local, labels: [...local.labels] }, remote };
+export function beginItemConflict(local: VaultItemContent, remote: VaultItemHead): NoteConflict {
+  return { local: { ...local, labels: [...local.labels], content: local.content?.slice(), properties: { ...local.properties } }, remote };
 }
+/** @deprecated use beginItemConflict */
+export const beginNoteConflict = beginItemConflict;
 
 export function keepRemoteResolution(): null {
   return null;
 }
 
 export function reapplyLocalResolution(conflict: NoteConflict): VaultItemContent {
-  return { ...conflict.local, labels: [...conflict.local.labels] };
+  return { ...conflict.local, labels: [...conflict.local.labels], content: conflict.local.content?.slice(), properties: { ...conflict.local.properties } };
 }
 
 export function manualMergeResolution(conflict: NoteConflict, merged: VaultItemContent): VaultItemContent {
-  if (merged.type !== conflict.remote.type) throw new Error('A conflict merge cannot change the item type.');
-  return { ...merged, labels: [...merged.labels] };
+  return { ...merged, labels: [...merged.labels], content: merged.content?.slice(), properties: { ...merged.properties } };
 }

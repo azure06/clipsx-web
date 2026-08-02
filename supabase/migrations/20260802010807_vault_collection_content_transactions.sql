@@ -183,7 +183,7 @@ begin
     operation_id, collection_id, sequence_number, operation_type, canonical_payload, previous_operation_hash,
     operation_hash, author_device_id, signature, protocol_version
   ) values (
-    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'note-append', p_command_payload, current_operation.operation_hash,
+    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'item-append', p_command_payload, current_operation.operation_hash,
     p_command_hash, p_device_id, p_command_signature, 1
   );
   insert into public.vault_account_operations (
@@ -191,7 +191,7 @@ begin
     previous_operation_hash, operation_hash, author_device_id, signature, protocol_version
   ) values (
     p_operation_id, p_account_id, current_account_operation.sequence_number + 1,
-    'note-append', p_command_payload, current_account_operation.operation_hash,
+    'item-append', p_command_payload, current_account_operation.operation_hash,
     p_command_hash, p_device_id, p_command_signature, 1
   );
   return true;
@@ -257,7 +257,7 @@ begin
     operation_id, collection_id, sequence_number, operation_type, canonical_payload, previous_operation_hash,
     operation_hash, author_device_id, signature, protocol_version
   ) values (
-    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'note-delete', p_command_payload, current_operation.operation_hash,
+    p_operation_id, p_collection_id, current_operation.sequence_number + 1, 'item-delete', p_command_payload, current_operation.operation_hash,
     p_command_hash, p_device_id, p_command_signature, 1
   );
   insert into public.vault_account_operations (
@@ -265,7 +265,7 @@ begin
     previous_operation_hash, operation_hash, author_device_id, signature, protocol_version
   ) values (
     p_operation_id, p_account_id, current_account_operation.sequence_number + 1,
-    'note-delete', p_command_payload, current_account_operation.operation_hash,
+    'item-delete', p_command_payload, current_account_operation.operation_hash,
     p_command_hash, p_device_id, p_command_signature, 1
   );
   insert into public.vault_tombstones (

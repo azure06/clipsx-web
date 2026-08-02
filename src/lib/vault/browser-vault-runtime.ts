@@ -123,22 +123,35 @@ export class BrowserVaultRuntime {
     return { deviceId: response.deviceId, sas: response.sas, command: response.command };
   }
 
-  async createNote(input: { deviceId: string; collectionId: string; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }): Promise<{ noteId: string; command: Uint8Array }> {
-    const response = await this.request({ id: crypto.randomUUID(), type: 'create-note', accountId: this.accountId, ...input });
-    if (response.type !== 'note-created') throw new Error('Vault worker rejected note creation.');
-    return { noteId: response.noteId, command: response.command };
+  async createItem(input: { deviceId: string; collectionId: string; content: import('./vault-item').VaultItemContent }): Promise<{ itemId: string; command: Uint8Array }> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'create-item', accountId: this.accountId, ...input });
+    if (response.type !== 'item-created') throw new Error('Vault worker rejected item creation.');
+    return { itemId: response.itemId, command: response.command };
   }
 
-  async updateNote(input: { deviceId: string; collectionId: string; noteId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: { type: 'note' | 'login'; title: string; body?: string; username?: string; password?: string; url?: string; labels: string[] } }): Promise<{ noteId: string; command: Uint8Array }> {
-    const response = await this.request({ id: crypto.randomUUID(), type: 'update-note', accountId: this.accountId, ...input, previousRevisionHash: copy(input.previousRevisionHash) });
-    if (response.type !== 'note-created') throw new Error('Vault worker rejected note update.');
-    return { noteId: response.noteId, command: response.command };
+  async updateItem(input: { deviceId: string; collectionId: string; itemId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: import('./vault-item').VaultItemContent }): Promise<{ itemId: string; command: Uint8Array }> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'update-item', accountId: this.accountId, ...input, previousRevisionHash: copy(input.previousRevisionHash) });
+    if (response.type !== 'item-created') throw new Error('Vault worker rejected item update.');
+    return { itemId: response.itemId, command: response.command };
   }
 
+  async deleteItem(input: { deviceId: string; collectionId: string; itemId: string; previousRevisionHash: Uint8Array }): Promise<{ itemId: string; command: Uint8Array }> {
+    const response = await this.request({ id: crypto.randomUUID(), type: 'delete-item', accountId: this.accountId, ...input, previousRevisionHash: copy(input.previousRevisionHash) });
+    if (response.type !== 'item-deleted') throw new Error('Vault worker rejected item deletion.');
+    return { itemId: response.itemId, command: response.command };
+  }
+
+  /** @deprecated Transitional UI adapter while the legacy shell is removed. */
+  async createNote(input: { deviceId: string; collectionId: string; content: import('./vault-item').VaultItemContent }): Promise<{ noteId: string; command: Uint8Array }> {
+    const result = await this.createItem(input); return { noteId: result.itemId, command: result.command };
+  }
+  /** @deprecated Transitional UI adapter while the legacy shell is removed. */
+  async updateNote(input: { deviceId: string; collectionId: string; noteId: string; revisionNumber: number; previousRevisionHash: Uint8Array; content: import('./vault-item').VaultItemContent }): Promise<{ noteId: string; command: Uint8Array }> {
+    const result = await this.updateItem({ ...input, itemId: input.noteId }); return { noteId: result.itemId, command: result.command };
+  }
+  /** @deprecated Transitional UI adapter while the legacy shell is removed. */
   async deleteNote(input: { deviceId: string; collectionId: string; noteId: string; previousRevisionHash: Uint8Array }): Promise<{ noteId: string; command: Uint8Array }> {
-    const response = await this.request({ id: crypto.randomUUID(), type: 'delete-note', accountId: this.accountId, ...input, previousRevisionHash: copy(input.previousRevisionHash) });
-    if (response.type !== 'note-deleted') throw new Error('Vault worker rejected note deletion.');
-    return { noteId: response.noteId, command: response.command };
+    const result = await this.deleteItem({ ...input, itemId: input.noteId }); return { noteId: result.itemId, command: result.command };
   }
 
   async openCollectionSync(input: { deviceId: string; collectionId: string; pages: Uint8Array[] }) {
