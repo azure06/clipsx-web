@@ -34,18 +34,21 @@ insert into auth.sessions (id, user_id) values (
   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'
 );
+insert into auth.sessions (id, user_id) values (
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'
+);
 insert into public.vault_devices (
   id, account_id, display_name, client_type, platform, enrollment_origin,
   key_protection_profile, client_crypto_capabilities, encryption_public_key,
   signing_public_key, encryption_algorithm, signing_algorithm, key_version,
-  status, auth_session_id
+  status
 ) values (
   'cccccccc-cccc-cccc-cccc-ccccccccccc1',
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', 'Owner', 'browser', 'test',
   'https://clipsx.app', 'vault-passphrase-wrapped', '{}'::jsonb,
   decode(repeat('11', 32), 'hex'), decode(repeat('12', 32), 'hex'),
-  'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active',
-  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'
+  'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active'
 );
 insert into public.vault_collections (
   id, owner_account_id, current_epoch_number, current_epoch_transition_hash,
@@ -101,7 +104,7 @@ insert into public.vault_account_operations (
 select is(
   private.append_vault_note_revision(
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
-    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2',
     'cccccccc-cccc-cccc-cccc-ccccccccccc1',
     'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
     decode(repeat('01', 32), 'hex'), decode(repeat('01', 32), 'hex'),
@@ -114,7 +117,7 @@ select is(
     decode(repeat('0a', 32), 'hex'), decode(repeat('0b', 64), 'hex')
   ),
   true,
-  'valid encrypted note append commits atomically'
+  'a new valid account session can append with an active signing device'
 );
 select is((select count(*) from public.vault_notes), 1::bigint, 'accepted append creates the note head');
 select is((select key_version from public.vault_note_revisions where revision_number = 1), 1, 'accepted revision stores its key version');

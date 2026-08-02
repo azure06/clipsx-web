@@ -45,7 +45,7 @@ export type HpkeCiphertext = {
 };
 
 export const VAULT_COMMAND_TYPES = [
-  'device-register', 'device-session-bind', 'device-authorize', 'device-revoke',
+  'device-register', 'device-authorize', 'device-revoke',
   'recovery-rotate', 'collection-create', 'item-append', 'item-delete',
   'checkpoint-append', 'invitation-create', 'invitation-accept',
   'invitation-confirm', 'member-add', 'member-remove', 'epoch-rotate',

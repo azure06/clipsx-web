@@ -18,8 +18,8 @@ describe('collection creation command', () => {
       collectionId: 'collection-1', operationId: 'operation-1',
     });
     const command = decodeVaultCommand(result.command);
-    await expect(admitVaultCommand(result.command, { id: 'account-1', sessionId: 'session-1' }, {
-      findActiveDevice: async () => ({ signingPublicKey: signing.publicKey, boundSessionId: 'session-1' }),
+    await expect(admitVaultCommand(result.command, { id: 'account-1' }, {
+      findActiveDevice: async () => ({ signingPublicKey: signing.publicKey }),
       findActiveRecoveryKey: async () => null,
     })).resolves.toMatchObject({ command: { operationType: 'collection-create' } });
     const creation = admitCollectionCreation(command);

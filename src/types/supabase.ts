@@ -960,6 +960,7 @@ export type Database = {
           p_content_nonce: string
           p_device_id: string
           p_encrypted_content: string
+          p_expected_account_head: string
           p_expected_collection_head: string
           p_expected_previous_revision_hash: string
           p_key_wrap_nonce: string
@@ -1013,19 +1014,6 @@ export type Database = {
           p_operation_id: string
           p_pending_command_hash: string
           p_recovery_key_id: string
-          p_session_id: string
-          p_signature: string
-        }
-        Returns: boolean
-      }
-      bind_vault_device_session: {
-        Args: {
-          p_account_id: string
-          p_command_hash: string
-          p_command_payload: string
-          p_device_id: string
-          p_expected_previous_operation_hash: string
-          p_operation_id: string
           p_session_id: string
           p_signature: string
         }
@@ -1088,6 +1076,7 @@ export type Database = {
           p_device_envelope_signature: string
           p_device_id: string
           p_encrypted_metadata: string
+          p_expected_account_head: string
           p_membership_state_hash: string
           p_metadata_nonce: string
           p_operation_id: string
@@ -1133,6 +1122,7 @@ export type Database = {
           p_command_payload: string
           p_command_signature: string
           p_device_id: string
+          p_expected_account_head: string
           p_expected_collection_head: string
           p_expected_revision_hash: string
           p_note_id: string
@@ -1148,10 +1138,6 @@ export type Database = {
           p_request_id: string
           p_stripe_event_id: string
         }
-        Returns: boolean
-      }
-      has_active_bound_vault_device: {
-        Args: { p_account_id: string; p_session_id: string }
         Returns: boolean
       }
       read_vault_account_sync_page: {
@@ -1173,7 +1159,6 @@ export type Database = {
       register_initial_vault_device: {
         Args: {
           p_account_id: string
-          p_auth_session_id: string
           p_authorization_payload: string
           p_authorization_payload_hash: string
           p_capabilities: Json
@@ -1195,13 +1180,13 @@ export type Database = {
           p_recovery_encryption_public_key: string
           p_recovery_key_id: string
           p_recovery_signing_public_key: string
+          p_session_id: string
         }
         Returns: boolean
       }
       register_pending_vault_device: {
         Args: {
           p_account_id: string
-          p_auth_session_id: string
           p_capabilities: Json
           p_challenge_id: string
           p_challenge_response_hash: string
@@ -1216,6 +1201,7 @@ export type Database = {
           p_proof_signature: string
           p_protection_profile: string
           p_sas_commitment: string
+          p_session_id: string
         }
         Returns: boolean
       }
@@ -1602,7 +1588,7 @@ export type Database = {
       }
       vault_collection_operations: {
         Row: {
-          author_device_id: string
+          author_device_id: string | null
           canonical_payload: string
           collection_id: string
           created_at: string
@@ -1611,11 +1597,12 @@ export type Database = {
           operation_type: string
           previous_operation_hash: string | null
           protocol_version: number
+          recovery_key_id: string | null
           sequence_number: number
           signature: string
         }
         Insert: {
-          author_device_id: string
+          author_device_id?: string | null
           canonical_payload: string
           collection_id: string
           created_at?: string
@@ -1624,11 +1611,12 @@ export type Database = {
           operation_type: string
           previous_operation_hash?: string | null
           protocol_version: number
+          recovery_key_id?: string | null
           sequence_number: number
           signature: string
         }
         Update: {
-          author_device_id?: string
+          author_device_id?: string | null
           canonical_payload?: string
           collection_id?: string
           created_at?: string
@@ -1637,6 +1625,7 @@ export type Database = {
           operation_type?: string
           previous_operation_hash?: string | null
           protocol_version?: number
+          recovery_key_id?: string | null
           sequence_number?: number
           signature?: string
         }
@@ -1653,6 +1642,13 @@ export type Database = {
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "vault_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vault_collection_operations_recovery_key_id_fkey"
+            columns: ["recovery_key_id"]
+            isOneToOne: false
+            referencedRelation: "vault_recovery_keys"
             referencedColumns: ["id"]
           },
         ]
@@ -1871,7 +1867,6 @@ export type Database = {
       vault_devices: {
         Row: {
           account_id: string
-          auth_session_id: string | null
           client_crypto_capabilities: Json
           client_type: string
           created_at: string
@@ -1892,7 +1887,6 @@ export type Database = {
         }
         Insert: {
           account_id: string
-          auth_session_id?: string | null
           client_crypto_capabilities: Json
           client_type: string
           created_at?: string
@@ -1913,7 +1907,6 @@ export type Database = {
         }
         Update: {
           account_id?: string
-          auth_session_id?: string | null
           client_crypto_capabilities?: Json
           client_type?: string
           created_at?: string

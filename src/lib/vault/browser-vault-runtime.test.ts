@@ -19,7 +19,7 @@ class FakeWorker {
         ? { id: transferred.id, type: 'locked' }
         : transferred.type === 'status'
           ? { id: transferred.id, type: 'status', unlocked: true }
-          : { id: transferred.id, type: 'signed-session-bind', command: new Uint8Array([1, 2, 3]) };
+          : { id: transferred.id, type: 'locked' };
     queueMicrotask(() => this.onmessage?.({ data: response } as MessageEvent<VaultWorkerResponse>));
   }
 

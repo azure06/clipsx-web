@@ -42,15 +42,6 @@ export async function GET(
     }
 
     const supabase = await createClient();
-    const { data: boundDevice, error: boundDeviceError } = await supabase
-      .from('vault_devices')
-      .select('id')
-      .eq('account_id', principal.user.id)
-      .eq('status', 'active')
-      .eq('auth_session_id', principal.sessionId)
-      .maybeSingle();
-    if (boundDeviceError) throw boundDeviceError;
-    if (!boundDevice) return vaultCborError(403, 'unbound-session');
 
     if (after > 0 && anchor) {
       const { data: anchorRow, error: anchorError } = await supabase

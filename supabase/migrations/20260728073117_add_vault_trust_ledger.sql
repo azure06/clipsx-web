@@ -22,7 +22,7 @@ create table public.vault_account_operations (
   account_id uuid not null references auth.users(id) on delete cascade,
   sequence_number bigint not null check (sequence_number >= 1),
   operation_type text not null check (operation_type in (
-    'device-register', 'device-session-bind', 'device-authorize', 'device-revoke',
+    'device-register', 'device-authorize', 'device-revoke',
     'recovery-rotate', 'passkey-recovery-wrapper-create', 'passkey-recovery-wrapper-revoke',
     'collection-create', 'item-append', 'item-delete', 'invitation-create',
     'invitation-accept', 'invitation-confirm', 'member-add', 'member-remove',

@@ -20,10 +20,8 @@ begin
      or (p_after = 0 and p_anchor is not null)
      or (p_after > 0 and octet_length(p_anchor) <> 32)
      or not exists (
-       select 1 from public.vault_devices d
-       join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
-       where d.account_id = p_requester_account_id and d.status = 'active'
-         and d.auth_session_id = p_requester_session_id
+       select 1 from auth.sessions s
+       where s.id = p_requester_session_id and s.user_id = p_requester_account_id
      )
      or (
        p_target_account_id <> p_requester_account_id

@@ -30,12 +30,12 @@ begin
      or octet_length(p_verification_commitment) <> 32
      or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
      or not exists (select 1 from auth.users where id = p_recipient_account_id)
+     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
      or not exists (
        select 1 from public.vault_devices d
-       join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
        join public.vault_collection_memberships m on m.account_id = d.account_id
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-         and d.auth_session_id = p_session_id and m.collection_id = p_collection_id
+         and m.collection_id = p_collection_id
          and m.status = 'active' and m.role = 'owner'
      )
      or exists (select 1 from public.vault_collection_memberships
@@ -115,11 +115,11 @@ begin
      or octet_length(p_verification_commitment) <> 32
      or octet_length(p_acceptance_transcript_hash) <> 32
      or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
+     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
      or not exists (
-       select 1 from public.vault_devices d join auth.sessions s
-         on s.id = d.auth_session_id and s.user_id = d.account_id
+       select 1 from public.vault_devices d
        where d.id = p_device_id and d.account_id = p_account_id
-         and d.status = 'active' and d.auth_session_id = p_session_id
+         and d.status = 'active'
      )
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
   then return false; end if;
@@ -180,12 +180,12 @@ begin
      or octet_length(p_acceptance_transcript_hash) <> 32
      or octet_length(p_verification_commitment) <> 32
      or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
+     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
      or not exists (
        select 1 from public.vault_devices d
-       join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
        join public.vault_collection_memberships m on m.account_id = d.account_id
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-         and d.auth_session_id = p_session_id and m.collection_id = p_collection_id
+         and m.collection_id = p_collection_id
          and m.status = 'active' and m.role = 'owner'
      )
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
@@ -275,12 +275,12 @@ begin
      or octet_length(p_recipient_set_commitment) <> 32
      or octet_length(p_transition_signature) <> 64 or octet_length(p_transition_hash) <> 32
      or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
+     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
      or not exists (
        select 1 from public.vault_devices d
-       join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
        join public.vault_collection_memberships m on m.account_id = d.account_id
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-         and d.auth_session_id = p_session_id and m.collection_id = p_collection_id
+         and m.collection_id = p_collection_id
          and m.status = 'active' and m.role = 'owner'
      )
      or not exists (
@@ -497,12 +497,12 @@ begin
      or octet_length(p_recipient_set_commitment) <> 32
      or octet_length(p_transition_signature) <> 64 or octet_length(p_transition_hash) <> 32
      or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
+     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
      or not exists (
        select 1 from public.vault_devices d
-       join auth.sessions s on s.id = d.auth_session_id and s.user_id = d.account_id
        join public.vault_collection_memberships m on m.account_id = d.account_id
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-         and d.auth_session_id = p_session_id and m.collection_id = p_collection_id
+         and m.collection_id = p_collection_id
          and m.status = 'active' and m.role = 'owner'
      )
      or coalesce(jsonb_typeof(p_device_envelopes), '') <> 'array'

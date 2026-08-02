@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     if (initial) {
       const registration = initial.registration;
       const { data, error } = await admin.schema('private').rpc('register_initial_vault_device', {
-        p_account_id: principal.user.id, p_auth_session_id: principal.sessionId,
+        p_account_id: principal.user.id, p_session_id: principal.sessionId,
         p_challenge_id: registration.challengeId, p_challenge_response_hash: encodePostgresBytea(registration.challengeResponseHash),
         p_device_id: registration.deviceId, p_display_name: registration.displayName, p_platform: registration.platform, p_enrollment_origin: registration.enrollmentOrigin, p_protection_profile: registration.protectionProfile,
         p_capabilities: { hash: encodeJsonBase64(registration.capabilitiesHash) }, p_device_encryption_public_key: encodePostgresBytea(registration.deviceEncryptionPublicKey), p_device_signing_public_key: encodePostgresBytea(registration.deviceSigningPublicKey),
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (pending) {
       const registration = pending.registration;
       const { data, error } = await admin.schema('private').rpc('register_pending_vault_device', {
-        p_account_id: principal.user.id, p_auth_session_id: principal.sessionId, p_challenge_id: registration.challengeId,
+        p_account_id: principal.user.id, p_session_id: principal.sessionId, p_challenge_id: registration.challengeId,
         p_challenge_response_hash: encodePostgresBytea(registration.challengeResponseHash), p_device_id: registration.deviceId,
         p_display_name: registration.displayName, p_platform: registration.platform, p_enrollment_origin: registration.enrollmentOrigin,
         p_protection_profile: registration.protectionProfile, p_capabilities: { hash: encodeJsonBase64(registration.capabilitiesHash) },
@@ -68,12 +68,12 @@ export async function POST(request: NextRequest) {
       if (error || !data) return vaultCborError(422, 'pending-device-registration-rejected');
       return vaultCborResponse(201, new Map([[1, pending.command.operationId]]));
     }
-    const admission = await admitVaultCommand(body, { id: principal.user.id, sessionId: principal.sessionId }, {
+    const admission = await admitVaultCommand(body, principal.user, {
       async findActiveDevice(id, accountId) {
-        const { data, error } = await userClient.from('vault_devices').select('signing_public_key, auth_session_id').eq('id', id).eq('account_id', accountId).eq('status', 'active').maybeSingle();
+        const { data, error } = await userClient.from('vault_devices').select('signing_public_key').eq('id', id).eq('account_id', accountId).eq('status', 'active').maybeSingle();
         if (error) throw error;
         const signingPublicKey = decodePostgresBytea(data?.signing_public_key);
-        return signingPublicKey ? { signingPublicKey, boundSessionId: typeof data?.auth_session_id === 'string' ? data.auth_session_id : null } : null;
+        return signingPublicKey ? { signingPublicKey } : null;
       },
       async findActiveRecoveryKey(id, accountId) {
         const { data, error } = await userClient.from('vault_recovery_keys').select('signing_public_key').eq('id', id).eq('account_id', accountId).eq('status', 'active').maybeSingle();
@@ -81,21 +81,6 @@ export async function POST(request: NextRequest) {
         return decodePostgresBytea(data?.signing_public_key);
       },
     });
-
-    if (admission.sessionBinding) {
-      const { command } = admission;
-      const { data, error } = await admin.schema('private').rpc('bind_vault_device_session', {
-        p_account_id: principal.user.id, p_device_id: admission.sessionBinding.deviceId,
-        p_session_id: admission.sessionBinding.sessionId,
-        p_expected_previous_operation_hash: encodePostgresBytea(command.expectedAccountHead!),
-        p_operation_id: command.operationId,
-        p_command_payload: encodePostgresBytea(command.signedBytes),
-        p_command_hash: encodePostgresBytea(await sha256(command.operationBytes)),
-        p_signature: encodePostgresBytea(command.signature),
-      });
-      if (error || !data) return vaultCborError(409, 'device-session-bind-rejected');
-      return vaultCborResponse(200, new Map([[1, command.operationId]]));
-    }
 
     if (admission.command.operationType === 'device-authorize') {
       const { command } = admission;
@@ -141,7 +126,7 @@ export async function POST(request: NextRequest) {
       const raw = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
       const activeDeviceId = raw.get(4);
       if (typeof activeDeviceId !== 'string') return vaultCborError(422, 'invalid-recovery-rotation');
-      const { data: active, error: activeError } = await userClient.from('vault_devices').select('signing_public_key').eq('id', activeDeviceId).eq('account_id', principal.user.id).eq('status', 'active').eq('auth_session_id', principal.sessionId).maybeSingle();
+      const { data: active, error: activeError } = await userClient.from('vault_devices').select('signing_public_key').eq('id', activeDeviceId).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
       if (activeError) throw activeError;
       const activeKey = decodePostgresBytea(active?.signing_public_key); if (!activeKey) return vaultCborError(403, 'invalid-recovery-rotation');
       const rotation = await admitRecoveryRotation(command, activeKey);
@@ -382,8 +367,8 @@ export async function POST(request: NextRequest) {
       });
       return vaultCborError(503, 'command-service-unavailable');
     }
-    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|unbound-session|invalid-item-append)$/.test(error.message)
+    const code = error instanceof Error && /^(command-size|account-mismatch|inactive-author|invalid-signature|invalid-item-append)$/.test(error.message)
       ? error.message : 'invalid-command';
-    return vaultCborError(code === 'command-size' ? 413 : code === 'unbound-session' ? 403 : 422, code);
+    return vaultCborError(code === 'command-size' ? 413 : 422, code);
   }
 }

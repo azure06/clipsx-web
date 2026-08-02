@@ -19,7 +19,8 @@ begin
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
   if not found or pending.device_id is null or current_operation.operation_hash <> p_expected_previous_operation_hash or pending.proof_hash <> p_pending_command_hash
     or pending.sas_commitment <> p_sas_hash or octet_length(p_sas_hash) <> 32 or octet_length(p_authorization_payload_hash) <> 32 or octet_length(p_command_hash) <> 32 or octet_length(p_signature) <> 64
-    or not exists (select 1 from auth.sessions s join public.vault_devices d on d.auth_session_id = s.id where s.id = p_session_id and s.user_id = p_account_id and d.id = p_authorizer_device_id and d.status = 'active')
+    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+    or not exists (select 1 from public.vault_devices where id = p_authorizer_device_id and account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id) then return false; end if;
   -- Every collection the account can currently read receives exactly one
   -- opaque, signed envelope for the proposed device.
@@ -123,7 +124,8 @@ begin
   end loop;
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
   if not found or current_operation.operation_hash <> p_expected_previous_operation_hash or p_author_device_id = p_revoked_device_id
-    or not exists (select 1 from auth.sessions s join public.vault_devices d on d.auth_session_id = s.id where s.id = p_session_id and s.user_id = p_account_id and d.id = p_author_device_id and d.status = 'active')
+    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+    or not exists (select 1 from public.vault_devices where id = p_author_device_id and account_id = p_account_id and status = 'active')
     or not exists (select 1 from public.vault_devices where id = p_revoked_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_rotations), '') <> 'array'
     or jsonb_array_length(p_rotations) <> (
@@ -172,7 +174,7 @@ begin
               and m.account_id = k.account_id and m.status = 'active'
           )
       ))) then return false; end if;
-  update public.vault_devices set status = 'revoked', revoked_at = now(), revocation_reason = p_reason, auth_session_id = null where id = p_revoked_device_id;
+  update public.vault_devices set status = 'revoked', revoked_at = now(), revocation_reason = p_reason where id = p_revoked_device_id;
   for rotation in select * from jsonb_array_elements(p_rotations) loop
     select current_epoch_number + 1 into next_epoch from public.vault_collections where id = (rotation->>'collection_id')::uuid for update;
     update public.vault_collection_epochs set state = 'superseded' where collection_id = (rotation->>'collection_id')::uuid and state = 'current';

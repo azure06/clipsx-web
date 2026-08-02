@@ -262,10 +262,11 @@ uses trusted-device approval or recovery.
 
 Supabase authentication and vault unlock are independent. Authentication
 obtains a server session; unlock obtains local device keys. Neither one implies
-the other. Initial enrollment binds a device to the authenticated Supabase
-session. After ordinary sign-in creates a different session, an unlocked active
-device must submit a signed `device-session-bind` command before ordinary vault
-reads or mutations resume.
+the other. An authenticated member session may retrieve ciphertext, but only an
+approved local device unlocked with its passkey or passphrase can open its own
+envelope and decrypt it. A stolen account session can therefore expose
+ciphertext, but cannot authorize a new decrypting device or create a signed
+vault mutation.
 
 Unlocked device keys live in a dedicated module worker and remain only for the
 active vault session. The worker accepts narrowly scoped requests and never
@@ -475,7 +476,7 @@ not a trusted cryptographic transition.
 The implemented pending-registration transaction retains the proposed device's
 signed `device-register` bytes and HPKE challenge-response commitment in the
 private schema for 15 minutes. Existing-device activation is only through a
-bound active author's `device-authorize` command after QR plus SAS comparison.
+active author's `device-authorize` command after QR plus SAS comparison.
 That transaction checks the account-log head and delivers one signed current
 personal-collection envelope per collection while it creates the authorization
 evidence and active device row. The browser flow protects the pending bundle
@@ -622,8 +623,8 @@ the following transaction for every affected collection:
    revoked devices or removed members.
 
 The implemented private transaction makes this a single database commit. It
-rejects a missing, stale, or incomplete collection rotation; clears the revoked
-device's server session binding; and rejects it as an author before returning.
+rejects a missing, stale, or incomplete collection rotation and rejects the
+revoked device as an author before returning.
 
 The removed endpoint can still decrypt epochs it knows. It cannot decrypt a
 future epoch unless a remaining authorized endpoint or recovery secret leaks
@@ -701,9 +702,9 @@ who loses every authorized device uses the recovery phrase or an available
 passkey-recovery wrapper.
 
 The implemented recovery-root rotation is deliberately co-signed by a
-currently bound active device. The recovery root signs the command; the active
+currently active device. The recovery root signs the command; the active
 device signs the canonical payload excluding that co-signature. Before changing
-state, the private transaction verifies the account head, old root, bound
+state, the private transaction verifies the account head, old root, active
 device, and one unique current-epoch recovery envelope for each personal
 collection. It then revokes the old root and atomically installs the next
 public recovery-key version and replacement envelopes. Browser database roles
@@ -831,8 +832,8 @@ historical envelopes.
 
 ### 8. Revoking a device
 
-An active device signs revocation, clears the lost device's session binding,
-asks Auth to invalidate its session where possible, and creates new epochs for
+An active device signs revocation, asks Auth to invalidate its session where
+possible, and creates new epochs for
 every collection the device could access. It encrypts new keys only to
 remaining authorized recipients and eligible recovery keys, then uploads
 revocation, transitions, and envelopes atomically. The server sees the revoked
@@ -935,12 +936,9 @@ Public-schema vault tables require RLS and explicit grants. Browser reads use
 RLS or the bounded vault sync route; browser clients have no direct mutation
 grants. State-changing vault operations use `POST /api/vault/commands`: its
 Next.js route handler verifies the canonical command, signature, account,
-active-device/recovery authority, and matching JWT `session_id`, then invokes a
+active-device/recovery authority, and a live JWT `session_id`, then invokes a
 private transaction that enforces membership, current epoch, append-only, and
-optimistic concurrency constraints. `device-session-bind` is the narrowly
-scoped exception: it verifies an active device signature before replacing that
-device's prior session binding. This avoids relying on a deprecated
-database crypto extension for Ed25519 verification. These server checks improve
+optimistic concurrency constraints. These server checks improve
 access control and availability behavior but are not substitutes for browser
 signature or ciphertext verification. The browser performs all vault plaintext
 and private-key operations locally; no server endpoint performs decrypt/sign
@@ -950,7 +948,7 @@ The implemented encrypted write is `note-append`: bootstrap returns the current
 collection-operation head with the verified epoch envelope, and the worker
 keeps both only while unlocked. The route verifies the device command and its
 embedded immutable-revision signature before a private transaction locks the
-head, validates the bound session, owner/editor membership and current epoch,
+head, validates the live account session, active owner/editor membership and current epoch,
 then atomically appends the next immutable revision and collection ledger entry.
 
 Verified read sync is also implemented for the current single-device personal
@@ -1113,7 +1111,7 @@ retry path. Billing tables live in `private` and are exposed only to
 | Decreasing epoch/revision or non-extending log | Preserve local checkpoint and report rollback/fork suspicion. |
 | Device revoked | Deny server access and rotate every affected collection; historical access may remain. |
 | Member removed | Rotate before later writes and issue no future envelope to that member. |
-| Local or global logout | Clear relevant session bindings; do not claim that local keys or learned plaintext disappeared. |
+| Local or global logout | End account access; do not claim that local keys or learned plaintext disappeared. |
 | Lost only device | Require the recovery secret; without recovery, ciphertext is unrecoverable. |
 | Recovery secret suspected compromised | Authorize a safe device, rotate recovery version and affected epochs, and disclose limits for already covered epochs. |
 | Conflicting note write | Preserve the losing draft and require a new revision after verification/merge. |

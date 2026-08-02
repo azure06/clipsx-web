@@ -63,8 +63,7 @@ Adding a browser starts with a pending record and an approval offer. The
 approving browser verifies the SAS, writes the authorization, and shows a
 completion receipt. The pending browser polls read-only enrollment status at
 2 seconds, then 5 and 10 seconds while visible and online. Once approved it
-requires the local passkey gesture or passphrase before session binding and
-activation.
+requires the local passkey gesture or passphrase before local activation.
 
 ## Planned
 

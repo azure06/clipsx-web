@@ -48,23 +48,21 @@ insert into public.vault_devices (
   id, account_id, display_name, client_type, platform, enrollment_origin,
   key_protection_profile, client_crypto_capabilities, encryption_public_key,
   signing_public_key, encryption_algorithm, signing_algorithm, key_version,
-  status, auth_session_id
+  status
 ) values
   (
     'cccccccc-cccc-cccc-cccc-ccccccccccc1',
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', 'Owner', 'browser', 'test',
     'https://clipsx.app', 'vault-passphrase-wrapped', '{}'::jsonb,
     decode(repeat('11', 32), 'hex'), decode(repeat('12', 32), 'hex'),
-    'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active',
-    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1'
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active'
   ),
   (
     'cccccccc-cccc-cccc-cccc-ccccccccccc2',
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'Recipient', 'browser', 'test',
     'https://clipsx.app', 'vault-passphrase-wrapped', '{}'::jsonb,
     decode(repeat('21', 32), 'hex'), decode(repeat('22', 32), 'hex'),
-    'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active',
-    'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2'
+    'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active'
   );
 insert into public.vault_recovery_keys (
   id, account_id, encryption_public_key, signing_public_key, key_version,

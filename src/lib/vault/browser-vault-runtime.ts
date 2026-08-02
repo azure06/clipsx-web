@@ -88,21 +88,6 @@ export class BrowserVaultRuntime {
     return { sequence: response.sequence, accountHead: response.accountHead };
   }
 
-  async signSessionBinding(input: {
-    deviceId: string;
-    sessionId: string;
-    expectedAccountHead: Uint8Array;
-    operationId?: string;
-  }): Promise<Uint8Array> {
-    const response = await this.request({
-      id: crypto.randomUUID(), type: 'sign-session-bind', accountId: this.accountId,
-      deviceId: input.deviceId, sessionId: input.sessionId,
-      expectedAccountHead: copy(input.expectedAccountHead), operationId: input.operationId,
-    });
-    if (response.type !== 'signed-session-bind') throw new Error('Vault worker rejected session binding.');
-    return response.command;
-  }
-
   async createCollection(input: {
     deviceId: string;
     metadataTitle: string;

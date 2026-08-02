@@ -9,7 +9,7 @@ select ok((select relrowsecurity from pg_class where oid = 'public.vault_devices
 select ok((select relrowsecurity from pg_class where oid = 'public.vault_note_revisions'::regclass), 'ciphertext revisions use RLS');
 select ok(not has_table_privilege('authenticated', 'public.vault_notes', 'insert'), 'browser cannot mutate vault rows directly');
 select ok(has_function_privilege('authenticated', 'private.can_read_vault_collection(uuid,uuid)', 'execute'), 'authenticated reads can evaluate the collection RLS helper');
-select ok(has_function_privilege('authenticated', 'private.has_active_bound_vault_device(uuid,text)', 'execute'), 'authenticated reads can evaluate the bound-device RLS helper');
+select ok(to_regprocedure('private.has_active_bound_vault_device(uuid,text)') is null, 'reads do not require a persistent bound-device helper');
 select ok(not has_schema_privilege('authenticated', 'private', 'usage'), 'browser roles cannot invoke private helper SQL directly');
 select * from finish();
 rollback;

@@ -22,7 +22,7 @@ alter table private.vault_device_registration_challenges enable row level securi
 revoke all on private.vault_device_registration_challenges from public, anon, authenticated;
 
 -- Pending registrations retain only public material and the two possession
--- proofs. They cannot be used for reads, writes, bootstrap, or session binding.
+-- proofs. They cannot be used for reads, writes, bootstrap, or envelopes.
 create table private.vault_pending_device_registrations (
   device_id uuid primary key,
   account_id uuid not null references auth.users(id) on delete cascade,

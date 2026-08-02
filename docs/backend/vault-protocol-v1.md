@@ -32,9 +32,9 @@ submits registration, and reconciles an uncertain response before marking the
 record active. The same route discovers this account's local device
 record and transfers derived unlock material to the dedicated worker using the
 PRF credential or passphrase; locking releases the worker's key references.
-Initial registration binds the device to the authenticated Supabase session;
-an unlocked active device can submit the signed `device-session-bind` command
-after later account sign-in changes that session. Remaining phases add
+An authenticated account session may retrieve ciphertext for its collections;
+the local device bundle and its passkey/passphrase remain necessary to open its
+own envelopes and decrypt that ciphertext. Remaining phases add
 authorization-chain sync verification, rollback checkpoints, teardown and
 delivery hardening, deterministic fixtures, and staging acceptance.
 The current unlock flow transfers the derived unlock material to a dedicated
@@ -44,10 +44,10 @@ so `/[locale]/vault/collections` and
 `/[locale]/vault/collections/{collectionId}` can be direct links; a reload or
 new tab at either path displays the unlock gate first and resumes at that path
 after unlock. Lock, page exit, route exit, and a same-account cross-tab lock
-event zeroize the worker-held key buffers and terminate the worker. The worker can also create a
-signed session-binding command without releasing the device signing key.
-`GET /api/vault/bootstrap` now returns the bound device's current collection
-records, epoch transitions, and device envelope bytes as canonical CBOR. The
+event zeroize the worker-held key buffers and terminate the worker.
+`GET /api/vault/bootstrap?deviceId=<active-device-id>` returns the requested
+active local device's current collection records, epoch transitions, and device
+envelope bytes as canonical CBOR. The
 worker verifies their signatures and hashes, opens its own HPKE envelopes, and
 decrypts collection metadata before returning collection labels to the UI.
 The unlocked collections dashboard can create a named collection through that
@@ -186,17 +186,13 @@ UTF-8(domain-label) || 0x00 || deterministic-CBOR(record-without-signature)
 10. `signature`
 
 The command domain label is `clipsx/vault/v1/command/<operationType>`. Valid
-operations in v1 are `device-register`, `device-session-bind`,
+operations in v1 are `device-register`,
 `device-authorize`, `device-revoke`, `recovery-rotate`, `collection-create`,
 `item-append`, `item-delete`, `checkpoint-append`, `invitation-create`,
 `invitation-accept`, `invitation-confirm`, `member-add`, `member-remove`,
 `epoch-rotate`, and `epoch-envelope-grant`.
 
-`device-session-bind` is signed by an unlocked active device after an account
-sign-in creates a new Supabase session. It atomically replaces that device's
-current session binding and appends an account-log record. It is the sole
-exception to the normal requirement that a device command already match the
-bound session. `epoch-envelope-grant` is a bounded, signed delivery of an
+`epoch-envelope-grant` is a bounded, signed delivery of an
 existing epoch key to a newly authorized device or an explicitly approved
 historical member; it never changes the epoch or grants implicit history.
 
@@ -249,14 +245,14 @@ Its deterministic payload carries the proposed public keys, protection metadata,
 registration-challenge ID, and hash of the decrypted HPKE challenge. The outer
 Ed25519 signature and HPKE response are independent possession proofs. The
 server retains this as a private, 15-minute pending registration; pending
-devices have neither a public device row nor any bootstrap, sync, envelope, or
-session-binding access.
+devices have neither a public device row nor any bootstrap, sync, or envelope
+access.
 
-After QR exchange and a local comparison of the displayed SAS, a bound active
-device signs `device-authorize`. Its payload is: pending device ID, literal
+After QR exchange and a local comparison of the displayed SAS, an active device
+signs `device-authorize`. Its payload is: pending device ID, literal
 `qr-sas` method, SHA-256 SAS commitment, pending-command hash, and one signed
 HPKE envelope per current personal collection. The private transaction checks
-the account head, authorizer binding, retained proof, and exact envelope set;
+the account head, active authorizer, retained proof, and exact envelope set;
 it atomically creates the active device, evidence row, envelopes, and linked
 account operation, then deletes the pending registration. There is no
 unauthenticated or account-session-only approval fallback. The browser protects
@@ -305,7 +301,12 @@ the epoch key nor metadata plaintext. The private transaction inserts the
 collection, active owner membership, current epoch, both envelopes, and the
 first collection-log entry atomically.
 
-`GET /api/vault/bootstrap` returns the bound device and its current authorized collection records, transitions, and device envelopes in canonical CBOR. The per-collection record also includes the current 32-byte collection-operation head. The worker verifies the enclosing record and only then uses that head as the optimistic-concurrency precondition for the next command.
+`GET /api/vault/bootstrap?deviceId=<active-device-id>` returns the requested
+active device and its current authorized collection records, transitions, and
+device envelopes in canonical CBOR. The per-collection record also includes the
+current 32-byte collection-operation head. The worker verifies the enclosing
+record and only then uses that head as the optimistic-concurrency precondition
+for the next command.
 
 `GET /api/vault/account-sync` and `GET /api/vault/collections/{collectionId}/sync?after=<sequence>` return authorized account chains, collection operations, ciphertext, envelopes, and tombstones in bounded CBOR pages (`application/cbor`). The sequence is an availability cursor; clients trust only verified signed heads and local checkpoints. Synchronized pages return no plaintext, serving only canonical operation, revision, and tombstone records. The browser worker verifies the hash-linked command sequence, command signatures, revision signatures, and ciphertext hashes before unwrapping or decrypting any item.
 
@@ -364,7 +365,7 @@ draft is never reported as synchronized or durable before a `201` response.
 `item-delete` is device-signed and requires the current 32-byte
 `expectedCollectionHead`. Its two-field payload contains the note ID and exact
 current revision hash. The private transaction locks both heads, verifies the
-bound active owner/editor session, marks the note deleted, deletes its stored
+live account session and active owner/editor, marks the note deleted, deletes its stored
 revision ciphertext and wrapped revision keys, appends the signed
 `item-delete` collection operation, and stores a non-secret tombstone in the
 same transaction. A stale or repeated deletion returns `409` without a partial
@@ -436,12 +437,12 @@ work. V1 has no service worker or background sync task.
 
 ## Device revocation and epoch rotation
 
-`device-revoke` is signed by a bound active device and names the terminal
+`device-revoke` is signed by an active device and names the terminal
 device ID, non-secret reason, and one next-epoch rotation per current personal
 collection. Every rotation carries the new epoch number, membership and
 recipient commitments, signed transition, plus device and recovery envelope
-sets. The server atomically revokes the target and clears its session binding,
-supersedes each old epoch, inserts the fresh current epoch and envelope sets,
+sets. The server atomically revokes the target, supersedes each old epoch,
+inserts the fresh current epoch and envelope sets,
 then appends the account operation. The recipient sets must contain exactly all
 remaining active devices and recovery roots, never the revoked device.
 
@@ -451,7 +452,7 @@ plaintext already copied by the lost device.
 ## Recovery-root rotation
 
 `recovery-rotate` is a recovery-root-signed command with a co-signature from a
-currently session-bound active device. Its payload names a fresh recovery key
+currently active device. Its payload names a fresh recovery key
 ID, 32-byte encryption and signing public keys, and exactly one signed recovery
 envelope for the current epoch of every non-deleted personal collection. The
 active-device co-signature covers the canonical payload with its signature

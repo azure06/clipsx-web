@@ -70,11 +70,10 @@ describe('verified collection sharing', () => {
     });
     const accepted = await admitVaultCommand(
       acceptance.command,
-      { id: 'recipient-account', sessionId: 'recipient-session' },
+      { id: 'recipient-account' },
       {
         findActiveDevice: async () => ({
           signingPublicKey: recipient.publicKey,
-          boundSessionId: 'recipient-session',
         }),
         findActiveRecoveryKey: async () => null,
       },

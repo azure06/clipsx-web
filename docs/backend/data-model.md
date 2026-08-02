@@ -162,7 +162,6 @@ rather than overwriting public keys.
 | `signing_algorithm` | Named signature algorithm identifier. |
 | `key_version` | Protocol key version; never inferred from key length. |
 | `status` | `pending`, `active`, or `revoked`. |
-| `auth_session_id` | Current Supabase session binding used by RLS/RPC access checks. Initial registration sets it; a signed `device-session-bind` operation replaces it after later account sign-in. |
 | `created_at`, `last_seen_at` | Enrollment and activity metadata. |
 | `revoked_at`, `revocation_reason` | Terminal revocation audit fields. |
 
@@ -178,8 +177,8 @@ capability set, and must not use either to authorize a cryptographic downgrade.
 
 Required constraints include unique `(account_id, id)`, nonempty and distinct
 encryption/signing keys, supported algorithm/version tuples, `revoked_at`
-present only and always for `revoked`, and at most one active session binding
-per Auth session. A partial index supports active devices by account.
+present only and always for `revoked`. A partial index supports active devices
+by account.
 
 ### `device_authorizations` — DeviceAuthorization
 
@@ -245,8 +244,8 @@ phrase.
 
 ### `account_operations`
 
-Append-only signed account trust history for device session binding,
-authorization, revocation, and recovery-root rotation. Passkey-recovery wrapper
+Append-only signed account trust history for device authorization, revocation,
+and recovery-root rotation. Passkey-recovery wrapper
 lifecycle remains reserved for a future feature.
 
 | Column | Meaning |
@@ -532,12 +531,12 @@ private mutation-function execution. The transactions must enforce:
 
 `private.append_vault_note_revision` is the implemented immutable-revision
 boundary. `private.delete_vault_note` locks the collection and note heads,
-validates the active bound owner/editor, marks the note deleted, removes its
-revision ciphertext/key wraps, appends the signed operation, and inserts
+validates the active owner/editor and authenticated account session, marks the
+note deleted, removes its revision ciphertext/key wraps, appends the signed operation, and inserts
 `vault_tombstones` atomically.
 It locks the current `collection_operations` row, compares the command's
-expected head, checks active owner/editor membership, the device's current Auth
-session binding, and the collection epoch, then inserts `notes`, immutable
+expected head, checks the authenticated account session, active owner/editor
+membership, and the collection epoch, then inserts `notes`, immutable
 revision `1`, and the next operation row in one transaction. Duplicate note or
 operation IDs and any failed validation leave no partial rows.
 
@@ -562,12 +561,12 @@ revision tables. It returns canonical CBOR, never plaintext; a browser worker
 uses `canonical_payload`, operation hashes/signatures, and revision evidence to
 verify and decrypt only current personal-device records.
 
-RLS still checks account, active device, live Auth session, membership, and
-role for all browser-readable data. Browser mutation grants are revoked. RLS
-read policies use the private `can_read_vault_collection` and
-`has_active_bound_vault_device` helpers; the `authenticated` role has `EXECUTE`
-only so those policies can evaluate. It has
-no `USAGE` on the private schema and cannot call the helper directly.
+RLS checks authenticated account membership and role for browser-readable data.
+Browser mutation grants are revoked. Signed mutation transactions additionally
+check a live Auth session and active signing device. RLS read policies use the
+private `can_read_vault_collection` helper; the `authenticated` role has
+`EXECUTE` only so those policies can evaluate. It has no `USAGE` on the private
+schema and cannot call the helper directly.
 and TLS are server access controls, not cryptographic public-key authentication
 or browser-vault unlock. The server never receives enough data to reconstruct
 the browser device-key bundle.

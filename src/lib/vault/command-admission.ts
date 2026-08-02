@@ -6,20 +6,16 @@ import { decodeCanonicalCbor, decodeVaultCommand, encodeCanonicalCbor, sha256, v
 
 export const MAX_COMMAND_BYTES = 1_100_000;
 
-export type VaultCommandPrincipal = Pick<User, 'id'> & { sessionId: string };
+export type VaultCommandPrincipal = Pick<User, 'id'>;
 
-export type ActiveVaultDevice = {
-  signingPublicKey: Uint8Array;
-  boundSessionId: string | null;
-};
+export type ActiveVaultDevice = { signingPublicKey: Uint8Array };
 
 export type VaultCommandLookup = {
   findActiveDevice(id: string, accountId: string): Promise<ActiveVaultDevice | null>;
   findActiveRecoveryKey(id: string, accountId: string): Promise<Uint8Array | null>;
 };
 
-export type DeviceSessionBinding = { deviceId: string; sessionId: string };
-export type CommandAdmission = { command: VaultCommand; sessionBinding?: DeviceSessionBinding };
+export type CommandAdmission = { command: VaultCommand };
 export type CollectionCreation = {
   collectionId: string; encryptedMetadata: Uint8Array; metadataNonce: Uint8Array;
   membershipStateHash: Uint8Array; recipientSetCommitment: Uint8Array; transitionPayload: Uint8Array;
@@ -293,17 +289,5 @@ export async function admitVaultCommand(
   );
   if (!valid) throw new Error('invalid-signature');
 
-  if (command.operationType !== 'device-session-bind') {
-    if (command.authorDeviceId && device?.boundSessionId !== user.sessionId) throw new Error('unbound-session');
-    return { command };
-  }
-
-  if (!command.authorDeviceId || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) {
-    throw new Error('invalid-session-binding');
-  }
-  const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
-  if (payload.size !== 2 || text(payload, 1) !== command.authorDeviceId || text(payload, 2) !== user.sessionId) {
-    throw new Error('invalid-session-binding');
-  }
-  return { command, sessionBinding: { deviceId: command.authorDeviceId, sessionId: user.sessionId } };
+  return { command };
 }

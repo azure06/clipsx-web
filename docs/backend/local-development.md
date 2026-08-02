@@ -121,9 +121,9 @@ npm run lint
 - A user cannot select, insert, update, or delete another user's private rows.
 - A recipient cannot access a collection before accepting an invitation.
 - A removed member loses server-side access immediately.
-- A revoked device session cannot call vault RPCs.
-- A pending device cannot bootstrap, bind a session, or receive envelopes;
-  `device-authorize` requires a bound active authorizer, the expected account
+- A revoked device cannot submit signed vault RPCs.
+- A pending device cannot bootstrap or receive envelopes;
+  `device-authorize` requires an active authorizer, the expected account
   head, matching retained proof, QR/SAS commitment, and exactly the current
   personal-collection envelope set in one transaction.
 - Exercise pending enrollment with both PRF and passphrase protection. Reloading
@@ -135,9 +135,9 @@ npm run lint
 - Device revocation must fail atomically unless every personal collection has
   its next epoch and exactly the remaining active-device and recovery-root
   envelope recipients; a revoked device receives no new envelope and cannot
-  bind or submit a later command.
+  submit a later command.
 - Recovery-root rotation must require signatures from both the existing
-  recovery root and a session-bound active device, cover each current personal
+  recovery root and an active device, cover each current personal
   collection exactly once, and make no state change when validation fails.
   Verify that browser roles have no execute privilege on the private rotation
   transaction.
@@ -176,7 +176,7 @@ npm run lint
 ## Vault migration order
 
 Vault migrations are feature-owned and rebuildable: read schema/RLS, trust
-ledger, registration staging, device enrollment/session binding, device
+ledger, registration staging, device enrollment, device
 authorization/revocation, recovery rotation, collection/item content,
 collection sharing/rotation, and account sync. Do not append corrective grant
 or upgrade migrations while the schema remains pre-production; amend the owning

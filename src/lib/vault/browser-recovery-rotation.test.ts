@@ -15,7 +15,7 @@ describe('recovery root rotation', () => {
       activeDeviceId: 'device-1', activeDeviceSigningSecretKey: device.secretKey, expectedAccountHead: new Uint8Array(32).fill(5),
       epochs: [{ collectionId: 'collection-1', epochNumber: 1, key: new Uint8Array(32).fill(6) }], operationId: 'operation-1',
     });
-    const admitted = await admitVaultCommand(commandBytes, { id: 'account-1', sessionId: 'session-1' }, {
+    const admitted = await admitVaultCommand(commandBytes, { id: 'account-1' }, {
       findActiveDevice: async () => null, findActiveRecoveryKey: async () => oldRoot.publicKey,
     });
     await expect(admitRecoveryRotation(admitted.command, device.publicKey)).resolves.toMatchObject({ newRecoveryKeyId: 'new-root', activeDeviceId: 'device-1' });

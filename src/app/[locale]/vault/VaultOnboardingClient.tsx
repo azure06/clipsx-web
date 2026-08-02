@@ -615,16 +615,11 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       setQr(await QRCode.toDataURL(offer, { width: 320, margin: 2, errorCorrectionLevel: "M" }));
       const statusResponse = await fetch(`/api/vault/enrollment-status?deviceId=${encodeURIComponent(record.deviceId)}`, { cache: "no-store" });
       const status = await readVaultCborResponse(statusResponse, "Could not check device approval.");
-      const accountHead = status.get(4); const sessionId = status.get(5);
       if (status.get(3) === "active") {
-        if (!(accountHead instanceof Uint8Array) || typeof sessionId !== "string") throw new Error("Approved device state is incomplete.");
         const runtime = new BrowserVaultRuntime(accountId);
         try {
           await runtime.unlock(record, unlock);
           unlock = null;
-          const command = await runtime.signSessionBinding({ deviceId: record.deviceId, sessionId, expectedAccountHead: accountHead });
-          const binding = await fetch("/api/vault/commands", { method: "POST", headers: { "Content-Type": "application/cbor" }, body: body(command) });
-          await readVaultCborResponse(binding, "Approved device session binding was rejected.");
           const { pendingOfferCiphertext: _ciphertext, pendingOfferNonce: _nonce, ...activeRecord } = record;
           void _ciphertext; void _nonce;
           await saveBrowserDeviceRecord({ ...activeRecord, enrollmentStatus: "active", updatedAt: new Date().toISOString() });
@@ -790,7 +785,7 @@ function VaultUnlock({
   async function refreshCollections() {
     if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
     await refreshAccountSync();
-    const bootstrapResponse = await fetch("/api/vault/bootstrap", {
+    const bootstrapResponse = await fetch(`/api/vault/bootstrap?deviceId=${encodeURIComponent(record.deviceId)}`, {
       cache: "no-store",
     });
     const bootstrap = await readVaultCborResponseBytes(

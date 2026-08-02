@@ -1,7 +1,6 @@
 /// <reference lib="webworker" />
 
 import { unwrapDeviceBundle, unwrapDeviceBundleWithKey, type BrowserDeviceBundle } from './browser-onboarding';
-import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
 import { openVaultBootstrap } from './browser-vault-bootstrap';
 import { createItemAppendCommand } from './browser-note-append';
@@ -39,7 +38,7 @@ function lock() {
 }
 
 function respond(message: VaultWorkerResponse) {
-  if (message.type === 'signed-session-bind' || message.type === 'collection-created' || message.type === 'item-created' || message.type === 'item-deleted' || message.type === 'device-authorized') {
+  if (message.type === 'collection-created' || message.type === 'item-created' || message.type === 'item-deleted' || message.type === 'device-authorized') {
     self.postMessage(message, [message.command.buffer]);
     return;
   }
@@ -88,21 +87,6 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         return;
       case 'status':
         respond({ id: request.id, type: 'status', unlocked: bundle !== null });
-        return;
-      case 'sign-session-bind':
-        if (!bundle) throw new Error('Vault is locked.');
-        respond({
-          id: request.id,
-          type: 'signed-session-bind',
-          command: await createDeviceSessionBindCommand({
-            accountId: request.accountId,
-            deviceId: request.deviceId,
-            sessionId: request.sessionId,
-            expectedAccountHead: request.expectedAccountHead,
-            deviceSigningSecretKey: bundle.deviceSigningSecretKey,
-            operationId: request.operationId,
-          }),
-        });
         return;
       case 'create-collection': {
         if (!bundle || !accountHead) throw new Error('Verified account head is required before collection creation.');

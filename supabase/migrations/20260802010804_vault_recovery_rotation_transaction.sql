@@ -20,7 +20,8 @@ begin
   if not found or next_version is null or current_operation.operation_hash <> p_expected_previous_operation_hash
     or octet_length(p_new_encryption_public_key) <> 32 or octet_length(p_new_signing_public_key) <> 32 or p_new_encryption_public_key = p_new_signing_public_key
     or octet_length(p_active_device_signature) <> 64 or octet_length(p_recovery_signature) <> 64
-    or not exists (select 1 from auth.sessions s join public.vault_devices d on d.auth_session_id = s.id where s.id = p_session_id and s.user_id = p_account_id and d.id = p_active_device_id and d.status = 'active')
+    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+    or not exists (select 1 from public.vault_devices where id = p_active_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
     or jsonb_array_length(p_envelopes) <> (
       select count(*) from public.vault_collections c

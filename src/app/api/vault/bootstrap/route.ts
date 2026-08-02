@@ -1,3 +1,5 @@
+import type { NextRequest } from 'next/server';
+
 import { vaultCborError as createVaultCborError, vaultCborResponse as createVaultCborResponse } from '@/lib/vault/http';
 import type { CborValue } from '@/lib/vault/protocol';
 import { decodePostgresBytea } from '@/lib/vault/postgrest-bytea';
@@ -5,19 +7,22 @@ import { createClient, getVaultPrincipal } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
-export async function GET() {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export async function GET(request: NextRequest) {
   const requestId = crypto.randomUUID();
   const vaultCborError = (status: number, code: string) => createVaultCborError(status, code, requestId);
   const vaultCborResponse = (status: number, value: Map<number, CborValue>) => createVaultCborResponse(status, value, requestId);
   try {
     const principal = await getVaultPrincipal();
     if (!principal) return vaultCborError(401, 'unauthorized');
+    const deviceId = request.nextUrl.searchParams.get('deviceId');
+    if (!deviceId || !UUID.test(deviceId)) return vaultCborError(422, 'invalid-device-id');
     const supabase = await createClient();
-    const { data: devices, error: deviceError } = await supabase.from('vault_devices')
+    const { data: device, error: deviceError } = await supabase.from('vault_devices')
       .select('id, signing_public_key, encryption_public_key')
-      .eq('account_id', principal.user.id).eq('status', 'active').eq('auth_session_id', principal.sessionId);
+      .eq('id', deviceId).eq('account_id', principal.user.id).eq('status', 'active').maybeSingle();
     if (deviceError) throw deviceError;
-    const device = devices?.[0];
     const signingPublicKey = decodePostgresBytea(device?.signing_public_key);
     const encryptionPublicKey = decodePostgresBytea(device?.encryption_public_key);
     const { data: recoveryKeys, error: recoveryError } = await supabase.from('vault_recovery_keys').select('id, encryption_public_key').eq('account_id', principal.user.id).eq('status', 'active');
@@ -25,7 +30,7 @@ export async function GET() {
     const recovery = recoveryKeys?.[0];
     const recoveryEncryptionPublicKey = decodePostgresBytea(recovery?.encryption_public_key);
     if (!device || !signingPublicKey || !encryptionPublicKey || !recovery || !recoveryEncryptionPublicKey) {
-      return vaultCborError(403, 'unbound-session');
+      return vaultCborError(403, 'inactive-device');
     }
     const { data: accountOperations, error: accountOperationError } = await supabase.from('vault_account_operations').select('operation_hash').eq('account_id', principal.user.id).order('sequence_number', { ascending: false }).limit(1);
     if (accountOperationError) throw accountOperationError;
