@@ -25,7 +25,7 @@ bundle and non-secret unlock metadata; the recovery phrase and recovery private
 keys are not included in the local bundle.
 The browser WebAuthn helper creates a dedicated user-verifying PRF credential
 and obtains its 32-byte output only in browser memory. Recovery-phrase
-setup UI is implemented at `/[locale]/vault`: it shows the mandatory phrase
+setup UI is implemented under `/[locale]/vault`: it shows the mandatory phrase
 with an explicit offline-storage warning, selects a PRF/passphrase protection
 profile, and obtains a challenge. It stages only the encrypted device bundle,
 submits registration, and reconciles an uncertain response before marking the
@@ -39,17 +39,28 @@ authorization-chain sync verification, rollback checkpoints, teardown and
 delivery hardening, deterministic fixtures, and staging acceptance.
 The current unlock flow transfers the derived unlock material to a dedicated
 module worker, which unwraps and retains the device keys without returning them
-to React. Lock, page exit, and a same-account cross-tab lock event zeroize the
-worker-held key buffers and terminate the worker. The worker can also create a
+to React. The client vault layout owns that worker across in-vault navigation,
+so `/[locale]/vault/collections` and
+`/[locale]/vault/collections/{collectionId}` can be direct links; a reload or
+new tab at either path displays the unlock gate first and resumes at that path
+after unlock. Lock, page exit, route exit, and a same-account cross-tab lock
+event zeroize the worker-held key buffers and terminate the worker. The worker can also create a
 signed session-binding command without releasing the device signing key.
 `GET /api/vault/bootstrap` now returns the bound device's current collection
 records, epoch transitions, and device envelope bytes as canonical CBOR. The
 worker verifies their signatures and hashes, opens its own HPKE envelopes, and
 decrypts collection metadata before returning collection labels to the UI.
-The unlocked vault screen can create a named collection through that worker;
-the collection appears only after the command succeeds and the bootstrap result
-has been re-fetched and verified.
-The unlocked screen can also create an encrypted note or login. Bootstrap now
+The unlocked collections dashboard can create a named collection through that
+worker; the collection appears only after the command succeeds and the
+bootstrap result has been re-fetched and verified. The dashboard intentionally
+shows only verified decrypted collection names: bootstrap does not include
+item counts, previews, timestamps, ownership, or sharing metadata, and the UI
+does not synchronize every collection merely to fabricate them. An opened
+collection synchronizes its own items and presents the note/login workspace.
+Device approval is isolated at `/[locale]/vault/settings`.
+Collection rename and collection deletion are not implemented by v1 and are not
+presented as UI actions; they require new authenticated protocol operations.
+The collection workspace can also create an encrypted note or login. Bootstrap now
 includes each collection's authenticated operation head; the worker retains it
 with the verified current epoch key. A `note-append` command creates an
 initial or later immutable revision, binds that head (and, for a later

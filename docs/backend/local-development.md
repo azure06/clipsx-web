@@ -12,7 +12,10 @@ so `supabase db reset --local` applies migrations only.
 
 ## Local browser-vault passkeys
 
-Run the app with `npm run dev` and open `http://localhost:3000/en/vault`.
+Run the app with `npm run dev` and open `http://localhost:3000/en/vault/collections`.
+`/en/vault` redirects there. A direct collection URL such as
+`/en/vault/collections/{collectionId}` is expected to show the vault unlock
+gate after a reload, then open the requested collection once unlocked.
 The vault derives its WebAuthn relying-party ID from the active hostname, so a
 local passkey is scoped to `localhost` and cannot unlock a production vault
 record. Local development admission accepts only loopback enrollment origins;

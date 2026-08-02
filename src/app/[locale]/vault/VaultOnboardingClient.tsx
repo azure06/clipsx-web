@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import QRCode from "qrcode";
 
@@ -58,6 +58,37 @@ import {
 
 type Profile = "webauthn-prf-wrapped" | "vault-passphrase-wrapped";
 
+export type VaultCollection = { id: string; title: string };
+
+export type VaultUpdateResult =
+  | { kind: "saved"; items: VaultItemHead[] }
+  | { kind: "conflict"; conflict: NoteConflict };
+
+type VaultSession = {
+  record: BrowserDeviceRecord;
+  collections: VaultCollection[];
+  working: boolean;
+  error: string | null;
+  clearError: () => void;
+  refreshCollections: () => Promise<void>;
+  createCollection: (title: string) => Promise<string>;
+  loadItems: (collectionId: string) => Promise<VaultItemHead[]>;
+  createItem: (collectionId: string, content: VaultItemContent) => Promise<VaultItemHead[]>;
+  updateItem: (collectionId: string, item: VaultItemHead, content: VaultItemContent) => Promise<VaultUpdateResult>;
+  deleteItem: (collectionId: string, item: VaultItemHead) => Promise<VaultItemHead[]>;
+  reviewDeviceApproval: (offer: string) => Promise<{ command: Uint8Array; sas: string; deviceId: string }>;
+  approveDevice: (command: Uint8Array) => Promise<void>;
+  lock: () => Promise<void>;
+};
+
+const VaultSessionContext = createContext<VaultSession | null>(null);
+
+export function useVaultSession(): VaultSession {
+  const session = useContext(VaultSessionContext);
+  if (!session) throw new Error("Vault session is unavailable.");
+  return session;
+}
+
 function body(bytes: Uint8Array): ArrayBuffer {
   return bytes.slice().buffer as ArrayBuffer;
 }
@@ -92,7 +123,7 @@ async function readVaultPages(initialUrl: string, kind: "account" | "collection"
   throw new Error("Vault sync exceeded the supported page limit.");
 }
 
-export function VaultOnboardingClient({ accountId }: { accountId: string }) {
+export function VaultOnboardingClient({ accountId, children }: { accountId: string; children?: ReactNode }) {
   const deviceId = useMemo(() => crypto.randomUUID(), []);
   const recoveryKeyId = useMemo(() => crypto.randomUUID(), []);
   const [identity, setIdentity] = useState<BrowserVaultIdentity | null>(null);
@@ -315,7 +346,7 @@ export function VaultOnboardingClient({ accountId }: { accountId: string }) {
       />
     );
   if (existingRecord)
-    return <VaultUnlock accountId={accountId} record={existingRecord} />;
+    return <VaultUnlock accountId={accountId} record={existingRecord}>{children}</VaultUnlock>;
   if (serverHasVault) return <NewDeviceEnrollment accountId={accountId} />;
   return (
     <div className="px-4 py-24 sm:px-6">
@@ -588,9 +619,11 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
 function VaultUnlock({
   accountId,
   record,
+  children,
 }: {
   accountId: string;
   record: BrowserDeviceRecord;
+  children?: ReactNode;
 }) {
   const [passphrase, setPassphrase] = useState("");
   const [working, setWorking] = useState(false);
@@ -1040,6 +1073,157 @@ function VaultUnlock({
     } finally {
       setWorking(false);
     }
+  }
+
+  async function createVaultCollection(title: string): Promise<string> {
+    const value = title.trim();
+    if (!value) throw new Error("Enter a collection name.");
+    if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    setWorking(true);
+    setError(null);
+    try {
+      const created = await runtimeRef.current.createCollection({
+        deviceId: record.deviceId,
+        metadataTitle: value,
+      });
+      await submitCommand(created.command, "Could not create the encrypted collection.");
+      await refreshCollections();
+      return created.collectionId;
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not create the encrypted collection.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function createVaultItem(collectionId: string, content: VaultItemContent): Promise<VaultItemHead[]> {
+    if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    setWorking(true);
+    setError(null);
+    try {
+      const created = await runtimeRef.current.createNote({ deviceId: record.deviceId, collectionId, content });
+      await submitCommand(created.command, "Could not save the encrypted item.");
+      await refreshCollections();
+      return await refreshItems(collectionId);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not save the encrypted item.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function updateVaultItem(collectionId: string, item: VaultItemHead, content: VaultItemContent): Promise<VaultUpdateResult> {
+    if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    setWorking(true);
+    setError(null);
+    try {
+      const created = await runtimeRef.current.updateNote({
+        deviceId: record.deviceId,
+        collectionId,
+        noteId: item.id,
+        revisionNumber: item.revisionNumber + 1,
+        previousRevisionHash: item.revisionHash,
+        content,
+      });
+      const response = await fetch("/api/vault/commands", {
+        method: "POST",
+        headers: { "Content-Type": "application/cbor" },
+        body: body(created.command),
+      });
+      if (isStaleNoteUpdate(response.status)) {
+        await refreshCollections();
+        const refreshed = await refreshItems(collectionId);
+        const remote = refreshed.find((candidate) => candidate.id === item.id);
+        if (!remote) throw new Error("The conflicting remote item was not returned by verified sync.");
+        return { kind: "conflict", conflict: beginNoteConflict(content, remote) };
+      }
+      await readVaultCborResponse(response, "Could not update the encrypted item.");
+      await refreshCollections();
+      return { kind: "saved", items: await refreshItems(collectionId) };
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not update the encrypted item.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function deleteVaultItem(collectionId: string, item: VaultItemHead): Promise<VaultItemHead[]> {
+    if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
+    setWorking(true);
+    setError(null);
+    try {
+      const deleted = await runtimeRef.current.deleteNote({
+        deviceId: record.deviceId,
+        collectionId,
+        noteId: item.id,
+        previousRevisionHash: item.revisionHash,
+      });
+      await submitCommand(deleted.command, "Could not delete the encrypted item. Refresh and try again if it changed.");
+      await refreshCollections();
+      return await refreshItems(collectionId);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not delete the encrypted item.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function reviewVaultDeviceApproval(offer: string) {
+    if (!runtimeRef.current || !offer.trim()) throw new Error("Paste an approval offer first.");
+    setWorking(true);
+    setError(null);
+    try {
+      return await runtimeRef.current.authorizeDevice({ deviceId: record.deviceId, offer: offer.trim() });
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not verify the enrollment QR.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function approveVaultDevice(command: Uint8Array) {
+    setWorking(true);
+    setError(null);
+    try {
+      await submitCommand(command, "Device authorization was rejected.");
+      await refreshCollections();
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "Could not approve the device.";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  if (unlocked) {
+    const session: VaultSession = {
+      record,
+      collections,
+      working,
+      error,
+      clearError: () => setError(null),
+      refreshCollections,
+      createCollection: createVaultCollection,
+      loadItems: refreshItems,
+      createItem: createVaultItem,
+      updateItem: updateVaultItem,
+      deleteItem: deleteVaultItem,
+      reviewDeviceApproval: reviewVaultDeviceApproval,
+      approveDevice: approveVaultDevice,
+      lock,
+    };
+    return <VaultSessionContext.Provider value={session}>{children}</VaultSessionContext.Provider>;
   }
 
   if (unlocked)

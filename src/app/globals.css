@@ -24,3 +24,26 @@ html {
 ::selection {
   background: rgb(6 182 212 / 0.3);
 }
+
+@layer components {
+  .input-vault {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(209 213 219);
+    background: white;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .input-vault:focus {
+    outline: 2px solid rgb(6 182 212);
+    outline-offset: 1px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .input-vault {
+      border-color: rgb(255 255 255 / 0.2);
+      background: rgb(3 7 18);
+    }
+  }
+}
