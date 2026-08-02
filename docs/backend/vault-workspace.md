@@ -34,6 +34,8 @@ not rendered or transformed by the workspace.
 ## Local security settings
 
 Versioned settings are stored only in the browser vault IndexedDB database.
+The settings and browser-device stores share one coordinated schema version, so
+either store can be opened first during a browser upgrade.
 Defaults are 15-minute inactivity auto-lock and 60-second clipboard clearing.
 Page exit, explicit lock, and cross-tab lock are mandatory and cannot be
 disabled. Settings also retain editor/display preferences for progressive UI

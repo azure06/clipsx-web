@@ -25,15 +25,18 @@ export type BrowserDeviceRecord = {
 // Pre-production reset: generic encrypted items and local settings intentionally
 // start from a fresh browser vault database with no compatibility migration.
 const DATABASE_NAME = 'clipsx-vault-v2';
+const DATABASE_VERSION = 3;
 const STORE_NAME = 'browser-device-records';
+const SETTINGS_STORE_NAME = 'vault-settings';
 
 function database(): Promise<IDBDatabase> {
   if (typeof indexedDB === 'undefined') throw new Error('Vault local storage requires a browser.');
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, 1);
+    const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME, { keyPath: ['accountId', 'deviceId'] });
+      if (!db.objectStoreNames.contains(SETTINGS_STORE_NAME)) db.createObjectStore(SETTINGS_STORE_NAME, { keyPath: 'accountId' });
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error('Unable to open vault local storage.'));
