@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import QRCode from "qrcode";
+import { AlertTriangle, Copy, LockKeyhole, ShieldCheck, ShieldOff } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import {
@@ -318,13 +319,7 @@ export function VaultOnboardingClient({ accountId, children }: { accountId: stri
 
   const phrase = identity?.recoveryPhrase;
   if (existingRecord === undefined)
-    return (
-      <div className="px-4 py-24 sm:px-6">
-        <div className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-300">
-          Checking this browser’s vault device…
-        </div>
-      </div>
-    );
+    return <VaultLoadingCard />;
   if (existingRecord?.enrollmentStatus === "pending")
     return <PendingDeviceEnrollment accountId={accountId} record={existingRecord} />;
   if (existingRecord?.enrollmentStatus === "registering")
@@ -332,13 +327,7 @@ export function VaultOnboardingClient({ accountId, children }: { accountId: stri
   if (currentInspection?.failed)
     return <EnrollmentInspectionFailure />;
   if (serverHasVault === undefined)
-    return (
-      <div className="px-4 py-24 sm:px-6">
-        <div className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-300">
-          Checking this browser’s vault device…
-        </div>
-      </div>
-    );
+    return <VaultLoadingCard />;
   if (existingRecord && serverDeviceStatus !== "active")
     return (
       <StaleDeviceEnrollment
@@ -350,106 +339,18 @@ export function VaultOnboardingClient({ accountId, children }: { accountId: stri
   if (existingRecord)
     return <VaultUnlock accountId={accountId} record={existingRecord}>{children}</VaultUnlock>;
   if (serverHasVault) return <NewDeviceEnrollment accountId={accountId} />;
-  return (
-    <div className="px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-2xl space-y-8">
-        <div>
-          <p className="text-sm font-semibold text-cyan-600">Encrypted vault</p>
-          <h1 className="mt-2 font-heading text-3xl font-black">
-            Create your vault
-          </h1>
-          <p className="mt-3 text-gray-600 dark:text-gray-300">
-            Your account signs in; this separate setup creates the keys that
-            decrypt your vault.
-          </p>
-        </div>
-        <>
-            <section className="rounded-xl border border-amber-400/50 bg-amber-50 p-6 dark:bg-amber-500/10">
-              <h2 className="font-heading text-xl font-bold">
-                Save your 24-word recovery phrase
-              </h2>
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
-                Write it down offline. It is your only guaranteed recovery path
-                and is never stored in this browser bundle or sent to the
-                server. Store it somewhere safe before continuing. If you lose
-                every device and this phrase, the vault cannot be recovered.
-              </p>
-              <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-white p-4 font-mono text-sm dark:bg-gray-900 sm:grid-cols-3">
-                {phrase?.split(" ").map((word, index) => (
-                  <span key={word}>
-                    {index + 1}. {word}
-                  </span>
-                ))}
-              </div>
-            </section>
-            <section className="rounded-xl border border-gray-200 p-6 dark:border-white/10">
-              <h2 className="font-heading text-xl font-bold">
-                Protect this browser
-              </h2>
-              <label className="mt-4 flex gap-3">
-                <input
-                  type="radio"
-                  disabled={prfSupported === false}
-                  checked={profile === "webauthn-prf-wrapped"}
-                  onChange={() => setProfile("webauthn-prf-wrapped")}
-                />
-                <span>
-                  <b>Passkey (recommended)</b>
-                  <br />
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    User-verified passkey protects the local bundle.
-                    {prfSupported === false && " PRF is unavailable in this browser; use a vault passphrase."}
-                  </span>
-                </span>
-              </label>
-              <label className="mt-4 flex gap-3">
-                <input
-                  type="radio"
-                  checked={profile === "vault-passphrase-wrapped"}
-                  onChange={() => setProfile("vault-passphrase-wrapped")}
-                />
-                <span>
-                  <b>Vault passphrase</b>
-                  <br />
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    Use when this browser cannot create a PRF passkey.
-                  </span>
-                </span>
-              </label>
-              {profile === "vault-passphrase-wrapped" && (
-                <input
-                  type="password"
-                  value={passphrase}
-                  onChange={(event) => setPassphrase(event.target.value)}
-                  className="mt-4 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-                  placeholder="At least 12 characters"
-                  autoComplete="new-password"
-                />
-              )}
-            </section>
-            {error && (
-              <p
-                role="alert"
-                className="text-sm text-red-600 dark:text-red-400"
-              >
-                {error}
-              </p>
-            )}
-            <Button loading={working} onClick={enroll}>
-              Create encrypted vault
-            </Button>
-        </>
-      </div>
-    </div>
-  );
+  return <CreateVaultScreen phrase={phrase} profile={profile} setProfile={setProfile} passphrase={passphrase} setPassphrase={setPassphrase} prfSupported={prfSupported} error={error} working={working} onEnroll={enroll} />;
 }
 
 function EnrollmentInspectionFailure() {
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
-    <h1 className="font-heading text-3xl font-black">Could not inspect your vault</h1>
-    <p className="text-sm">Vault setup is blocked until the server state can be checked. This prevents accidentally creating a second recovery root.</p>
-    <Button onClick={() => window.location.reload()}>Try again</Button>
-  </div></div>;
+  return (
+    <EnrollmentErrorCard
+      variant="error"
+      heading="Could not inspect your vault"
+      description="Vault setup is blocked until the server state can be checked. This prevents accidentally creating a second recovery root."
+      action={<Button onClick={() => window.location.reload()}>Try again</Button>}
+    />
+  );
 }
 
 function StaleDeviceEnrollment({ accountId, record, serverHasVault }: { accountId: string; record: BrowserDeviceRecord; serverHasVault: boolean }) {
@@ -468,16 +369,19 @@ function StaleDeviceEnrollment({ accountId, record, serverHasVault }: { accountI
     }
   }
 
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
-    <h1 className="font-heading text-3xl font-black">This browser is no longer registered</h1>
-    <p className="text-sm">
-      {serverHasVault
-        ? "The encrypted local keys do not belong to an active server device. Remove this local record, then approve this browser as a new device."
-        : "The server vault was reset, but this browser still has its old encrypted device record. Remove it before creating a fresh vault."}
-    </p>
-    <Button loading={working} onClick={removeStaleRecord}>Remove local device record</Button>
-    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-  </div></div>;
+  return (
+    <EnrollmentErrorCard
+      variant="warning"
+      heading="This browser is no longer registered"
+      description={
+        serverHasVault
+          ? "The encrypted local keys do not belong to an active server device. Remove this local record, then approve this browser as a new device."
+          : "The server vault was reset, but this browser still has its old encrypted device record. Remove it before creating a fresh vault."
+      }
+      error={error}
+      action={<Button loading={working} onClick={removeStaleRecord}>Remove local device record</Button>}
+    />
+  );
 }
 
 function RegisteringDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
@@ -502,12 +406,15 @@ function RegisteringDeviceEnrollment({ accountId, record }: { accountId: string;
     }
   }
 
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6">
-    <h1 className="font-heading text-3xl font-black">Finish vault registration</h1>
-    <p className="text-sm">The encrypted browser bundle was saved, but the last server response was incomplete. Check the authoritative registration state before retrying.</p>
-    <Button loading={working} onClick={reconcile}>Check registration</Button>
-    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-  </div></div>;
+  return (
+    <EnrollmentErrorCard
+      variant="warning"
+      heading="Finish vault registration"
+      description="The encrypted browser bundle was saved, but the last server response was incomplete. Check the authoritative registration state before retrying."
+      error={error}
+      action={<Button loading={working} onClick={reconcile}>Check registration</Button>}
+    />
+  );
 }
 
 function NewDeviceEnrollment({ accountId }: { accountId: string }) {
@@ -576,10 +483,54 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
     }
     finally { unlock?.fill(0); setWorking(false); }
   }
-  return <div className="px-4 py-24 sm:px-6"><div className="mx-auto max-w-xl space-y-5 rounded-xl border border-gray-200 p-6 dark:border-white/10"><h1 className="font-heading text-3xl font-black">Approve this browser</h1><p className="text-sm">Protect its new local key bundle first, then scan the QR with an already unlocked device and compare the SAS.</p>
-    {!qr && <><label className="flex gap-2"><input type="radio" disabled={prfSupported === false} checked={profile === "webauthn-prf-wrapped"} onChange={() => setProfile("webauthn-prf-wrapped")} />Vault passkey</label>{prfSupported === false && <p className="text-sm text-amber-700">Passkey PRF is unavailable here. Use a vault passphrase.</p>}<label className="flex gap-2"><input type="radio" checked={profile === "vault-passphrase-wrapped"} onChange={() => setProfile("vault-passphrase-wrapped")} />Vault passphrase</label>{profile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} className="w-full rounded-lg border px-3 py-2" autoComplete="new-password" />}<Button loading={working} onClick={begin}>Create approval QR</Button></>}
-    {qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="text-xs text-gray-600">Use this when both vault devices are desktop browsers.</p><p>SAS</p><p className="font-mono text-3xl font-black tracking-widest">{sas}</p><p className="text-sm">Keep this page open until the existing device confirms approval.</p></div>}
-    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}</div></div>;
+  return (
+    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+      <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--vault-accent)">Encrypted vault</p>
+            <h1 className="font-heading text-2xl font-bold">Approve this browser</h1>
+          </div>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Protect this browser's new local key bundle first, then scan the QR code with an already-unlocked device and compare the security code.
+        </p>
+        {!qr && (
+          <div className="space-y-5">
+            <UnlockMethodCards
+              profile={profile}
+              setProfile={setProfile}
+              prfSupported={prfSupported}
+              passphrase={passphrase}
+              setPassphrase={setPassphrase}
+              passphraseLabel="New vault passphrase"
+              passphraseAutoComplete="new-password"
+            />
+            {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+            <Button className="w-full" loading={working} onClick={begin}>Create approval QR</Button>
+          </div>
+        )}
+        {qr && (
+          <div className="space-y-5 text-center">
+            <Image src={qr} width={280} height={280} unoptimized alt="Pending vault device approval QR" className="mx-auto rounded-xl border border-(--vault-border)" />
+            <Button variant="secondary" size="sm" onClick={() => void navigator.clipboard.writeText(offer)}>
+              <Copy size={14} /> Copy approval offer
+            </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Use "Copy approval offer" when both devices are desktop browsers without cameras.</p>
+            <div className="rounded-xl border border-(--vault-border) bg-(--vault-muted)/60 p-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Security code (SAS)</p>
+              <p className="mt-2 font-mono text-3xl font-black tracking-widest text-(--vault-accent)">{sas}</p>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Keep this page open until the existing device confirms the code matches.</p>
+            </div>
+            {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function PendingDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
@@ -628,7 +579,54 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not restore approval."); } finally { unlock?.fill(0); setWorking(false); }
   }
-  return <div className="px-4 py-24"><div className="mx-auto max-w-xl space-y-4 rounded-xl border p-6"><h1 className="font-heading text-3xl font-black">Add browser</h1><p className="text-sm text-slate-600 dark:text-slate-300">{approved ? "Approved. Confirm your local unlock method to finish binding this browser." : "Waiting for approval from an existing browser. This page checks automatically while it is open."}</p>{record.protectionProfile === "vault-passphrase-wrapped" && <input type="password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} className="w-full rounded-lg border px-3 py-2" />}<Button loading={working} onClick={restore}>{approved ? "Unlock and finish" : "Show approval QR"}</Button>{qr && <div className="space-y-3 text-center"><Image src={qr} width={320} height={320} unoptimized alt="Pending vault device approval QR" className="mx-auto" /><Button onClick={() => void navigator.clipboard.writeText(offer)}>Copy approval offer</Button><p className="font-mono text-3xl font-black tracking-widest">{sas}</p></div>}{error && <p role="alert" className="text-red-600">{error}</p>}</div></div>;
+  return (
+    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+      <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--vault-accent)">Encrypted vault</p>
+            <h1 className="font-heading text-2xl font-bold">Add browser</h1>
+          </div>
+        </div>
+        <div className={`rounded-lg border px-4 py-3 text-sm ${approved ? "border-emerald-500/30 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "border-(--vault-border) bg-(--vault-muted)/40 text-gray-600 dark:text-gray-300"}`}>
+          {approved
+            ? "Approved. Confirm your local unlock method to finish binding this browser."
+            : "Waiting for approval from an existing browser. This page checks automatically while it is open."}
+        </div>
+        {record.protectionProfile === "vault-passphrase-wrapped" && (
+          <label className="block text-sm font-medium">
+            Vault passphrase
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              className="input-vault mt-1.5"
+              autoComplete="current-password"
+            />
+          </label>
+        )}
+        <Button className="w-full" loading={working} onClick={restore}>
+          {approved ? "Unlock and finish" : "Show approval QR"}
+        </Button>
+        {qr && (
+          <div className="space-y-4 text-center">
+            <Image src={qr} width={280} height={280} unoptimized alt="Pending vault device approval QR" className="mx-auto rounded-xl border border-(--vault-border)" />
+            <Button variant="secondary" size="sm" onClick={() => void navigator.clipboard.writeText(offer)}>
+              <Copy size={14} /> Copy approval offer
+            </Button>
+            <div className="rounded-xl border border-(--vault-border) bg-(--vault-muted)/60 p-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Security code (SAS)</p>
+              <p className="mt-2 font-mono text-3xl font-black tracking-widest text-(--vault-accent)">{sas}</p>
+            </div>
+          </div>
+        )}
+        {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      </div>
+    </div>
+  );
 }
 
 function VaultUnlock({
@@ -1334,304 +1332,59 @@ function VaultUnlock({
     return <VaultSessionContext.Provider value={session}>{children}</VaultSessionContext.Provider>;
   }
 
-  if (unlocked)
-    return (
-      <div className="px-4 py-24 sm:px-6">
-        <div className="mx-auto max-w-2xl rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-6">
-          <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-            Vault unlocked
-          </p>
-          <h1 className="mt-2 font-heading text-3xl font-black">
-            Your collections
-          </h1>
-          <p className="mt-3 text-sm text-gray-700 dark:text-gray-200">
-            Collection names and saved-item plaintext are decrypted and
-            encrypted only inside the vault worker.
-          </p>
-          <div className="mt-5 flex gap-2">
-            <input
-              value={collectionTitle}
-              onChange={(event) => setCollectionTitle(event.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-              placeholder="Collection name"
-              maxLength={128}
-            />
-            <Button loading={working} onClick={createCollection}>
-              Create collection
-            </Button>
-          </div>
-          <section className="mt-5 space-y-3 rounded-lg border border-emerald-500/30 bg-white/50 p-4 dark:bg-gray-900/50">
-            <h2 className="font-semibold">Save encrypted item</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <select
-                value={selectedCollectionId}
-                onChange={(event) => {
-                  setSelectedCollectionId(event.target.value);
-                  clearPlaintext();
-                }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-              >
-                <option value="">Choose collection</option>
-                {collections.map((collection) => (
-                  <option key={collection.id} value={collection.id}>
-                    {collection.title}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={itemType}
-                onChange={(event) =>
-                  setItemType(event.target.value as "note" | "login")
-                }
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-              >
-                <option value="note">Note</option>
-                <option value="login">Login</option>
-              </select>
-            </div>
-            <input
-              value={itemTitle}
-              onChange={(event) => setItemTitle(event.target.value)}
-              placeholder="Title"
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-            />
-            {itemType === "note" ? (
-              <textarea
-                value={itemBody}
-                onChange={(event) => setItemBody(event.target.value)}
-                placeholder="Note"
-                className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-              />
-            ) : (
-              <>
-                <input
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="Username"
-                  autoComplete="off"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Password"
-                  autoComplete="new-password"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-                />
-                <input
-                  value={url}
-                  onChange={(event) => setUrl(event.target.value)}
-                  placeholder="URL (optional)"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-                />
-              </>
-            )}
-            <Button loading={working} onClick={createItem}>
-              Save encrypted {itemType}
-            </Button>
-          </section>
-          <Button
-            className="mt-5"
-            variant="outline"
-            onClick={() =>
-              void refreshItems().catch((caught) =>
-                setError(
-                  caught instanceof Error
-                    ? caught.message
-                    : "Could not sync encrypted items.",
-                ),
-              )
-            }
-          >
-            Refresh encrypted items
-          </Button>
-          <ul className="mt-3 space-y-2">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                className="rounded-lg border border-emerald-500/30 bg-white/50 p-3 dark:bg-gray-900/50"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <b>{item.title}</b>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setEditing(item);
-                        setDraft(itemContent(item));
-                        setConflict(null);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      loading={working}
-                      onClick={() => void deleteItem(item)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap text-sm">
-                  {item.type === "note"
-                    ? item.body
-                    : `${item.username} · ${item.password}`}
-                </p>
-              </li>
-            ))}
-          </ul>
-          {editing && draft && (
-            <section className="mt-5 space-y-3 rounded-lg border border-cyan-500/40 bg-white/50 p-4 dark:bg-gray-900/50">
-              <h2 className="font-semibold">Edit encrypted item</h2>
-              <VaultItemEditor value={draft} onChange={setDraft} />
-              <div className="flex gap-2">
-                <Button loading={working} onClick={saveEdit}>
-                  Save new revision
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(null);
-                    setDraft(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </section>
-          )}
-          {conflict && (
-            <section className="mt-5 space-y-3 rounded-lg border border-amber-500/50 bg-amber-50 p-4 dark:bg-amber-500/10">
-              <h2 className="font-semibold">Update conflict</h2>
-              <p className="text-sm">
-                A verified remote revision was accepted first. Your draft is
-                held only in this page’s memory and will be lost if you lock,
-                leave, or close this page.
-              </p>
-              <div className="rounded border border-amber-500/30 p-3 text-sm">
-                <b>Verified remote: {conflict.remote.title}</b>
-                <p className="whitespace-pre-wrap">
-                  {conflict.remote.type === "note"
-                    ? conflict.remote.body
-                    : `${conflict.remote.username} · ${conflict.remote.password}`}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    keepRemoteResolution();
-                    setConflict(null);
-                    setMergeDraft(null);
-                  }}
-                >
-                  Keep remote
-                </Button>
-                <Button loading={working} onClick={reapplyConflict}>
-                  Reapply local
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setMergeDraft(itemContent(conflict.local))}
-                >
-                  Manual merge
-                </Button>
-              </div>
-              {mergeDraft && (
-                <div className="space-y-3 rounded border border-amber-500/30 p-3">
-                  <p className="text-sm">
-                    Edit the merged fields, then save a fresh revision from the
-                    verified remote head.
-                  </p>
-                  <VaultItemEditor
-                    value={mergeDraft}
-                    onChange={setMergeDraft}
-                  />
-                  <Button loading={working} onClick={saveManualMerge}>
-                    Save merged revision
-                  </Button>
-                </div>
-              )}
-            </section>
-          )}
-          <DeviceApproval
-            offer={deviceOffer}
-            onOffer={setDeviceOffer}
-            approval={deviceApproval}
-            confirmed={sasConfirmed}
-            onConfirmed={setSasConfirmed}
-            working={working}
-            onReview={() => void reviewDeviceApproval()}
-            onApprove={() => void approveDevice()}
-          />
-          {error && (
-            <p
-              role="alert"
-              className="mt-3 text-sm text-red-600 dark:text-red-400"
-            >
-              {error}
-            </p>
-          )}
-          <ul className="mt-5 space-y-2">
-            {collections.length === 0 ? (
-              <li className="text-sm text-gray-600 dark:text-gray-300">
-                No encrypted collections yet.
-              </li>
-            ) : (
-              collections.map((collection) => (
-                <li
-                  key={collection.id}
-                  className="rounded-lg border border-emerald-500/30 bg-white/50 px-4 py-3 font-medium dark:bg-gray-900/50"
-                >
-                  {collection.title}
-                </li>
-              ))
-            )}
-          </ul>
-          <Button
-            className="mt-6"
-            variant="outline"
-            loading={working}
-            onClick={lock}
-          >
-            Lock vault
-          </Button>
-        </div>
-      </div>
-    );
+  const selectedSlotKind = record.unlockSlots?.find((s) => s.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase");
   return (
-    <div className="px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-xl rounded-xl border border-gray-200 p-6 dark:border-white/10">
-        <p className="text-sm font-semibold text-cyan-600">Encrypted vault</p>
-        <h1 className="mt-2 font-heading text-3xl font-black">
-          Unlock your vault
-        </h1>
-        <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-          {(record.unlockSlots?.find((slot) => slot.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase")) === "passkey"
-            ? "Confirm with the dedicated vault passkey on this browser."
-            : "Enter this browser’s vault passphrase."}
-        </p>
-        {(record.unlockSlots?.length ?? 0) > 1 && <div className="mt-4 flex gap-2">{record.unlockSlots!.map((slot) => <button key={slot.id} type="button" onClick={() => { setSelectedSlotId(slot.id); setPassphrase(""); }} className={`rounded-lg px-3 py-2 text-sm ${slot.id === selectedSlotId ? "bg-cyan-600 text-white" : "bg-slate-100 dark:bg-white/10"}`}>{slot.kind === "passkey" ? "Passkey" : "Passphrase"}</button>)}</div>}
-        {(record.unlockSlots?.find((slot) => slot.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase")) === "passphrase" && (
-          <input
-            type="password"
-            value={passphrase}
-            onChange={(event) => setPassphrase(event.target.value)}
-            className="mt-5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-            autoComplete="current-password"
-          />
+    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg shadow-(--vault-accent)/5">
+        <div className="text-center">
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-(--vault-accent-subtle) text-(--vault-accent) ring-1 ring-(--vault-accent)/20">
+            <LockKeyhole size={24} />
+          </div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--vault-accent)">Encrypted vault</p>
+          <h1 className="mt-1 font-heading text-2xl font-bold">Unlock your vault</h1>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+            {selectedSlotKind === "passkey"
+              ? "Confirm with the dedicated vault passkey on this browser."
+              : "Enter this browser’s vault passphrase."}
+          </p>
+        </div>
+        {(record.unlockSlots?.length ?? 0) > 1 && (
+          <div className="flex gap-2">
+            {record.unlockSlots!.map((slot) => (
+              <button
+                key={slot.id}
+                type="button"
+                onClick={() => { setSelectedSlotId(slot.id); setPassphrase(""); }}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${slot.id === selectedSlotId ? "bg-(--vault-accent) text-white" : "bg-(--vault-muted) text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+              >
+                {slot.kind === "passkey" ? "Passkey" : "Passphrase"}
+              </button>
+            ))}
+          </div>
+        )}
+        {selectedSlotKind === "passphrase" && (
+          <label className="block text-sm font-medium">
+            Vault passphrase
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(event) => setPassphrase(event.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") void unlock(); }}
+              className="input-vault mt-1.5"
+              autoComplete="current-password"
+              autoFocus
+            />
+          </label>
         )}
         {error && (
           <p
             role="alert"
-            className="mt-4 text-sm text-red-600 dark:text-red-400"
+            className="text-sm text-red-600 dark:text-red-400"
           >
             {error}
           </p>
         )}
-        <Button className="mt-6" loading={working} onClick={unlock}>
+        <Button className="w-full" loading={working} onClick={unlock}>
           Unlock vault
         </Button>
       </div>
@@ -1639,79 +1392,229 @@ function VaultUnlock({
   );
 }
 
-function DeviceApproval({
-  offer, onOffer, approval, confirmed, onConfirmed, working, onReview, onApprove,
-}: {
-  offer: string; onOffer: (value: string) => void;
-  approval: { command: Uint8Array; sas: string; deviceId: string } | null;
-  confirmed: boolean; onConfirmed: (value: boolean) => void; working: boolean;
-  onReview: () => void; onApprove: () => void;
-}) {
+// ─── Shared UI helpers ───────────────────────────────────────────────────────
+
+function VaultLoadingCard() {
   return (
-    <section className="mt-6 space-y-3 rounded-lg border border-cyan-500/40 bg-white/50 p-4 dark:bg-gray-900/50">
-      <h2 className="font-semibold">Approve another browser</h2>
-      <p className="text-sm">Scan the QR on the new browser, or paste its QR payload here. Approval requires comparing the SAS on both screens.</p>
-      <textarea value={offer} onChange={(event) => onOffer(event.target.value)} className="min-h-20 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-mono text-xs dark:border-white/20 dark:bg-white/5" autoComplete="off" spellCheck={false} placeholder="Enrollment QR payload" />
-      <Button variant="outline" loading={working} onClick={onReview}>Verify QR</Button>
-      {approval && <div className="space-y-3 rounded-lg border border-amber-500/40 bg-amber-50 p-4 dark:bg-amber-500/10">
-        <p className="text-sm">Compare this code with the new browser:</p>
-        <p className="font-mono text-2xl font-black tracking-widest">{approval.sas}</p>
-        <label className="flex gap-2 text-sm"><input type="checkbox" checked={confirmed} onChange={(event) => onConfirmed(event.target.checked)} />Both screens show the same SAS and I recognize this browser.</label>
-        <Button loading={working} disabled={!confirmed} onClick={onApprove}>Authorize device and deliver current keys</Button>
-      </div>}
-    </section>
+    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-(--vault-border) bg-(--vault-surface) px-10 py-10 shadow-lg">
+        <div className="relative grid h-14 w-14 place-items-center rounded-2xl bg-(--vault-accent-subtle)">
+          <LockKeyhole size={24} className="text-(--vault-accent) animate-pulse" />
+        </div>
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Checking vault device…</p>
+        <div className="flex gap-1.5">
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--vault-accent) [animation-delay:0ms]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--vault-accent) [animation-delay:150ms]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-(--vault-accent) [animation-delay:300ms]" />
+        </div>
+      </div>
+    </div>
   );
 }
 
-function VaultItemEditor({
-  value,
-  onChange,
+function EnrollmentErrorCard({
+  variant,
+  heading,
+  description,
+  error,
+  action,
 }: {
-  value: VaultItemContent;
-  onChange: (value: VaultItemContent) => void;
+  variant: "error" | "warning";
+  heading: string;
+  description: string;
+  error?: string | null;
+  action: ReactNode;
 }) {
-  const change = (patch: Partial<VaultItemContent>) =>
-    onChange({ ...value, ...patch });
+  const isError = variant === "error";
   return (
-    <>
-      <input
-        value={value.title}
-        onChange={(event) => change({ title: event.target.value })}
-        placeholder="Title"
-        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-      />
-      {value.type === "note" ? (
-        <textarea
-          value={value.body ?? ""}
-          onChange={(event) => change({ body: event.target.value })}
-          placeholder="Note"
-          className="min-h-24 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-        />
-      ) : (
-        <>
-          <input
-            value={value.username ?? ""}
-            onChange={(event) => change({ username: event.target.value })}
-            placeholder="Username"
-            autoComplete="off"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-          />
+    <div className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-16 sm:px-6">
+      <div className="w-full max-w-lg space-y-5 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ring-1 ${isError ? "bg-red-500/10 text-red-600 ring-red-500/20 dark:text-red-400" : "bg-amber-500/10 text-amber-600 ring-amber-500/20 dark:text-amber-400"}`}>
+            {isError ? <ShieldOff size={20} /> : <AlertTriangle size={20} />}
+          </div>
+          <h1 className="font-heading text-xl font-bold">{heading}</h1>
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-300">{description}</p>
+        {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {action}
+      </div>
+    </div>
+  );
+}
+
+function UnlockMethodCards({
+  profile,
+  setProfile,
+  prfSupported,
+  passphrase,
+  setPassphrase,
+  passphraseLabel = "Vault passphrase",
+  passphraseAutoComplete = "current-password",
+}: {
+  profile: Profile;
+  setProfile: (p: Profile) => void;
+  prfSupported: boolean | null;
+  passphrase: string;
+  setPassphrase: (v: string) => void;
+  passphraseLabel?: string;
+  passphraseAutoComplete?: string;
+}) {
+  return (
+    <div className="space-y-3">
+      <button
+        type="button"
+        disabled={prfSupported === false}
+        onClick={() => setProfile("webauthn-prf-wrapped")}
+        className={`w-full rounded-xl border p-4 text-left transition-colors ${profile === "webauthn-prf-wrapped" ? "border-(--vault-accent) bg-(--vault-accent-subtle) ring-1 ring-(--vault-accent)/30" : "border-(--vault-border) hover:border-(--vault-accent)/40"} disabled:cursor-not-allowed disabled:opacity-50`}
+      >
+        <p className="font-semibold text-sm">Passkey <span className="ml-1.5 rounded-full bg-(--vault-accent-subtle) px-2 py-0.5 text-xs font-medium text-(--vault-accent)">Recommended</span></p>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {prfSupported === false ? "Passkey PRF is unavailable in this browser." : "User-verified passkey protects the local bundle."}
+        </p>
+      </button>
+      <button
+        type="button"
+        onClick={() => setProfile("vault-passphrase-wrapped")}
+        className={`w-full rounded-xl border p-4 text-left transition-colors ${profile === "vault-passphrase-wrapped" ? "border-(--vault-accent) bg-(--vault-accent-subtle) ring-1 ring-(--vault-accent)/30" : "border-(--vault-border) hover:border-(--vault-accent)/40"}`}
+      >
+        <p className="font-semibold text-sm">Vault passphrase</p>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Use when this browser cannot create a PRF passkey.</p>
+      </button>
+      {profile === "vault-passphrase-wrapped" && (
+        <label className="block text-sm font-medium">
+          {passphraseLabel}
           <input
             type="password"
-            value={value.password ?? ""}
-            onChange={(event) => change({ password: event.target.value })}
-            placeholder="Password"
-            autoComplete="new-password"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
+            value={passphrase}
+            onChange={(e) => setPassphrase(e.target.value)}
+            className="input-vault mt-1.5"
+            placeholder="At least 12 characters"
+            autoComplete={passphraseAutoComplete}
+            autoFocus
           />
-          <input
-            value={value.url ?? ""}
-            onChange={(event) => change({ url: event.target.value })}
-            placeholder="URL (optional)"
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-white/20 dark:bg-white/5"
-          />
-        </>
+          {passphrase.length > 0 && (
+            <PassphraseStrength passphrase={passphrase} />
+          )}
+        </label>
       )}
-    </>
+    </div>
+  );
+}
+
+function PassphraseStrength({ passphrase }: { passphrase: string }) {
+  const len = passphrase.length;
+  const strength = len < 12 ? 0 : len < 16 ? 1 : len < 24 ? 2 : 3;
+  const labels = ["Too short", "Fair", "Good", "Strong"];
+  const colors = ["bg-red-500", "bg-amber-400", "bg-cyan-400", "bg-emerald-500"];
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <div className="flex flex-1 gap-1">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= strength ? colors[strength] : "bg-gray-200 dark:bg-white/10"}`} />
+        ))}
+      </div>
+      <span className="text-xs text-gray-500 dark:text-gray-400">{labels[strength]}</span>
+    </div>
+  );
+}
+
+function CreateVaultScreen({
+  phrase,
+  profile,
+  setProfile,
+  passphrase,
+  setPassphrase,
+  prfSupported,
+  error,
+  working,
+  onEnroll,
+}: {
+  phrase?: string;
+  profile: Profile;
+  setProfile: (p: Profile) => void;
+  passphrase: string;
+  setPassphrase: (v: string) => void;
+  prfSupported: boolean | null;
+  error: string | null;
+  working: boolean;
+  onEnroll: () => void;
+}) {
+  const [phraseConfirmed, setPhraseConfirmed] = useState(false);
+  const words = phrase?.split(" ") ?? [];
+
+  return (
+    <div className="px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-2xl space-y-8">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-(--vault-accent)">Encrypted vault</p>
+          <h1 className="mt-2 font-heading text-3xl font-black">Create your vault</h1>
+          <p className="mt-3 text-gray-600 dark:text-gray-300">
+            Your account signs in; this separate setup creates the keys that decrypt your vault.
+          </p>
+        </div>
+
+        <section className="rounded-xl border border-amber-400/50 bg-amber-50 p-6 dark:bg-amber-500/10">
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="font-heading text-xl font-bold">Save your 24-word recovery phrase</h2>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => void navigator.clipboard.writeText(phrase ?? "")}
+            >
+              <Copy size={14} /> Copy
+            </Button>
+          </div>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-200">
+            Write it down offline. It is your only guaranteed recovery path and is never stored in this browser bundle or sent to the server.
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-white p-4 dark:bg-gray-900">
+            {words.map((word, index) => (
+              <div key={word} className="flex items-center gap-1.5 rounded-lg border border-(--vault-border) px-2 py-1.5 font-mono text-sm">
+                <span className="w-5 text-right text-xs text-gray-400 dark:text-gray-500">{index + 1}.</span>
+                <span>{word}</span>
+              </div>
+            ))}
+          </div>
+          <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-sm font-medium">
+            <input
+              type="checkbox"
+              checked={phraseConfirmed}
+              onChange={(e) => setPhraseConfirmed(e.target.checked)}
+              className="h-4 w-4 rounded border border-(--vault-border) checked:accent-cyan-600 cursor-pointer"
+            />
+            I have written down my recovery phrase in a safe place.
+          </label>
+        </section>
+
+        <section className="rounded-xl border border-(--vault-border) p-6">
+          <h2 className="font-heading text-xl font-bold">Protect this browser</h2>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Choose how to unlock the vault on this browser.</p>
+          <div className="mt-5">
+            <UnlockMethodCards
+              profile={profile}
+              setProfile={setProfile}
+              prfSupported={prfSupported}
+              passphrase={passphrase}
+              setPassphrase={setPassphrase}
+              passphraseLabel="New vault passphrase"
+              passphraseAutoComplete="new-password"
+            />
+          </div>
+        </section>
+
+        {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <Button
+          loading={working}
+          disabled={!phraseConfirmed}
+          onClick={onEnroll}
+          className="w-full sm:w-auto"
+          onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") onEnroll(); }}
+        >
+          {working ? "Creating vault…" : "Create encrypted vault"}
+        </Button>
+      </div>
+    </div>
   );
 }

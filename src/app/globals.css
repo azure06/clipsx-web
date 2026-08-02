@@ -14,6 +14,8 @@
     --vault-surface: #ffffff;
     --vault-muted: #f1f5f9;
     --vault-border: rgb(148 163 184 / 0.35);
+    --vault-accent: #0891b2;
+    --vault-accent-subtle: rgb(8 145 178 / 0.1);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -22,6 +24,8 @@
       --vault-surface: #202b40;
       --vault-muted: #27344b;
       --vault-border: rgb(203 213 225 / 0.16);
+      --vault-accent: #22d3ee;
+      --vault-accent-subtle: rgb(34 211 238 / 0.1);
     }
   }
 }
@@ -46,10 +50,12 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
   .input-vault {
     width: 100%;
     border-radius: 0.5rem;
-    border: 1px solid rgb(209 213 219);
-    background: white;
+    border: 1px solid var(--vault-border);
+    background: var(--vault-surface);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+    color: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   .vault-panel {
@@ -59,14 +65,8 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
   }
 
   .input-vault:focus {
-    outline: 2px solid rgb(6 182 212);
-    outline-offset: 1px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .input-vault {
-      border-color: rgb(255 255 255 / 0.2);
-      background: rgb(3 7 18);
-    }
+    outline: none;
+    border-color: var(--vault-accent);
+    box-shadow: 0 0 0 2px var(--vault-accent-subtle);
   }
 }
