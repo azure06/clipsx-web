@@ -11,3 +11,13 @@ export function filterVaultItems(items: VaultItemHead[], query: string, filter: 
     return searchable.toLocaleLowerCase().includes(normalized);
   });
 }
+
+export type VaultItemSort = "updated" | "created" | "title";
+
+export function sortVaultItems(items: VaultItemHead[], sort: VaultItemSort): VaultItemHead[] {
+  return [...items].sort((left, right) => {
+    if (sort === "title") return left.title.localeCompare(right.title, undefined, { sensitivity: "base" });
+    const field = sort === "updated" ? "updatedAt" : "createdAt";
+    return (right[field] ?? "").localeCompare(left[field] ?? "");
+  });
+}

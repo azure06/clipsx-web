@@ -5,6 +5,7 @@ export type VaultItemHead = VaultItemContent & {
   id: string;
   revisionNumber: number;
   revisionHash: Uint8Array;
+  authorDeviceId?: string;
 };
 
 export type NoteConflict = {
