@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { unwrapDeviceBundle, type BrowserDeviceBundle } from './browser-onboarding';
+import { unwrapDeviceBundle, unwrapDeviceBundleWithKey, type BrowserDeviceBundle } from './browser-onboarding';
 import { createDeviceSessionBindCommand } from './browser-session-binding';
 import { createCollectionCommand } from './browser-collection-create';
 import { openVaultBootstrap } from './browser-vault-bootstrap';
@@ -53,15 +53,12 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
       case 'unlock': {
         lock();
         try {
-          bundle = await unwrapDeviceBundle(
-            request.unlockMaterial,
-            request.accountId,
-            request.deviceId,
-            request.bundleSalt,
-            { nonce: request.bundleNonce, ciphertext: request.encryptedBundle },
-          );
+          bundle = request.bundleKey
+            ? await unwrapDeviceBundleWithKey(request.bundleKey, request.accountId, request.deviceId, { nonce: request.bundleNonce, ciphertext: request.encryptedBundle })
+            : await unwrapDeviceBundle(request.unlockMaterial, request.accountId, request.deviceId, request.bundleSalt, { nonce: request.bundleNonce, ciphertext: request.encryptedBundle });
         } finally {
           wipe(request.unlockMaterial);
+          wipe(request.bundleKey);
         }
         respond({ id: request.id, type: 'unlocked' });
         return;

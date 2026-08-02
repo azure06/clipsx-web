@@ -92,3 +92,15 @@ export async function unwrapDeviceBundle(
   }
   return { deviceEncryptionSecretKey: encryption, deviceSigningSecretKey: signing };
 }
+
+export async function unwrapDeviceBundleWithKey(
+  bundleKey: Uint8Array,
+  accountId: string,
+  deviceId: string,
+  encrypted: AesGcmCiphertext,
+): Promise<BrowserDeviceBundle> {
+  const record = decodeCanonicalCbor(await decryptAesGcm(bundleKey, encrypted, utf8(`clipsx/vault/v1/device-bundle-v2\0${accountId}\0${deviceId}`)));
+  const encryption = record.get(2); const signing = record.get(3);
+  if (record.size !== 3 || record.get(1) !== 1 || !(encryption instanceof Uint8Array) || encryption.byteLength !== 32 || !(signing instanceof Uint8Array) || signing.byteLength !== 32) throw new Error('Invalid browser device bundle.');
+  return { deviceEncryptionSecretKey: encryption, deviceSigningSecretKey: signing };
+}

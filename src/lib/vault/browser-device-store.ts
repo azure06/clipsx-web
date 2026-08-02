@@ -1,7 +1,9 @@
+import type { BrowserUnlockSlot } from './browser-unlock-slots';
+
 export type BrowserDeviceRecord = {
   accountId: string;
   deviceId: string;
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   protectionProfile: 'webauthn-prf-wrapped' | 'vault-passphrase-wrapped';
   encryptedBundle: Uint8Array;
   bundleNonce: Uint8Array;
@@ -17,6 +19,7 @@ export type BrowserDeviceRecord = {
   pendingOfferNonce?: Uint8Array;
   accountCheckpointSequence?: number;
   accountCheckpointHash?: Uint8Array;
+  unlockSlots?: BrowserUnlockSlot[];
 };
 
 // Pre-production reset: generic encrypted items and local settings intentionally

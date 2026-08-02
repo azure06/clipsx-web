@@ -10,6 +10,7 @@ export type VaultWorkerRequest =
     bundleSalt: Uint8Array;
     bundleNonce: Uint8Array;
     encryptedBundle: Uint8Array;
+    bundleKey?: Uint8Array;
   }
   | {
     id: string;

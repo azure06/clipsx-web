@@ -1,4 +1,5 @@
 import type { BrowserDeviceRecord } from './browser-device-store';
+import { unwrapBundleKey } from './browser-unlock-slots';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 type VaultWorkerPort = {
@@ -42,15 +43,19 @@ export class BrowserVaultRuntime {
 
   async unlock(record: BrowserDeviceRecord, unlockMaterial: Uint8Array): Promise<void> {
     const material = copy(unlockMaterial);
+    let bundleKey: Uint8Array | undefined;
     try {
+      if (record.unlockSlots?.length) bundleKey = await unwrapBundleKey({ slot: record.unlockSlots[0], unlockMaterial: material, accountId: this.accountId, deviceId: record.deviceId });
       const response = await this.request({
         id: crypto.randomUUID(), type: 'unlock', accountId: this.accountId, deviceId: record.deviceId,
         unlockMaterial: material, bundleSalt: copy(record.bundleSalt), bundleNonce: copy(record.bundleNonce),
         encryptedBundle: copy(record.encryptedBundle),
-      }, [transferable(material)]);
+        bundleKey: bundleKey ? copy(bundleKey) : undefined,
+      }, bundleKey ? [transferable(material), transferable(bundleKey)] : [transferable(material)]);
       if (response.type !== 'unlocked') throw new Error('Vault worker rejected unlock.');
     } finally {
       unlockMaterial.fill(0);
+      bundleKey?.fill(0);
     }
   }
 

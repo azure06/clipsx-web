@@ -15,9 +15,9 @@ import {
   createBrowserDeviceIdentity,
   createBrowserVaultIdentity,
   encodeBrowserDeviceBundle,
-  wrapDeviceBundle,
   type BrowserVaultIdentity,
 } from "@/lib/vault/browser-onboarding";
+import { createUnlockSlot, encryptBundle } from "@/lib/vault/browser-unlock-slots";
 import { createPendingDeviceRegistrationCommand, decodePendingDeviceOffer } from "@/lib/vault/browser-device-approval";
 import {
   createInitialDeviceRegistrationCommand,
@@ -261,22 +261,20 @@ export function VaultOnboardingClient({ accountId, children }: { accountId: stri
         challenge,
         identity: resolvedIdentity,
       });
-      const encrypted = await wrapDeviceBundle(
-        unlockMaterial,
-        accountId,
-        deviceId,
-        encodeBrowserDeviceBundle(resolvedIdentity),
-      );
+      const encrypted = await encryptBundle(encodeBrowserDeviceBundle(resolvedIdentity), accountId, deviceId);
+      const slot = await createUnlockSlot({ kind: profile === "webauthn-prf-wrapped" ? "passkey" : "passphrase", unlockMaterial, bundleKey: encrypted.bundleKey, accountId, deviceId });
+      encrypted.bundleKey.fill(0);
       const now = new Date().toISOString();
       const deviceRecord: BrowserDeviceRecord = {
         accountId,
         deviceId,
-        schemaVersion: 1,
+        schemaVersion: 2,
         protectionProfile: profile,
         enrollmentStatus: "registering",
-        encryptedBundle: encrypted.encrypted.ciphertext,
-        bundleNonce: encrypted.encrypted.nonce,
-        bundleSalt: encrypted.salt,
+        encryptedBundle: encrypted.encryptedBundle.ciphertext,
+        bundleNonce: encrypted.encryptedBundle.nonce,
+        bundleSalt: slot.salt,
+        unlockSlots: [slot],
         passphraseKdfSalt,
         webauthnCredentialId,
         webauthnRpId,
@@ -551,12 +549,14 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
         deviceEncryptionPublicKey: identity.deviceEncryption.publicKey, deviceEncryptionSecretKey: identity.deviceEncryption.secretKey,
         deviceSigningPublicKey: identity.deviceSigning.publicKey, deviceSigningSecretKey: identity.deviceSigning.secretKey, sasSecret,
       });
-      const wrapped = await wrapDeviceBundle(unlock, accountId, deviceId, encodeBrowserDeviceBundle(identity));
-      const offerKey = await deriveVaultKey(unlock, wrapped.salt, "browserUnlock", utf8(`${accountId}\0${deviceId}\0pending-offer:1`));
+      const wrapped = await encryptBundle(encodeBrowserDeviceBundle(identity), accountId, deviceId);
+      const slot = await createUnlockSlot({ kind: profile === "webauthn-prf-wrapped" ? "passkey" : "passphrase", unlockMaterial: unlock, bundleKey: wrapped.bundleKey, accountId, deviceId });
+      wrapped.bundleKey.fill(0);
+      const offerKey = await deriveVaultKey(unlock, slot.salt, "browserUnlock", utf8(`${accountId}\0${deviceId}\0pending-offer:1`));
       const protectedOffer = await encryptAesGcm(offerKey, utf8(pending.offer), utf8(`clipsx/vault/v1/pending-offer\0${accountId}\0${deviceId}`));
       const now = new Date().toISOString();
-      await saveBrowserDeviceRecord({ accountId, deviceId, schemaVersion: 1, protectionProfile: profile, enrollmentStatus: "pending",
-        encryptedBundle: wrapped.encrypted.ciphertext, bundleNonce: wrapped.encrypted.nonce, bundleSalt: wrapped.salt,
+      await saveBrowserDeviceRecord({ accountId, deviceId, schemaVersion: 2, protectionProfile: profile, enrollmentStatus: "pending",
+        encryptedBundle: wrapped.encryptedBundle.ciphertext, bundleNonce: wrapped.encryptedBundle.nonce, bundleSalt: slot.salt, unlockSlots: [slot],
         pendingOfferCiphertext: protectedOffer.ciphertext, pendingOfferNonce: protectedOffer.nonce,
         passphraseKdfSalt, webauthnCredentialId, webauthnRpId, prfInput, createdAt: now, updatedAt: now });
       staged = true;
