@@ -643,6 +643,7 @@ function VaultUnlock({
   children?: ReactNode;
 }) {
   const [passphrase, setPassphrase] = useState("");
+  const [selectedSlotId, setSelectedSlotId] = useState(() => record.unlockSlots?.[0]?.id ?? "");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
@@ -723,29 +724,32 @@ function VaultUnlock({
     setError(null);
     let material: Uint8Array | null = null;
     try {
-      if (record.protectionProfile === "webauthn-prf-wrapped") {
+      const selectedSlot = record.unlockSlots?.find((slot) => slot.id === selectedSlotId) ?? record.unlockSlots?.[0];
+      const isPasskey = selectedSlot ? selectedSlot.kind === "passkey" : record.protectionProfile === "webauthn-prf-wrapped";
+      if (isPasskey) {
         if (
-          !record.webauthnCredentialId ||
-          !record.prfInput ||
-          !record.webauthnRpId
+          !(selectedSlot?.webauthnCredentialId ?? record.webauthnCredentialId) ||
+          !(selectedSlot?.prfInput ?? record.prfInput) ||
+          !(selectedSlot?.webauthnRpId ?? record.webauthnRpId)
         )
           throw new Error("This browser’s passkey metadata is incomplete.");
         material = await getVaultPrfOutput({
-          credentialId: record.webauthnCredentialId,
-          prfInput: record.prfInput,
-          rpId: record.webauthnRpId,
+          credentialId: selectedSlot?.webauthnCredentialId ?? record.webauthnCredentialId!,
+          prfInput: selectedSlot?.prfInput ?? record.prfInput!,
+          rpId: selectedSlot?.webauthnRpId ?? record.webauthnRpId!,
         });
       } else {
-        if (!record.passphraseKdfSalt)
+        const salt = selectedSlot?.passphraseKdfSalt ?? record.passphraseKdfSalt;
+        if (!salt)
           throw new Error("This browser’s passphrase metadata is incomplete.");
         material = await deriveVaultPassphraseKey(
           passphrase,
-          record.passphraseKdfSalt,
+          salt,
         );
         setPassphrase("");
       }
       if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
-      await runtimeRef.current.unlock(record, material);
+      await runtimeRef.current.unlock(selectedSlot ? { ...record, unlockSlots: [selectedSlot] } : record, material);
       await refreshCollections();
       setUnlocked(true);
     } catch (caught) {
@@ -1530,11 +1534,12 @@ function VaultUnlock({
           Unlock your vault
         </h1>
         <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
-          {record.protectionProfile === "webauthn-prf-wrapped"
+          {(record.unlockSlots?.find((slot) => slot.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase")) === "passkey"
             ? "Confirm with the dedicated vault passkey on this browser."
             : "Enter this browser’s vault passphrase."}
         </p>
-        {record.protectionProfile === "vault-passphrase-wrapped" && (
+        {(record.unlockSlots?.length ?? 0) > 1 && <div className="mt-4 flex gap-2">{record.unlockSlots!.map((slot) => <button key={slot.id} type="button" onClick={() => { setSelectedSlotId(slot.id); setPassphrase(""); }} className={`rounded-lg px-3 py-2 text-sm ${slot.id === selectedSlotId ? "bg-cyan-600 text-white" : "bg-slate-100 dark:bg-white/10"}`}>{slot.kind === "passkey" ? "Passkey" : "Passphrase"}</button>)}</div>}
+        {(record.unlockSlots?.find((slot) => slot.id === selectedSlotId)?.kind ?? (record.protectionProfile === "webauthn-prf-wrapped" ? "passkey" : "passphrase")) === "passphrase" && (
           <input
             type="password"
             value={passphrase}
