@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { BrowserVaultRuntime } from './browser-vault-runtime';
+import { createUnlockSlot, encryptBundle } from './browser-unlock-slots';
 import type { VaultWorkerRequest, VaultWorkerResponse } from './browser-vault-worker-protocol';
 
 class FakeWorker {
@@ -9,15 +10,16 @@ class FakeWorker {
   readonly requests: VaultWorkerRequest[] = [];
   terminated = false;
 
-  postMessage(request: VaultWorkerRequest) {
-    this.requests.push(request);
-    const response: VaultWorkerResponse = request.type === 'unlock'
-      ? { id: request.id, type: 'unlocked' }
-      : request.type === 'lock'
-        ? { id: request.id, type: 'locked' }
-        : request.type === 'status'
-          ? { id: request.id, type: 'status', unlocked: true }
-          : { id: request.id, type: 'signed-session-bind', command: new Uint8Array([1, 2, 3]) };
+  postMessage(request: VaultWorkerRequest, transfer?: Transferable[]) {
+    const transferred = structuredClone(request, { transfer });
+    this.requests.push(transferred);
+    const response: VaultWorkerResponse = transferred.type === 'unlock'
+      ? { id: transferred.id, type: 'unlocked' }
+      : transferred.type === 'lock'
+        ? { id: transferred.id, type: 'locked' }
+        : transferred.type === 'status'
+          ? { id: transferred.id, type: 'status', unlocked: true }
+          : { id: transferred.id, type: 'signed-session-bind', command: new Uint8Array([1, 2, 3]) };
     queueMicrotask(() => this.onmessage?.({ data: response } as MessageEvent<VaultWorkerResponse>));
   }
 
@@ -55,6 +57,26 @@ describe('BrowserVaultRuntime', () => {
     await runtime.lock(false);
 
     expect(locks).toBe(1);
+    runtime.dispose();
+  });
+
+  it('keeps a local bundle-key copy to wipe after transferring the worker copy', async () => {
+    const worker = new FakeWorker();
+    const runtime = new BrowserVaultRuntime('account-1', () => worker);
+    const material = new Uint8Array(32).fill(7);
+    const encrypted = await encryptBundle(new Uint8Array([1, 2, 3]), 'account-1', 'device-1');
+    const slot = await createUnlockSlot({ kind: 'passphrase', unlockMaterial: material, bundleKey: encrypted.bundleKey, accountId: 'account-1', deviceId: 'device-1' });
+    encrypted.bundleKey.fill(0);
+
+    await expect(runtime.unlock({
+      accountId: 'account-1', deviceId: 'device-1', schemaVersion: 2,
+      protectionProfile: 'vault-passphrase-wrapped', encryptedBundle: encrypted.encryptedBundle.ciphertext,
+      bundleNonce: encrypted.encryptedBundle.nonce, bundleSalt: slot.salt, unlockSlots: [slot],
+      passphraseKdfSalt: new Uint8Array(16), createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }, material)).resolves.toBeUndefined();
+
+    expect(material).toEqual(new Uint8Array(32));
+    expect(worker.requests[0]).toMatchObject({ type: 'unlock', bundleKey: expect.any(Uint8Array) });
     runtime.dispose();
   });
 });
