@@ -9,18 +9,17 @@ vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
 mutation grants. Signed collection creation, immutable revisions/deletion,
 verified invitations, and membership epoch rotations are implemented.
 Security checkpoints remain planned.
-`20260728143159_add_vault_device_register_transaction.sql` adds private,
-all-or-nothing first-device registration, pending-device registration, QR/SAS
-device authorization plus current personal-epoch delivery, collection-create,
-immutable-revision, item-deletion, invitation evidence, and atomic member
+Migrations `20260802010800` through `20260802010811` add private, all-or-nothing
+first-device enrollment, pending-device registration, QR/SAS device authorization
+plus current personal-epoch delivery, collection-create, immutable-revision,
+item-deletion, invitation evidence, recovery-root rotation, and atomic member
 add/remove epoch-rotation transactions. The HTTP dispatcher validates and
 executes those command types; checkpoint and generic envelope-grant
 transactions remain pending.
 Browser IndexedDB records remain local-only target records. The descriptions
-below use logical names; implemented database names carry the `vault_` prefix.
-Cryptographic
-protocol names in the architecture use `camelCase` where they describe
-canonical wire structures.
+below use actual database table names; all server vault tables carry the
+`vault_` prefix. Cryptographic protocol names in the architecture use `camelCase`
+where they describe canonical wire structures.
 
 ClipsX's product term **saved item** maps to the cryptographic **note** entity.
 The proposed physical names remain under the existing vault vocabulary:
@@ -140,7 +139,7 @@ client returns its hash after local decryption. This is not a vault secret and
 expires after the one-time enrollment attempt. Its `updated_at` field records
 challenge consumption for operational audit without retaining the raw challenge.
 
-### `devices` — Device
+### `vault_devices` — Device
 
 One immutable cryptographic device identity. Reinstallation or cryptographic
 key replacement—or loss of that browser profile's IndexedDB—creates a new row
@@ -180,7 +179,7 @@ encryption/signing keys, supported algorithm/version tuples, `revoked_at`
 present only and always for `revoked`. A partial index supports active devices
 by account.
 
-### `device_authorizations` — DeviceAuthorization
+### `vault_device_authorizations` — DeviceAuthorization
 
 Append-only certificate record that activates a pending device.
 
@@ -203,7 +202,7 @@ authorization-log position, or the recovery key must be active. A unique
 `device_id` prevents multiple ambiguous activation certificates. Authorization
 is accepted only after both private-key possession proofs verify.
 
-### `recovery_keys` — RecoveryKey
+### `vault_recovery_keys` — RecoveryKey
 
 Versioned public recovery root. No recovery secret, recovery private key,
 password-derived material, or plaintext backup appears in this model.
@@ -223,30 +222,10 @@ There is at most one active recovery key per account, unique
 public-key fingerprint is confirmed/pinned by the creating browser. Revocation
 is terminal and cannot erase epochs already decrypted with the old secret.
 
-### `passkey_recovery_wrappers`
-
-Optional convenience recovery ciphertext. It never contains an unlock key,
-PRF result, or plaintext recovery material.
-
-| Column | Meaning |
-| --- | --- |
-| `id`, `account_id`, `recovery_key_id` | Wrapper identity, owner, and covered active recovery version. |
-| `webauthn_credential_id`, `webauthn_rp_id`, `prf_input`, `bundle_salt` | Non-secret credential/context data required to request the local PRF result. |
-| `encrypted_recovery_secret`, `nonce` | Recovery secret encrypted under the domain-separated PRF-derived key. |
-| `algorithm`, `key_version`, `protocol_version` | Exact decoder and protocol profile. |
-| `created_at`, `revoked_at` | Enrollment and terminal revocation audit values. |
-
-The table is reserved for a future optional convenience feature and is not
-populated by the shipped v1 browser vault. If enabled later, it must be bound
-to the current recovery key version and is never accepted as proof that
-recovery is available. Recovery always falls back to the mandatory offline
-phrase.
-
-### `account_operations`
+### `vault_account_operations`
 
 Append-only signed account trust history for device authorization, revocation,
-and recovery-root rotation. Passkey-recovery wrapper
-lifecycle remains reserved for a future feature.
+and recovery-root rotation.
 
 | Column | Meaning |
 | --- | --- |
@@ -260,7 +239,7 @@ Unique `(account_id, sequence_number)`, unique `operation_id`, and unique
 `operation_hash` apply. The row is inserted only by the private vault-command
 transaction after route-handler signature verification.
 
-### `collections`
+### `vault_collections`
 
 Collection identity, encrypted presentation metadata, and current cryptographic
 head. It contains no plaintext collection key.
@@ -281,7 +260,7 @@ head. It contains no plaintext collection key.
 `current_epoch_number` may only advance through the epoch-transition RPC. It
 never decreases, and a superseded epoch cannot be made current again.
 
-### `collection_memberships` — CollectionMembership
+### `vault_collection_memberships` — CollectionMembership
 
 Append-aware membership state. Historical access is never implicit.
 
@@ -308,7 +287,7 @@ may receive an envelope only for epochs at or after
 `history_access_from_epoch` and strictly before `removed_epoch`; the joining
 epoch is allowed as defined by the signed addition transition.
 
-### `collection_key_epochs` — CollectionKeyEpoch
+### `vault_collection_epochs` — CollectionKeyEpoch
 
 Append-only public metadata for a collection epoch. The epoch key is never a
 column.
@@ -332,7 +311,7 @@ ambiguous epochs. Epoch `n` must reference the accepted transition hash for
 collection is current. State advances `created -> current -> superseded` and
 never reverses.
 
-### `device_epoch_envelopes` — DeviceEpochEnvelope
+### `vault_device_epoch_envelopes` — DeviceEpochEnvelope
 
 Append-only HPKE or equivalent delivery of one epoch key to one authorized
 device.
@@ -355,7 +334,7 @@ active membership for that epoch. No revoked device may receive an envelope
 for a later epoch. The sender must be active and authorized at the transition
 log position.
 
-### `recovery_epoch_envelopes` — RecoveryEpochEnvelope
+### `vault_recovery_epoch_envelopes` — RecoveryEpochEnvelope
 
 Append-only delivery of one epoch key to an eligible member account's active
 recovery key.
@@ -427,7 +406,7 @@ and is rebased or merged into a newly signed revision after the accepted head
 is verified. It is not inserted under the same revision number and is never
 silently overwritten. The product does not claim automatic merge safety.
 
-### `collection_invitations` — Invitation
+### `vault_collection_invitations` — Invitation
 
 | Column | Meaning |
 | --- | --- |
@@ -449,7 +428,7 @@ stored in plaintext or sent in a server-visible URL/query/body. State is
 Acceptance requires a valid, unexpired commitment and an authorized recipient
 device. Unique commitments prevent replay across invitations.
 
-### `collection_operations`
+### `vault_collection_operations`
 
 Append-only signed history for membership, invitation, epoch, note-head,
 revocation-reference, and checkpoint operations. The current implementation
@@ -588,19 +567,17 @@ keys, envelopes, public keys, commitments, and non-secret indexes.
 
 The schema has no plaintext fields for device private keys, recovery secrets or
 private keys, collection epoch keys, note revision keys, note bodies, decrypted
-attachments, or avoidable sensitive metadata. `passkey_recovery_wrappers` may
-contain ciphertext of recovery entropy but never the secret itself. These
-values must also be
-excluded from database errors, logs, analytics, telemetry, and crash reports.
-It also has no fields for the browser device-key bundle, WebAuthn PRF output,
-browser unlock key, vault passphrase, or decrypted local draft/cache key.
+attachments, or avoidable sensitive metadata. These values must also be excluded
+from database errors, logs, analytics, telemetry, and crash reports. It also has
+no fields for the browser device-key bundle, WebAuthn PRF output, browser unlock
+key, vault passphrase, or decrypted local draft/cache key.
 
 ## Billing and plans
 
 | Table | Important columns and meaning |
 | --- | --- |
 | `plans` | `id`: internal immutable ID; `code`: stable product code (`free`, `pro`); `display_name`: UI label; `active`: whether new assignments are allowed. |
-| `plan_features` | `plan_id`: owner plan; `feature_key`: stable capability name; `value_jsonb`: typed configurable limit or boolean. This prevents feature limits from being scattered through code. |
+| `plan_features` | `plan_id`: owner plan; `feature_key`: stable capability name; `value_jsonb`: typed configurable limit or boolean. This prevents feature limits from being scattered through code. Reserved for future feature-gate enforcement; the table and schema are implemented but not yet queried at runtime. |
 | `billing_accounts` | `id`: billing owner ID; `kind`: `personal` now, `organization` later; `owner_user_id`: creator/owner; `status`: active or closed. Every user has one personal account. |
 | `organizations` | `id`: future Team workspace identity; `name`: display name; timestamps: audit and lifecycle. An organization will own exactly one organization-kind billing account. |
 | `organization_memberships` | `organization_id`, `user_id`: workspace access; `role`: owner/admin/member; `status`: active or removed. Only active owners/admins may start future Team Checkout or open its Billing Portal. This is distinct from encrypted collection membership. |
@@ -678,9 +655,7 @@ shared from another owner remains part of multi-device/member sync hardening.
   supported-browser matrix and PRF capability checks are part of the launch
   test suite; direct non-extractable key persistence is excluded.
 - Vault unlock uses a dedicated local credential, separate from optional
-  Supabase account passkeys. PRF outputs are never serialized to a server. The
-  optional passkey-recovery wrapper is deferred; its table is reserved but has
-  no v1 browser command or UI.
+  Supabase account passkeys. PRF outputs are never serialized to a server.
 - IndexedDB eviction is a lost-device event; bundle rewrap is atomic, tabs use
   a lock broadcast, and v1 has no service worker/background sync while the
   vault can be unlocked.

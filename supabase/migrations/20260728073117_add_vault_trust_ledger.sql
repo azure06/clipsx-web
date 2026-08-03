@@ -23,7 +23,7 @@ create table public.vault_account_operations (
   sequence_number bigint not null check (sequence_number >= 1),
   operation_type text not null check (operation_type in (
     'device-register', 'device-authorize', 'device-revoke',
-    'recovery-rotate', 'passkey-recovery-wrapper-create', 'passkey-recovery-wrapper-revoke',
+    'recovery-rotate',
     'collection-create', 'item-append', 'item-delete', 'invitation-create',
     'invitation-accept', 'invitation-confirm', 'member-add', 'member-remove',
     'epoch-rotate', 'epoch-envelope-grant'
@@ -39,25 +39,6 @@ create table public.vault_account_operations (
   unique (account_id, sequence_number),
   check ((author_device_id is null) <> (recovery_key_id is null))
 );
-
-create table public.vault_passkey_recovery_wrappers (
-  id uuid primary key default gen_random_uuid(),
-  account_id uuid not null references auth.users(id) on delete cascade,
-  recovery_key_id uuid not null references public.vault_recovery_keys(id) on delete restrict,
-  webauthn_credential_id bytea not null,
-  webauthn_rp_id text not null check (webauthn_rp_id = 'clipsx.app'),
-  prf_input bytea not null check (octet_length(prf_input) = 32),
-  bundle_salt bytea not null check (octet_length(bundle_salt) = 16),
-  encrypted_recovery_secret bytea not null,
-  nonce bytea not null check (octet_length(nonce) = 12),
-  algorithm text not null check (algorithm = 'aes-256-gcm'),
-  key_version integer not null check (key_version >= 1),
-  protocol_version integer not null check (protocol_version = 1),
-  created_at timestamptz not null default now(),
-  revoked_at timestamptz,
-  unique (account_id, webauthn_credential_id, key_version)
-);
-create unique index vault_passkey_recovery_wrappers_one_active_credential on public.vault_passkey_recovery_wrappers(account_id, webauthn_credential_id) where revoked_at is null;
 
 create table public.vault_recovery_epoch_envelopes (
   id uuid primary key default gen_random_uuid(),
@@ -83,15 +64,13 @@ create table public.vault_recovery_epoch_envelopes (
 
 alter table public.vault_device_authorizations enable row level security;
 alter table public.vault_account_operations enable row level security;
-alter table public.vault_passkey_recovery_wrappers enable row level security;
 alter table public.vault_recovery_epoch_envelopes enable row level security;
 
 create policy vault_device_authorizations_read_own on public.vault_device_authorizations for select to authenticated using ((select auth.uid()) = account_id);
 create policy vault_account_operations_read_own on public.vault_account_operations for select to authenticated using ((select auth.uid()) = account_id);
-create policy vault_passkey_recovery_wrappers_read_own on public.vault_passkey_recovery_wrappers for select to authenticated using ((select auth.uid()) = account_id);
 create policy vault_recovery_epoch_envelopes_read_recipient on public.vault_recovery_epoch_envelopes for select to authenticated using (
   recovery_key_id in (select k.id from public.vault_recovery_keys k where k.account_id = (select auth.uid()) and k.status = 'active')
 );
 
-revoke all on public.vault_device_authorizations, public.vault_account_operations, public.vault_passkey_recovery_wrappers, public.vault_recovery_epoch_envelopes from anon, authenticated;
-grant select on public.vault_device_authorizations, public.vault_account_operations, public.vault_passkey_recovery_wrappers, public.vault_recovery_epoch_envelopes to authenticated;
+revoke all on public.vault_device_authorizations, public.vault_account_operations, public.vault_recovery_epoch_envelopes from anon, authenticated;
+grant select on public.vault_device_authorizations, public.vault_account_operations, public.vault_recovery_epoch_envelopes to authenticated;

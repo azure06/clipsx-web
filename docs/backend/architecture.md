@@ -14,10 +14,10 @@ key-rotation operations happen inside the browser. Pseudocode and example
 algorithm families in this document are protocol requirements and review aids,
 not production-ready cryptographic code.
 
-[Vault protocol v1](vault-protocol-v1.md) freezes the first implementation
-profile. It is authoritative for v1 cryptographic suites, recovery enrollment,
-browser unlock profiles, API transport, and deferred scope where this document
-contains an earlier example or open decision.
+A separate protocol-profile document freezes the v1 cryptographic suites, recovery
+enrollment, browser unlock profiles, API transport, and deferred scope where this
+document contains an earlier example or open decision. That document has not yet
+been written; this file is the current normative reference.
 
 ClipsX calls a deliberately saved clipboard item a **note** in the cryptographic
 model. A **collection** is the sharing and key-management boundary for notes.
@@ -39,7 +39,7 @@ or author vault data.
 
 This diagram is the approval view. It distinguishes the three planes that must
 remain separate: the vault data plane, the account/control plane, and the
-billing plane. The companion [data model](data-model.md) maps this design to
+billing plane. The companion [data model](models.md) maps this design to
 browser-local IndexedDB records and server tables.
 
 ```mermaid
@@ -57,9 +57,6 @@ flowchart LR
   subgraph Hosted[Hosted control and ciphertext plane]
     Auth[Supabase Auth]
     DB[(Postgres: signed records + ciphertext)]
-    ObjectStore[(Object storage: encrypted attachments)]
-    CDN[CDN: application build + cached ciphertext]
-    Backups[(Encrypted backups)]
   end
   subgraph Billing[Separate billing plane]
     Stripe[Stripe]
@@ -72,15 +69,15 @@ flowchart LR
   Auth -->|JWT with session ID| Browser
   Browser -->|JWT; public keys, signed records, ciphertext| DB
   DB -->|ciphertext and signed records| Browser
-  Browser <-->|encrypted attachments| ObjectStore
-  CDN -->|application build and cached ciphertext| Browser
-  DB -->|encrypted database snapshots| Backups
-  ObjectStore -->|encrypted object snapshots| Backups
   Browser -->|authenticated request| Checkout
   Checkout -->|create session / portal| Stripe
   Stripe -->|signed events| Webhook
   Webhook -->|atomic entitlement projection| Projection
 ```
+
+Object storage, CDN ciphertext caching, and encrypted backups are logical roles
+in the full design but are not yet implemented. They are referenced in the
+deferred work section.
 
 ### Trust boundaries and data placement
 
@@ -89,7 +86,7 @@ flowchart LR
 | **Unlocked browser runtime** | Generates and uses keys; encrypts, decrypts, signs, and verifies. | Plaintext and unlocked keys only for the active session. | A guarantee against compromised same-origin code or endpoint compromise. |
 | **Browser-local persistence** | Restores one browser device and its rollback anchors. | Encrypted device bundle, encrypted cache/drafts, public parameters, checkpoints, WebAuthn credential ID/PRF input. | Plaintext keys, notes, recovery secret, PRF output, or a hardware-backed-storage claim. |
 | **Hosted vault services** | Auth, authorization, synchronization, object retention, and recovery from operational loss. | Identity/session metadata, public keys, signed records, ciphertext, sizes, timing, access patterns, membership metadata. | Vault plaintext, plaintext keys, recovery secret, local unlock material, or decrypted attachments. |
-| **CDN and release pipeline** | Delivers the vault build and may cache ciphertext. | Build files, network metadata, cached ciphertext. | Independence from a malicious deployment: delivered JavaScript is in the vault trust boundary. |
+| **CDN and release pipeline** | Delivers the vault build. Ciphertext caching is deferred. | Build files, network metadata. | Independence from a malicious deployment: delivered JavaScript is in the vault trust boundary. |
 | **Billing plane** | Creates Checkout/Portal sessions and projects verified Stripe events. | Billing identity, Stripe events, entitlement state. | Vault content or vault keys. |
 
 Object storage, CDN, and backups are logical roles, not necessarily three
@@ -131,17 +128,17 @@ enabled, define immutable attachment revisions, a fresh attachment key,
 authenticated metadata, wrapping under the active collection epoch, retention,
 and deletion behavior. Never reuse a note revision key for attachment bytes.
 
-The v1 decisions and deferred work are consolidated in
-[Vault protocol v1](vault-protocol-v1.md).
+The v1 decisions and deferred work are consolidated in the V1 decisions and
+deferred work section below.
 
 ## Cryptographic protocol
 
 ### Protocol profile and encoding
 
 Every key, ciphertext, envelope, signature, and signed operation carries a
-`protocolVersion`, algorithm identifier, and key version. V1 uses the exact
-profile in [Vault protocol v1](vault-protocol-v1.md#algorithm-profile): RFC
-9180 X25519 HPKE, Ed25519 signatures, AES-256-GCM, SHA-256/HKDF-SHA-256,
+`protocolVersion`, algorithm identifier, and key version. V1 uses the following
+profile: RFC 9180 X25519 HPKE, Ed25519 signatures, AES-256-GCM,
+SHA-256/HKDF-SHA-256,
 scrypt for the local passphrase fallback, and deterministic CBOR. Browser
 builds reject unknown or deprecated suites rather than guessing.
 
@@ -242,9 +239,9 @@ are intentionally opaque to the browser application.
 
 When WebAuthn PRF is unavailable, the supported fallback is
 `vault-passphrase-wrapped`: a separate, user-entered vault passphrase is
-processed locally by the versioned scrypt profile in
-[Vault protocol v1](vault-protocol-v1.md#algorithm-profile). This passphrase is distinct
-from the Supabase login password and recovery secret and is never uploaded.
+processed locally by the versioned scrypt profile (N=131072, r=8, p=1). This
+passphrase is distinct from the Supabase login password and recovery secret and
+is never uploaded.
 Because an attacker who copies IndexedDB can test guesses offline, the UI must
 require an adequate passphrase and disclose the weaker phishing/offline-guessing
 properties.
@@ -655,10 +652,9 @@ Using a standard reviewed KDF, the browser derives independent recovery
 encryption and signing seeds with protocol-versioned, domain-separated
 contexts. Library key-import/derivation APIs produce the corresponding key
 pairs; ClipsX does not implement scalar arithmetic. The server stores versioned
-recovery public keys and encrypted recovery envelopes. The passkey-recovery
-wrapper schema is reserved but deferred from the shipped v1 browser feature; if
-added later, it is ciphertext of the recovery secret under a vault credential's
-local PRF-derived key and never the sole recovery root. Every covered collection
+recovery public keys and encrypted recovery envelopes. The 24-word phrase
+derives the account recovery root; phrase-based replacement-device recovery has
+backend primitives but no user-facing flow in v1. Every covered collection
 epoch has:
 
 ```text
@@ -698,8 +694,7 @@ a recovery envelope exists and can authorize replacement devices. Recovery-key
 rotation therefore creates a new signed recovery-key version, new recovery
 envelopes as policy requires, and revokes the old version; it cannot erase old
 epoch keys already recovered. Because v1 requires recovery enrollment, a user
-who loses every authorized device uses the recovery phrase or an available
-passkey-recovery wrapper.
+who loses every authorized device uses the recovery phrase.
 
 The implemented recovery-root rotation is deliberately co-signed by a
 currently active device. The recovery root signs the command; the active
@@ -741,8 +736,8 @@ verification, and abort conditions for implementation and test planning.
 
 The browser creates the authenticated ClipsX account, selects and verifies a
 supported local key-protection profile, generates the mandatory recovery secret
-locally, derives recovery public keys, and uploads only public keys, optional
-passkey-recovery ciphertext, and signed version records. The server sees
+locally, derives recovery public keys, and uploads only public keys and signed
+version records. The server sees
 account identifiers, public keys, algorithm/version, and timing. The browser
 displays the checksummed offline secret and aborts E2EE onboarding until storage
 is confirmed.
@@ -1122,8 +1117,9 @@ retry path. Billing tables live in `private` and are exposed only to
 
 ## V1 decisions and deferred work
 
-- Recovery phrase enrollment is mandatory. The optional passkey-recovery
-  wrapper is reserved but deferred from the shipped v1 browser feature.
+- Recovery phrase enrollment is mandatory. The 24-word phrase is the sole
+  recovery root in v1; phrase-based device replacement has backend primitives
+  but no user-facing flow yet.
 - Verified invitations are required. V1 does not offer TOFU invitations.
 - New members receive no pre-invitation history by default; owners may grant
   selected or all retained history explicitly.
@@ -1138,7 +1134,7 @@ retry path. Billing tables live in `private` and are exposed only to
 - Attachments are deferred. They require their own immutable revision, fresh
   attachment key, encrypted manifest, retention, and deletion design.
 - The v1 cryptographic suite, CBOR profile, command transport, and test-vector
-  contract are frozen in [Vault protocol v1](vault-protocol-v1.md).
+  contract are defined in this document and its implementation.
 
 ## Glossary
 

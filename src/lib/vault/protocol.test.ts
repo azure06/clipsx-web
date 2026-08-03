@@ -29,11 +29,11 @@ describe('vault protocol v1 primitives', () => {
     const context = utf8('account:alice/device:browser-1/version:1');
 
     const browserUnlock = await deriveVaultKey(material, salt, 'browserUnlock', context);
-    const recoveryWrapper = await deriveVaultKey(material, salt, 'passkeyRecoveryWrapper', context);
+    const recoveryEncryptionKey = await deriveVaultKey(material, salt, 'recoveryEncryptionKey', context);
 
     expect(browserUnlock).toEqual(await deriveVaultKey(material, salt, 'browserUnlock', context));
-    expect(browserUnlock).not.toEqual(recoveryWrapper);
-    expect(Object.values(VAULT_KDF_LABELS)).toHaveLength(5);
+    expect(browserUnlock).not.toEqual(recoveryEncryptionKey);
+    expect(Object.values(VAULT_KDF_LABELS)).toHaveLength(4);
   });
 
   it('authenticates AES-GCM ciphertext and associated data', async () => {

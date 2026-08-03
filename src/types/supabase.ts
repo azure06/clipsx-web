@@ -2082,65 +2082,6 @@ export type Database = {
           },
         ]
       }
-      vault_passkey_recovery_wrappers: {
-        Row: {
-          account_id: string
-          algorithm: string
-          bundle_salt: string
-          created_at: string
-          encrypted_recovery_secret: string
-          id: string
-          key_version: number
-          nonce: string
-          prf_input: string
-          protocol_version: number
-          recovery_key_id: string
-          revoked_at: string | null
-          webauthn_credential_id: string
-          webauthn_rp_id: string
-        }
-        Insert: {
-          account_id: string
-          algorithm: string
-          bundle_salt: string
-          created_at?: string
-          encrypted_recovery_secret: string
-          id?: string
-          key_version: number
-          nonce: string
-          prf_input: string
-          protocol_version: number
-          recovery_key_id: string
-          revoked_at?: string | null
-          webauthn_credential_id: string
-          webauthn_rp_id: string
-        }
-        Update: {
-          account_id?: string
-          algorithm?: string
-          bundle_salt?: string
-          created_at?: string
-          encrypted_recovery_secret?: string
-          id?: string
-          key_version?: number
-          nonce?: string
-          prf_input?: string
-          protocol_version?: number
-          recovery_key_id?: string
-          revoked_at?: string | null
-          webauthn_credential_id?: string
-          webauthn_rp_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vault_passkey_recovery_wrappers_recovery_key_id_fkey"
-            columns: ["recovery_key_id"]
-            isOneToOne: false
-            referencedRelation: "vault_recovery_keys"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       vault_recovery_epoch_envelopes: {
         Row: {
           algorithm: string
