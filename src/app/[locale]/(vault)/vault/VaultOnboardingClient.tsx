@@ -722,7 +722,9 @@ function VaultUnlock({
     hash: record.accountCheckpointHash,
   });
 
-  function clearPlaintext() {
+  function teardown() {
+    setUnlocked(false);
+    setCollections([]);
     setItems([]);
     setEditing(null);
     setDraft(null);
@@ -735,21 +737,23 @@ function VaultUnlock({
     setUrl("");
   }
 
+  const hydrationRef = useRef<Promise<void> | null>(null);
+
   useEffect(() => {
     const runtime = new BrowserVaultRuntime(accountId);
     runtimeRef.current = runtime;
-    runtime.onLock = clearPlaintext;
+    runtime.onLock = teardown;
     const lockOnPageExit = () => {
-      clearPlaintext();
-      void runtime.lock();
+      teardown();
+      void runtime.lock(false);
     };
     window.addEventListener("pagehide", lockOnPageExit);
     return () => {
       window.removeEventListener("pagehide", lockOnPageExit);
-      clearPlaintext();
       runtime.onLock = null;
       runtime.dispose();
       runtimeRef.current = null;
+      hydrationRef.current = null;
     };
   }, [accountId]);
   useEffect(() => {
@@ -769,6 +773,7 @@ function VaultUnlock({
     setWorking(true);
     setError(null);
     let material: Uint8Array | null = null;
+    let workerUnlocked = false;
     try {
       const selectedSlot = record.unlockSlots?.find((slot) => slot.id === selectedSlotId) ?? record.unlockSlots?.[0];
       const isPasskey = selectedSlot ? selectedSlot.kind === "passkey" : record.protectionProfile === "webauthn-prf-wrapped";
@@ -788,20 +793,20 @@ function VaultUnlock({
         const salt = selectedSlot?.passphraseKdfSalt ?? record.passphraseKdfSalt;
         if (!salt)
           throw new Error("This browser’s passphrase metadata is incomplete.");
-        material = await deriveVaultPassphraseKey(
-          passphrase,
-          salt,
-        );
+        material = await deriveVaultPassphraseKey(passphrase, salt);
         setPassphrase("");
       }
       if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
       await runtimeRef.current.unlock(selectedSlot ? { ...record, unlockSlots: [selectedSlot] } : record, material);
+      workerUnlocked = true;
       await refreshCollections();
       setUnlocked(true);
     } catch (caught) {
-      setError(
-        caught instanceof Error ? caught.message : "Vault unlock failed.",
-      );
+      if (workerUnlocked) {
+        teardown();
+        void runtimeRef.current?.lock(false);
+      }
+      setError(caught instanceof Error ? caught.message : "Vault unlock failed.");
     } finally {
       material?.fill(0);
       setWorking(false);
@@ -830,7 +835,7 @@ function VaultUnlock({
     });
   }
 
-  async function refreshCollections() {
+  async function runHydration() {
     if (!runtimeRef.current) throw new Error("Vault runtime is not ready.");
     await refreshAccountSync();
     const bootstrapResponse = await fetch(`/api/vault/bootstrap?deviceId=${encodeURIComponent(record.deviceId)}`, {
@@ -840,15 +845,22 @@ function VaultUnlock({
       bootstrapResponse,
       "Could not load encrypted vault records.",
     );
-    const opened = await runtimeRef.current.openBootstrap(
-      bootstrap.bytes,
-    );
+    const opened = await runtimeRef.current.openBootstrap(bootstrap.bytes);
     setCollections(opened);
     setSelectedCollectionId((current) =>
       opened.some((collection) => collection.id === current)
         ? current
         : (opened[0]?.id ?? ""),
     );
+  }
+
+  function refreshCollections(): Promise<void> {
+    if (!hydrationRef.current) {
+      hydrationRef.current = runHydration().finally(() => {
+        hydrationRef.current = null;
+      });
+    }
+    return hydrationRef.current;
   }
 
   async function submitCommand(command: Uint8Array, fallback: string) {
@@ -893,9 +905,7 @@ function VaultUnlock({
     try {
       await runtimeRef.current?.lock();
     } finally {
-      setUnlocked(false);
-      setCollections([]);
-      clearPlaintext();
+      teardown();
       setWorking(false);
     }
   }

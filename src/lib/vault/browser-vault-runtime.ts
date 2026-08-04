@@ -63,7 +63,8 @@ export class BrowserVaultRuntime {
 
   async lock(broadcast = true): Promise<void> {
     if (broadcast) this.channel?.postMessage('lock');
-    if (!this.worker) { this.onLock?.(); return; }
+    const hadWorker = !!this.worker;
+    if (!hadWorker) { this.onLock?.(); return; }
     try {
       const response = await this.request({ id: crypto.randomUUID(), type: 'lock' });
       if (response.type !== 'locked') throw new Error('Vault worker rejected lock.');
@@ -169,7 +170,10 @@ export class BrowserVaultRuntime {
       if (response.type === 'error') pending.reject(new Error(response.message));
       else pending.resolve(response);
     };
-    worker.onerror = (event) => this.failAll(new Error(event.message || 'Vault worker failed.'));
+    worker.onerror = (_event) => {
+      this.stopWorker();
+      this.onLock?.();
+    };
     this.worker = worker;
     return worker;
   }
