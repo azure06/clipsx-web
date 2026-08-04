@@ -18,6 +18,7 @@ import { vaultFormats, resolveVaultFormat } from "@/lib/vault/vault-format";
 import { readEnvSections, writeEnvSections, mergeEnvSections, type EnvSection } from "@/lib/vault/env-sections";
 import { VaultAppShell } from "../../VaultAppShell";
 import { useVaultSession } from "../../VaultOnboardingClient";
+import { loadVaultSettings } from "@/lib/vault/browser-vault-settings";
 import { filterVaultItems, sortVaultItems, type VaultItemSort } from "./vault-workspace-utils";
 
 type NewFormat = string; // open to all registered mediaTypes
@@ -87,6 +88,16 @@ const clone = (item: VaultItemContent): VaultItemContent => ({
 
 const STRUCTURED_TYPES = new Set(["application/vnd.clipsx.login", "application/vnd.clipsx.totp", "application/vnd.clipsx.ssh"]);
 
+function useClipboardClearMs(accountId: string): number {
+  const [ms, setMs] = useState(60_000);
+  useEffect(() => {
+    void loadVaultSettings(accountId).then((s) => {
+      setMs(s.clipboardClearSeconds === "never" ? 0 : s.clipboardClearSeconds * 1_000);
+    }).catch(() => undefined);
+  }, [accountId]);
+  return ms;
+}
+
 const persistable = (item: VaultItemContent): VaultItemContent => ({
   ...item,
   title: item.title.trim(),
@@ -95,7 +106,8 @@ const persistable = (item: VaultItemContent): VaultItemContent => ({
 });
 
 export function VaultCollectionWorkspaceClient({ collectionId }: { collectionId: string }) {
-  const { collections, loadItems, createItem, updateItem, deleteItem, working, error, clearError } = useVaultSession();
+  const { collections, loadItems, createItem, updateItem, deleteItem, working, error, clearError, record } = useVaultSession();
+  const clipboardClearMs = useClipboardClearMs(record.accountId);
   const collection = collections.find((candidate) => candidate.id === collectionId);
   const [items, setItems] = useState<VaultItemHead[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -273,6 +285,7 @@ export function VaultCollectionWorkspaceClient({ collectionId }: { collectionId:
               onBack={() => setSelectedId(null)}
               onEdit={beginEdit}
               onDelete={() => setDeleteTarget(selected)}
+              clipboardClearMs={clipboardClearMs}
             />
           ) : (
             <EmptyState onNew={beginNew} />
@@ -746,11 +759,13 @@ function Preview({
   onBack,
   onEdit,
   onDelete,
+  clipboardClearMs,
 }: {
   item: VaultItemHead;
   onBack: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  clipboardClearMs: number;
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -770,6 +785,7 @@ function Preview({
     if (isJson) { try { content = JSON.stringify(JSON.parse(text), null, 2); } catch { /* raw */ } }
     await navigator.clipboard.writeText(content);
     setCopied(true);
+    if (clipboardClearMs > 0) window.setTimeout(() => void navigator.clipboard.writeText(""), clipboardClearMs);
     window.setTimeout(() => setCopied(false), 1500);
   }
 
@@ -827,19 +843,19 @@ function Preview({
       </div>
 
       {isEnv ? (
-        <EnvPreview item={item} />
+        <EnvPreview item={item} clipboardClearMs={clipboardClearMs} />
       ) : isJson ? (
-        <JsonPreview source={text} />
+        <JsonPreview source={text} clipboardClearMs={clipboardClearMs} />
       ) : isCsv ? (
         <CsvPreview source={text} />
       ) : isMarkdown ? (
         <MarkdownPreview markdown={text} className="mt-6 space-y-4" />
       ) : isLogin ? (
-        <LoginPreview item={item} />
+        <LoginPreview item={item} clipboardClearMs={clipboardClearMs} />
       ) : isTotp ? (
-        <TotpPreview item={item} />
+        <TotpPreview item={item} clipboardClearMs={clipboardClearMs} />
       ) : isSsh ? (
-        <SshPreview item={item} />
+        <SshPreview item={item} clipboardClearMs={clipboardClearMs} />
       ) : (
         <pre className="mt-6 whitespace-pre-wrap font-mono text-sm leading-6 text-slate-700 dark:text-slate-200">
           {text || "This item is empty."}
@@ -871,11 +887,12 @@ function Preview({
 
 // ─── Structured type previews ─────────────────────────────────────────────────
 
-function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
+function CopyButton({ value, label = "Copy", clipboardClearMs = 0 }: { value: string; label?: string; clipboardClearMs?: number }) {
   const [copied, setCopied] = useState(false);
   async function copy() {
     await navigator.clipboard.writeText(value);
     setCopied(true);
+    if (clipboardClearMs > 0) window.setTimeout(() => void navigator.clipboard.writeText(""), clipboardClearMs);
     window.setTimeout(() => setCopied(false), 1500);
   }
   return (
@@ -885,19 +902,19 @@ function CopyButton({ value, label = "Copy" }: { value: string; label?: string }
   );
 }
 
-function LoginPreview({ item }: { item: VaultItemHead }) {
+function LoginPreview({ item, clipboardClearMs }: { item: VaultItemHead; clipboardClearMs: number }) {
   const [showPw, setShowPw] = useState(false);
   const d: Record<string, string> = (() => { try { return JSON.parse(item.properties?.login ?? "{}"); } catch { return {}; } })();
   return (
     <div className="mt-6 space-y-4 rounded-xl border border-(--vault-border) p-5">
       {d.url && <div className="flex items-center justify-between gap-2"><div><p className="text-xs text-slate-500">URL</p><a href={d.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-(--vault-accent) hover:underline">{d.url}</a></div></div>}
-      {d.username && <div className="flex items-center justify-between gap-2"><div><p className="text-xs text-slate-500">Username</p><p className="font-mono text-sm">{d.username}</p></div><CopyButton value={d.username} /></div>}
+      {d.username && <div className="flex items-center justify-between gap-2"><div><p className="text-xs text-slate-500">Username</p><p className="font-mono text-sm">{d.username}</p></div><CopyButton value={d.username} clipboardClearMs={clipboardClearMs} /></div>}
       {d.password && (
         <div className="flex items-center justify-between gap-2">
           <div><p className="text-xs text-slate-500">Password</p><p className={`font-mono text-sm ${showPw ? "" : "select-none tracking-widest"}`}>{showPw ? d.password : "••••••••••••"}</p></div>
           <div className="flex gap-1">
             <button type="button" onClick={() => setShowPw((v) => !v)} className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-(--vault-muted)">{showPw ? <EyeOff size={13} /> : <Eye size={13} />}</button>
-            <CopyButton value={d.password} />
+            <CopyButton value={d.password} clipboardClearMs={clipboardClearMs} />
           </div>
         </div>
       )}
@@ -906,7 +923,7 @@ function LoginPreview({ item }: { item: VaultItemHead }) {
   );
 }
 
-function TotpPreview({ item }: { item: VaultItemHead }) {
+function TotpPreview({ item, clipboardClearMs }: { item: VaultItemHead; clipboardClearMs: number }) {
   const d: Record<string, string> = (() => { try { return JSON.parse(item.properties?.totp ?? "{}"); } catch { return {}; } })();
   const [code, setCode] = useState("------");
   const [secondsLeft, setSecondsLeft] = useState(30);
@@ -937,21 +954,21 @@ function TotpPreview({ item }: { item: VaultItemHead }) {
           </div>
           <span className="text-xs text-slate-500">{secondsLeft}s</span>
         </div>
-        <CopyButton value={code} />
+        <CopyButton value={code} clipboardClearMs={clipboardClearMs} />
       </div>
       <p className="text-xs text-slate-400">Code refreshes every 30 seconds. Never share this secret.</p>
     </div>
   );
 }
 
-function SshPreview({ item }: { item: VaultItemHead }) {
+function SshPreview({ item, clipboardClearMs }: { item: VaultItemHead; clipboardClearMs: number }) {
   const d: Record<string, string> = (() => { try { return JSON.parse(item.properties?.ssh ?? "{}"); } catch { return {}; } })();
   const [showPrivate, setShowPrivate] = useState(false);
   return (
     <div className="mt-6 space-y-4 rounded-xl border border-(--vault-border) p-5">
       {d.publicKey && (
         <div>
-          <div className="flex items-center justify-between"><p className="text-xs text-slate-500">Public key</p><CopyButton value={d.publicKey} label="Copy public key" /></div>
+          <div className="flex items-center justify-between"><p className="text-xs text-slate-500">Public key</p><CopyButton value={d.publicKey} label="Copy public key" clipboardClearMs={clipboardClearMs} /></div>
           <pre className="mt-1 overflow-x-auto rounded bg-(--vault-muted) p-2 font-mono text-xs leading-5">{d.publicKey}</pre>
         </div>
       )}
@@ -961,7 +978,7 @@ function SshPreview({ item }: { item: VaultItemHead }) {
             <p className="text-xs text-slate-500">Private key</p>
             <div className="flex gap-1">
               <button type="button" onClick={() => setShowPrivate((v) => !v)} className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-(--vault-muted)">{showPrivate ? "Hide" : "Reveal"}</button>
-              {showPrivate && <CopyButton value={d.privateKey} label="Copy" />}
+              {showPrivate && <CopyButton value={d.privateKey} label="Copy" clipboardClearMs={clipboardClearMs} />}
             </div>
           </div>
           <pre className={`mt-1 overflow-x-auto rounded bg-(--vault-muted) p-2 font-mono text-xs leading-5 ${showPrivate ? "" : "blur-sm select-none"}`}>{showPrivate ? d.privateKey : "REDACTED"}</pre>
@@ -975,7 +992,7 @@ function SshPreview({ item }: { item: VaultItemHead }) {
 
 // ─── Env preview with sections + merge ───────────────────────────────────────
 
-function EnvPreview({ item }: { item: VaultItemHead }) {
+function EnvPreview({ item, clipboardClearMs }: { item: VaultItemHead; clipboardClearMs: number }) {
   const sections = readEnvSections(item.properties, item.body);
   const hasMultiple = sections.length > 1;
   const [activeSection, setActiveSection] = useState(sections[0]?.name ?? "base");
@@ -1034,7 +1051,7 @@ function EnvPreview({ item }: { item: VaultItemHead }) {
           <EnvDownloadMenu sections={sections} activeSection={activeSection} onDownload={downloadSection} />
         </div>
       )}
-      <EnvironmentPreview source={displaySource} />
+      <EnvironmentPreview source={displaySource} clipboardClearMs={clipboardClearMs} />
     </div>
   );
 }
@@ -1084,7 +1101,7 @@ function EnvDownloadMenu({ sections, activeSection, onDownload }: {
 
 // ─── JSON preview ─────────────────────────────────────────────────────────────
 
-function JsonPreview({ source }: { source: string }) {
+function JsonPreview({ source, clipboardClearMs }: { source: string; clipboardClearMs: number }) {
   const [copied, setCopied] = useState(false);
   let parsed: unknown = null;
   let parseError = false;
@@ -1093,6 +1110,7 @@ function JsonPreview({ source }: { source: string }) {
   async function copy() {
     await navigator.clipboard.writeText(source);
     setCopied(true);
+    if (clipboardClearMs > 0) window.setTimeout(() => void navigator.clipboard.writeText(""), clipboardClearMs);
     window.setTimeout(() => setCopied(false), 1500);
   }
 

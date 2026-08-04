@@ -65,41 +65,36 @@ export default function VaultSection({ session }: SectionProps) {
 
       {/* Lock & security */}
       <SettingsSection title="Lock &amp; security" icon={Shield}>
-        <SettingsAction
-          notEnforced
-          description="These timers are saved but not yet enforced — the vault does not auto-lock or clear the clipboard automatically."
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Select
-              label="Auto-lock after inactivity"
-              value={settings.autoLockMinutes}
-              onChange={(e) => {
-                const match = AUTO_LOCK_CHOICES.find((c) => String(c) === e.target.value)!;
-                change("autoLockMinutes", match);
-              }}
-            >
-              {AUTO_LOCK_CHOICES.map((c) => (
-                <option key={String(c)} value={String(c)}>
-                  {c === "never" ? "Never" : `${c} minutes`}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="Clear copied secrets after"
-              value={settings.clipboardClearSeconds}
-              onChange={(e) => {
-                const match = CLIPBOARD_CLEAR_CHOICES.find((c) => String(c) === e.target.value)!;
-                change("clipboardClearSeconds", match);
-              }}
-            >
-              {CLIPBOARD_CLEAR_CHOICES.map((c) => (
-                <option key={String(c)} value={String(c)}>
-                  {c === "never" ? "Never" : `${c} seconds`}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </SettingsAction>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Select
+            label="Auto-lock after inactivity"
+            value={settings.autoLockMinutes}
+            onChange={(e) => {
+              const match = AUTO_LOCK_CHOICES.find((c) => String(c) === e.target.value)!;
+              change("autoLockMinutes", match);
+            }}
+          >
+            {AUTO_LOCK_CHOICES.map((c) => (
+              <option key={String(c)} value={String(c)}>
+                {c === "never" ? "Never" : `${c} minutes`}
+              </option>
+            ))}
+          </Select>
+          <Select
+            label="Clear copied secrets after"
+            value={settings.clipboardClearSeconds}
+            onChange={(e) => {
+              const match = CLIPBOARD_CLEAR_CHOICES.find((c) => String(c) === e.target.value)!;
+              change("clipboardClearSeconds", match);
+            }}
+          >
+            {CLIPBOARD_CLEAR_CHOICES.map((c) => (
+              <option key={String(c)} value={String(c)}>
+                {c === "never" ? "Never" : `${c} seconds`}
+              </option>
+            ))}
+          </Select>
+        </div>
       </SettingsSection>
 
       {/* Editor */}

@@ -534,8 +534,17 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
   );
 }
 
+type PendingApprovalStatus = "waiting" | "approved" | "revoked" | "expired";
+
 function PendingDeviceEnrollment({ accountId, record }: { accountId: string; record: BrowserDeviceRecord }) {
-  const [passphrase, setPassphrase] = useState(""); const [qr, setQr] = useState<string | null>(null); const [offer, setOffer] = useState(""); const [sas, setSas] = useState(""); const [working, setWorking] = useState(false); const [error, setError] = useState<string | null>(null); const [approved, setApproved] = useState(false);
+  const [passphrase, setPassphrase] = useState("");
+  const [qr, setQr] = useState<string | null>(null);
+  const [offer, setOffer] = useState("");
+  const [sas, setSas] = useState("");
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [approvalStatus, setApprovalStatus] = useState<PendingApprovalStatus>("waiting");
+
   useEffect(() => {
     let cancelled = false; let timer: number | undefined; let attempts = 0;
     const delays = [2_000, 5_000, 10_000];
@@ -544,7 +553,11 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       try {
         const response = await fetch(`/api/vault/enrollment-status?deviceId=${encodeURIComponent(record.deviceId)}`, { cache: "no-store" });
         const status = await readVaultCborResponse(response, "Could not check device approval.");
-        if (!cancelled && status.get(3) === "active") { setApproved(true); return; }
+        const deviceStatus = status.get(3);
+        if (cancelled) return;
+        if (deviceStatus === "active") { setApprovalStatus("approved"); return; }
+        if (deviceStatus === "revoked") { setApprovalStatus("revoked"); return; }
+        if (deviceStatus === "unknown") { setApprovalStatus("expired"); return; }
       } catch { /* transient polling errors remain non-blocking */ }
       if (!cancelled) { timer = window.setTimeout(() => void poll(), delays[Math.min(attempts++, delays.length - 1)]); }
     };
@@ -552,6 +565,12 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
     document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume); void poll();
     return () => { cancelled = true; if (timer) window.clearTimeout(timer); document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
   }, [accountId, record.deviceId]);
+
+  async function restart() {
+    await forgetBrowserDeviceRecord(accountId, record.deviceId).catch(() => undefined);
+    window.location.reload();
+  }
+
   async function restore() {
     setWorking(true); setError(null); let unlock: Uint8Array | null = null;
     try {
@@ -580,6 +599,34 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
       }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Could not restore approval."); } finally { unlock?.fill(0); setWorking(false); }
   }
+
+  if (approvalStatus === "revoked" || approvalStatus === "expired") {
+    const isRevoked = approvalStatus === "revoked";
+    return (
+      <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
+        <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600 ring-1 ring-amber-400/30 dark:bg-amber-400/15 dark:text-amber-400">
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-600 dark:text-amber-400">Enrollment cancelled</p>
+              <h1 className="font-heading text-2xl font-bold">Approval {isRevoked ? "revoked" : "expired"}</h1>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            {isRevoked
+              ? "This browser's approval request was revoked from another device. To add this browser, start a new enrollment."
+              : "The approval offer for this browser is no longer valid — it may have expired or the registration was never completed. Start a new enrollment to try again."}
+          </p>
+          <Button className="w-full" loading={working} onClick={() => void restart()}>
+            Start new enrollment
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-dvh items-center justify-center px-4 py-16 sm:px-6">
       <div className="w-full max-w-lg space-y-6 rounded-2xl border border-(--vault-border) bg-(--vault-surface) p-8 shadow-lg">
@@ -592,8 +639,8 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
             <h1 className="font-heading text-2xl font-bold">Add browser</h1>
           </div>
         </div>
-        <div className={`rounded-lg border px-4 py-3 text-sm ${approved ? "border-emerald-500/30 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "border-(--vault-border) bg-(--vault-muted)/40 text-gray-600 dark:text-gray-300"}`}>
-          {approved
+        <div className={`rounded-lg border px-4 py-3 text-sm ${approvalStatus === "approved" ? "border-emerald-500/30 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200" : "border-(--vault-border) bg-(--vault-muted)/40 text-gray-600 dark:text-gray-300"}`}>
+          {approvalStatus === "approved"
             ? "Approved. Confirm your local unlock method to finish binding this browser."
             : "Waiting for approval from an existing browser. This page checks automatically while it is open."}
         </div>
@@ -610,7 +657,7 @@ function PendingDeviceEnrollment({ accountId, record }: { accountId: string; rec
           </label>
         )}
         <Button className="w-full" loading={working} onClick={restore}>
-          {approved ? "Unlock and finish" : "Show approval QR"}
+          {approvalStatus === "approved" ? "Unlock and finish" : "Show approval QR"}
         </Button>
         {qr && (
           <div className="space-y-4 text-center">

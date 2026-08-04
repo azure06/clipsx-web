@@ -1,218 +1,186 @@
-# ClipsX Execution Plan
-
-## Product
+# ClipsX Roadmap
 
 ClipsX is a local-first clipboard manager. Clipboard history stays on the
-device. Users can deliberately save notes and login records into an encrypted
-vault for cross-device access and sharing. Raw clipboard history is never
-uploaded automatically — only items the user explicitly saves to the vault.
+device; only items deliberately saved to the encrypted vault are available
+across devices or shared.
 
-## How the desktop app reaches the vault
+`[x]` means implemented or already verified. `[ ]` means required before the
+initial release unless it appears under Post-launch.
 
-The desktop app hosts the vault inside an embedded webview rather than
-opening it in an external browser tab. Because of that:
+## Initial release
 
-- **Embedding the vault in a webview is core to the product, not a
-  post-launch nice-to-have** — it needs its security review (CSP, no
-  third-party scripts, no unintended script injection from the host app) done
-  as part of the MVP, not deferred.
-- **A JS bridge for "send this clip to the vault"** is lower-risk than a
-  general native integration, as long as the bridge only hands plaintext into
-  the already-authorized, already-unlocked webview and lets the webview do the
-  normal encrypt-and-sign write it would do for a manual paste. The native
-  host never touches keys or ciphertext. On that basis, this is reasonable to
-  include in the MVP.
-- **Offline access via a PWA/service-worker is a different, bigger problem**
-  and should stay out of the MVP: real offline vault access means the desktop
-  app would need to become its own authorized vault device with its own keys
-  and an encrypted local cache — a separate security design, not a caching
-  shortcut. A service worker also runs against the hardening the vault
-  webview needs (no stale or tampered cached script, no silently-served old
-  version while unlocked). If offline is wanted later, the path is "desktop
-  app as its own vault device," not a PWA wrapper around the current webview.
+### Release environment
 
-## MVP scope
+- [x] Unit, database, type, lint, and production-build checks run locally and
+  in CI.
+- [x] Separate Supabase test project, Google sign-in, Stripe test mode, Resend,
+  and Vercel staging are configured and tested end-to-end.
+- [ ] Keep staging credentials and data fully separate from production.
+- [ ] Document a safe staging reset and recovery procedure.
 
-### In scope for launch
+### Encrypted browser vault
 
-- Desktop clipboard history, search, previews, supported local formats.
-- Website account, billing, downloads, support, English/Japanese pages.
-- Browser vault: notes and login/password records — create, edit, search,
-  copy, trash, restore, permanent delete.
-- Recovery phrase enrollment (generation, display, offline-storage warning).
-- Recovery execution — actually regaining access using the phrase after
-  losing every device. (This is a distinct flow from enrollment: enrollment
-  just shows/prints the phrase; execution is the "I lost all my devices, let
-  me back in" flow. Worth calling out because it's easy to mark "recovery"
-  done after building only the enrollment half.)
-- Trusted-device approval, device list, and account-session management.
-- Verified collection sharing and member removal.
-- Automatic vault locking and safe handling of copied secrets.
-- Responsive vault dashboard (desktop + narrow windows).
-- Vault embedded in the desktop app's webview, plus a "send clip to vault"
-  bridge (see above).
+- [x] The protocol/backend support encrypted notes and tombstones.
+- [ ] Create, edit, search, copy, trash, restore, and permanently delete notes
+  and login/password records as immutable authenticated revisions.
+- [ ] Show saving, saved, offline, locked, conflict, empty, loading, and error
+  states; never present an unaccepted local draft as synchronized.
+- [ ] Make permanent deletion an explicit confirmation, and explain that it
+  cannot erase copies another authorized device already downloaded.
 
-### Deferred past launch, with reasoning
+### Verified sync
 
-- **AI features/credits/pricing** — not built yet; no reason to rush this in.
-- **Team organizations / advanced collaboration** — adds real scope (roles,
-  org-level billing) beyond what a single-owner-per-collection model supports.
-- **File attachments in the vault** — needs its own key-per-attachment and
-  retention design; unrelated to notes/logins working well.
-- **Full revision-history browser** — the data needed for conflict handling
-  is kept regardless; a full history UI is a viewer on top of that, not a
-  security dependency.
-- **Native offline vault access / desktop-as-its-own-vault-device** — see
-  reasoning above; this is real, separate security work, not a shortcut.
-- **Account passkey login** (separate from vault unlock, which does use
-  passkeys/PRF) — only worth adding once the current device-approval
-  double-prompt issues are stable; Google/email sign-in is a fine launch
-  substitute.
-- **"End-to-end encrypted" as a marketing claim** — hold off until the
-  underlying protocol work below (multi-device sync, rollback checkpoints,
-  teardown, delivery hardening, compatibility testing) is actually verified,
-  not just implemented. Describe the vault as "encrypted with per-device
-  keys" until then.
+- [x] Billing, device authorization, recovery authorization, verified
+  invitations, and atomic member add/remove are implemented at the
+  protocol/backend level.
+- [ ] Persist verified account and collection checkpoints locally, then fetch
+  and verify only operations after the checkpoint. Rebuild from complete
+  verified history when a checkpoint is missing, stale, or rejected.
+- [ ] Add authorization-chain sync, rollback checkpoints, cross-runtime test
+  vectors, and browser-compatibility checks.
+- [ ] Investigate and fix `Verified account sync is required before collection
+  sync.` Collection sync must establish verified account state whenever the
+  worker was recreated after lock, reload, navigation, backgrounding, session
+  refresh, or retry; add non-sensitive diagnostics and regression tests.
 
----
+### Vault access and trusted devices
 
-## Work plan
+- [ ] Keep the encrypted local browser-device bundle through sign-out, so later
+  sign-in rediscovers and unlocks it instead of making the device unusable.
+- [ ] Cover passkey/PRF and passphrase unlock profiles through refresh, expiry,
+  sign-out/in, restart, new tab, cookie deletion, and IndexedDB deletion.
+- [x] Pending-device approval, rejection, cancellation, and expiration are
+  detected and resumed correctly after reload.
+- [ ] Prevent duplicate or unexplained passkey prompts from rerenders and
+  concurrent requests.
+- [ ] Provide active/pending/revoked device list, rename, cancel, revoke, and
+  forget-browser actions; show account sessions separately, with sign-out of
+  one or all other sessions.
 
-### 1. CI and test environment
+### Recovery and secret handling
 
-- [x] Unit tests, database tests, type checking, linting, production build pass locally and in CI.
-- [x] Separate Supabase test project, Google sign-in, Stripe test mode, Resend, Vercel staging all configured and tested end-to-end.
-- [ ] Keep staging data/credentials fully separate from production.
-- [ ] Document a safe staging reset procedure.
+- [ ] Show the mandatory, print-friendly 24-word BIP-39 recovery phrase once
+  during enrollment, with clear offline-storage and loss guidance. Twenty-four
+  words are the standard checksummed representation of 256-bit recovery
+  entropy.
+- [x] All-devices-lost recovery verifies the phrase locally, enrolls a
+  replacement device, and revokes/rotates the lost device without sending the
+  phrase to the server.
+- [x] Configurable inactivity auto-lock is available.
+- [x] Passwords are masked by default with deliberate reveal/copy and optional
+  best-effort clipboard clearing.
 
-### 2. Freeze scope
+### Sharing, ownership, and account lifecycle
 
-- [ ] Remove AI features, credits, and claims from roadmap, billing, and copy; disable any unfinished AI routes/flags/secrets.
-- [ ] Apply the product framing above consistently across app, vault, and website copy.
-- [ ] Decide Free vs. Pro feature boundaries, and whether Office-format preservation ships at launch.
-- [ ] Agree on one place (a flag, a doc) that says whether the "end-to-end encrypted" claim is currently true, and have all public copy defer to it.
+- [ ] Create, deliver, accept, and verify invitations through a safety number
+  or QR flow; show pending, active, and removed members.
+- [ ] Let the owner choose whether a new member receives old history; default
+  to no. Removing a member must rotate the collection key.
+- [ ] Define signed ownership-transfer and account-deletion operations before
+  exposing their UI.
+- [ ] Allow explicit ownership transfer to an active member. Account deletion
+  must revoke devices, leave shared collections, delete personal collections,
+  cancel billing, require recent authentication and confirmation, and block
+  while the account owns a shared collection with others.
 
-### 3. Browser vault
+### Vault experience and desktop integration
 
-**Protocol and sync**
-- [x] Billing, encrypted notes/tombstones, device authorization, recovery authorization, verified invitations, and atomic member add/remove are implemented at the protocol/backend level.
-- [ ] Multi-device authorization-chain sync, rollback checkpoints, cross-runtime test vectors, and browser-compatibility checks.
-- [ ] Lock/logout/route-exit/worker teardown, delivery and update hardening.
-- [ ] Staging acceptance suite covering all of the above.
+- [ ] Support desktop, narrow windows, and current mobile browsers with
+  touch-friendly controls and complete unlock, search, edit, copy, share,
+  trash, and settings states. Initial mobile support is responsive web, not a
+  native app.
+- [ ] Consolidate semantic CSS variables for vault canvas, surfaces, borders,
+  text, and accents so later palette experiments or alignment with the desktop
+  clipboard app happen in one place.
+- [ ] Embed the vault in the desktop webview and add an explicit clip-to-vault
+  bridge. It supplies plaintext only to the already unlocked, authorized
+  webview, which performs the normal encrypted write; the native host never
+  receives vault keys or ciphertext.
+- [ ] Apply a nonce-based CSP, no third-party vault scripts, Trusted Types
+  where supported, `Cache-Control: no-store`, no service worker on vault
+  routes, dependency pinning, no plaintext telemetry, and safe update behavior
+  while unlocked. Review the webview and bridge before release.
 
-**Device and session lifecycle**
-- [ ] A changed or lost account session must never make an existing local vault device unusable; the encrypted device bundle must not be tied to a session token.
-- [ ] Sign-out locks the vault without deleting the local device bundle; signing back in re-discovers and unlocks it.
-- [ ] Cover this for both local-protection profiles — passkey/PRF and the passphrase fallback — not just one.
-- [ ] Test refresh, expiry, sign-out/in, browser restart, new tab, cookie deletion, IndexedDB deletion.
+### Desktop clipboard app
 
-**Trusted-device approval**
-- [ ] Auto-detect approval/rejection/cancellation/expiration; resume correctly after reload.
-- [ ] No duplicate or unexplained passkey prompts from rerenders or concurrent requests.
+- [ ] Deliver reliable capture, history, search/filters, previews, supported
+  clip types, favorites/pins/snippets if included, pause capture, and clear
+  history.
+- [ ] Support app and sensitive-app exclusions; keep plaintext clipboard data
+  out of logs and crash reports.
+- [ ] Publish a format-support inventory marking every captured format as fully
+  rendered, preview-only, metadata-only, or unsupported, with a safe fallback
+  for unknown formats.
+- [ ] Complete sign-in and entitlement refresh, signed installers, updates,
+  and vault webview access.
 
-**Item workflows**
-- [ ] Create/edit/search/copy notes and login records as immutable authenticated revisions.
-- [ ] Clear saving/saved/offline/conflict states; never show an unaccepted draft as synchronized.
+### Billing, website, and support
 
-**Trash and deletion**
-- [ ] Move to trash, trash view, restore, and a separate explicit permanent delete with confirmation.
-- [ ] Make clear that deletion can't erase copies already downloaded elsewhere.
+- [ ] Redirect existing subscribers to the Stripe billing portal and preserve a
+  valid older subscription when a newer payment attempt fails.
+- [ ] Test monthly/yearly purchase, cancellation, refund, failed-payment
+  recovery, webhook retry/replay, and resubscription; document missed-event
+  replay and failed-payment support.
+- [ ] Publish signed downloads with checksums and installation instructions,
+  unavailable-platform messaging, and a spam-protected support contact.
+- [ ] Complete English/Japanese content, titles, sharing metadata, links, and
+  sitemap. Remove unfinished AI/Team claims and state that raw clipboard
+  history is never uploaded automatically.
+- [ ] Check every public encryption claim against the verified protocol work;
+  do not claim end-to-end encryption before that verification is complete.
 
-**Sharing**
-- [ ] Invitation creation, link delivery, acceptance, and safety-number/QR verification.
-- [ ] Owner chooses whether new members get old history (default: no).
-- [ ] Members page showing pending/active/removed, with removal triggering key rotation.
+### Production readiness
 
-**Devices and sessions (UI)**
-- [ ] Device list (active/pending/revoked, platform, last activity), rename, cancel, revoke, "forget this browser."
-- [ ] Session list separate from device list, with sign-out of one or all others; never describe session sign-out as cryptographic device revocation.
+- [ ] Decide Free/Pro boundaries, storage/collection/sharing/device limits,
+  prices, currencies, supported platforms, and release channels.
+- [ ] Complete company details, privacy notice, terms, refunds, taxes, and
+  retention policy.
+- [ ] Run and record staging acceptance for sign-up/sign-in, desktop handoff,
+  vault setup/lock, all-devices-lost recovery, cross-device sync, sharing,
+  trash, device removal, ownership transfer, account deletion, payments,
+  webhooks, downloads, support delivery, and network interruption.
+- [ ] Document rollback, payment-support, account-recovery, and incident
+  procedures.
+- [ ] Verify production configuration for Vercel, Supabase, Google, Stripe,
+  email, and desktop; publish signed releases and activate the live webhook.
+- [ ] Perform one controlled production payment and one production sign-in plus
+  vault check before limited release and monitored expansion.
 
-**Locking and secret handling**
-- [ ] Configurable inactivity auto-lock (sensible default, e.g. 10 min).
-- [ ] Masked passwords with explicit reveal/copy, and a best-effort (not guaranteed) clipboard-clear after copy.
+## Post-launch
 
-**Recovery**
-- [ ] Enrollment: mandatory 24-word phrase, shown once at enrollment, print-friendly, clear loss warning.
-- [ ] Execution: the actual flow to enter the phrase, verify it, enroll a replacement device, and revoke/rotate the lost device — tested without ever sending the phrase to the server.
+### Offline vault / PWA
 
-**Ownership and account deletion**
-- [ ] Define the signed protocol operations for ownership transfer and for account deletion (revoke devices, leave shared collections, delete personal collections, cancel subscription) before building UI on top of them.
-- [ ] Ownership transfer to another active member, never automatic.
-- [ ] Account deletion blocks while the user still owns a shared collection with other members, requires recent auth and explicit confirmation, and explains irreversible consequences up front.
+- [ ] Design offline access as a separate authorized-device capability with
+  encrypted local storage, key lifecycle and revocation handling,
+  integrity-safe delivery, and recovery behavior. A service-worker cache alone
+  is not offline vault support and must not serve stale or unsafe code while
+  the vault is unlocked.
 
-**Dashboard**
-- [ ] Responsive layout for desktop and narrow windows.
-- [ ] Clear empty/loading/error/offline/locked/conflict states across unlock, search, edit, copy, share, trash, settings.
+### Native vault clients
 
-**Account passkey login**
-- [ ] Deferrable — ship only once vault-unlock passkey issues are stable and only if it doesn't delay launch.
+- [ ] Evaluate native mobile clients and desktop-as-an-authorized-vault-device
+  after browser protocol, sync, and compatibility work is proven.
 
-**Webview and delivery hardening**
-- [ ] Strict nonce-based CSP, no third-party scripts, Trusted Types where supported, `Cache-Control: no-store`, no service worker on vault routes.
-- [ ] Dependency pinning; no plaintext vault data in telemetry/analytics/crash reports.
-- [ ] New builds don't activate while the vault is unlocked.
-- [ ] Correct enrollment-origin configuration for production and staging.
-- [ ] Security review of the desktop webview embedding and the clip-to-vault bridge specifically.
+### Expanded vault features
 
-### 4. Desktop clipboard app
+- [ ] Add file attachments, revision-history browser, team organizations and
+  advanced roles, account passkey login, and AI/credits/pricing features when
+  their security and product design is ready.
 
-- [ ] Reliable capture, history, search/filters, supported clip types, favorites/pins/snippets (if included), pause capture, clear history.
-- [ ] App exclusions and sensitive-app exclusions; no plaintext clipboard content in logs or crash reports.
-- [ ] Reliable sign-in and entitlement refresh; signed installers and update behavior.
-- [ ] Format-by-format renderer support: list every captured format, mark it fully-rendered / preview-only / metadata-only / unsupported, add a safe fallback for unknown formats, avoid building many new specialized renderers before launch.
-- [ ] Embedded vault webview reachable from the app, plus the clip-to-vault bridge (see integration model above).
+### Protocol and delivery maturity
 
-### 5. Subscription safety
+- [ ] Extend rollback checkpoints, cross-runtime vectors, browser compatibility
+  coverage, and update/delivery protections; validate any expanded encryption
+  marketing claim.
 
-- [ ] Existing subscribers are redirected to the Stripe billing portal instead of creating a duplicate subscription.
-- [ ] Older valid subscription stays active if a newer payment attempt fails.
-- [ ] Test monthly/yearly purchase, cancellation, refund, payment failure/recovery, webhook retry/replay, resubscription.
-- [ ] Document missed-event replay and failed-payment support process.
+## Release acceptance coverage
 
-### 6. Public website
-
-- [ ] Real signed downloads with checksums and install instructions; clear unavailable-platform messaging.
-- [ ] Contact form wired to support with spam protection.
-- [ ] English/Japanese pages complete: titles, sharing metadata, links, sitemap.
-- [ ] No AI or Team claims; clear statement that only deliberately saved items sync, not raw clipboard history.
-- [ ] Every page checked against the "end-to-end encrypted" claim decision from step 2.
-
-### 7. Final launch choices
-
-- [ ] Free/Pro boundaries, storage/collection/sharing/device limits, pricing and currencies.
-- [ ] Supported platforms, release channels.
-- [ ] Company details, privacy notice, terms, refunds, taxes, retention policy.
-- [ ] Recovery execution actually demonstrated (not just designed) before sign-off.
-- [ ] Every website claim checked against the real desktop app and vault.
-
-### 8. Rehearsal
-
-- [ ] Sign-up/sign-in, desktop sign-in handoff.
-- [ ] Vault setup, lock, a real simulated all-devices-lost recovery, sharing, trash, device removal.
-- [ ] Purchase/cancel/failed-payment/webhook replay.
-- [ ] Downloads and update installation; support contact delivery.
-- [ ] Account deletion and ownership transfer.
-- [ ] Network-interruption failure cases.
-- [ ] Written rollback, payment-support, account-recovery, and incident steps.
-- [ ] Dated record of every rehearsal run.
-
-### 9. Public launch
-
-- [ ] Production config for Vercel, Supabase, Google, Stripe, email, desktop.
-- [ ] Live Stripe webhook and final prices; signed desktop releases published.
-- [ ] One controlled real payment, one production sign-in + vault check.
-- [ ] Limited real-user release with monitoring, then open access.
-
----
-
-## Rules
-
-- Never send vault plaintext, recovery phrases, or private keys to the server or logs.
-- Never upload raw clipboard history automatically.
-- Use test accounts and payments until production launch.
-- Don't claim device revocation erases already-downloaded data.
-- Don't claim clipboard clearing is guaranteed — it's best-effort.
-- Don't call the vault "end-to-end encrypted" publicly until the step-2 decision says so.
-- Don't treat "recovery" as done from enrollment alone — execution is a separate, required flow.
-- Don't build ownership-transfer or account-deletion UI before their signed protocol operations are defined.
-- Don't start native (non-webview) desktop vault integration before the browser protocol and compatibility tests are complete.
+- [ ] Test verified delta sync for creation, edits, deletion, membership/key
+  rotation, stale or missing checkpoints, invalid anchors, and full rebuild.
+- [ ] Reproduce and prevent the verified-account-sync error through lock,
+  worker termination, reload, route changes, backgrounding, session expiry,
+  sign-out/in, IndexedDB deletion, and concurrent refreshes.
+- [ ] Test valid and invalid 24-word BIP-39 phrases without transmitting or
+  logging phrase material.
+- [ ] Test responsive vault workflows on supported phone viewport sizes and
+  narrow desktop windows.
