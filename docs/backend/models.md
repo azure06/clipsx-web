@@ -1,15 +1,16 @@
+For desktop configuration sync, see [Configuration sync](configuration-sync.md). Its devices and records are independent of the browser vault.
+
 # Data model and column dictionary
 
 ## Status and conventions
 
 The billing tables are implemented. Migration
-`20260728064659_add_vault_read_schema.sql` and
-`20260728073117_add_vault_trust_ledger.sql` implement core browser-readable
+`20260905004646_vault_foundation.sql` implement core browser-readable
 vault and trust-ledger tables as `public.vault_*` rows with RLS and no browser
 mutation grants. Signed collection creation, immutable revisions/deletion,
 verified invitations, and membership epoch rotations are implemented.
 Security checkpoints remain planned.
-Migrations `20260802010800` through `20260802010811` add private, all-or-nothing
+The `vault_devices`, `vault_content`, and `vault_sharing` baselines add private, all-or-nothing
 first-device enrollment, pending-device registration, QR/SAS device authorization
 plus current personal-epoch delivery, collection-create, immutable-revision,
 item-deletion, invitation evidence, recovery-root rotation, and atomic member

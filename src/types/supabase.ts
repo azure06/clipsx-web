@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -1284,6 +1284,112 @@ export type Database = {
   }
   public: {
     Tables: {
+      sync_devices: {
+        Row: {
+          created_at: string
+          device_id: string
+          display_name: string
+          last_seen_at: string
+          revoked_at: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          display_name: string
+          last_seen_at?: string
+          revoked_at?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          display_name?: string
+          last_seen_at?: string
+          revoked_at?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_devices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "sync_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      sync_profiles: {
+        Row: {
+          cursor: number
+          generation: number
+          initialized: boolean
+          user_id: string
+        }
+        Insert: {
+          cursor?: number
+          generation?: number
+          initialized?: boolean
+          user_id: string
+        }
+        Update: {
+          cursor?: number
+          generation?: number
+          initialized?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sync_records: {
+        Row: {
+          generation: number
+          key: string
+          kind: string
+          payload: Json | null
+          revision_counter: number
+          revision_physical_ms: number
+          server_cursor: number
+          source_device_id: string
+          tombstone: boolean
+          user_id: string
+        }
+        Insert: {
+          generation: number
+          key: string
+          kind: string
+          payload?: Json | null
+          revision_counter: number
+          revision_physical_ms: number
+          server_cursor: number
+          source_device_id: string
+          tombstone: boolean
+          user_id: string
+        }
+        Update: {
+          generation?: number
+          key?: string
+          kind?: string
+          payload?: Json | null
+          revision_counter?: number
+          revision_physical_ms?: number
+          server_cursor?: number
+          source_device_id?: string
+          tombstone?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "sync_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       vault_account_operations: {
         Row: {
           account_id: string
@@ -2268,7 +2374,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      sync_apply_batch: {
+        Args: {
+          p_after_cursor: number
+          p_device_id: string
+          p_generation: number
+          p_protocol_version: number
+          p_records: Json
+        }
+        Returns: Json
+      }
+      sync_enroll_device: {
+        Args: { p_device_id: string; p_device_name: string }
+        Returns: Json
+      }
+      sync_list_devices: { Args: never; Returns: Json }
+      sync_replace_profile: {
+        Args: {
+          p_device_id: string
+          p_generation: number
+          p_records: Json
+          p_replace: boolean
+        }
+        Returns: number
+      }
+      sync_reset_profile: { Args: { p_generation: number }; Returns: number }
+      sync_revoke_device: { Args: { p_device_id: string }; Returns: undefined }
     }
     Enums: {
       vault_device_status: "pending" | "active" | "revoked"

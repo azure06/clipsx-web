@@ -1,3 +1,5 @@
+Desktop configuration sync is documented separately in [Configuration sync](configuration-sync.md). It is account-protected configuration, independent of the encrypted browser vault and billing.
+
 # Database tables
 
 This is a practical map of the server database: what each table represents,

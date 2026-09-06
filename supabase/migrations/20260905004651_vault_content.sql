@@ -1,3 +1,5 @@
+-- Vault Content baseline. Append future changes as new migrations.
+
 create function private.create_vault_collection(
   p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
   p_expected_account_head bytea,
