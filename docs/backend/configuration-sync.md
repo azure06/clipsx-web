@@ -111,12 +111,19 @@ explicit confirmation. First restore stages all pages before replacing portable
 local values. Interrupted downloads preserve local settings and resume with the
 staged cursor. Edits during download retain their outbox revisions.
 
-Changes synchronize on startup, reconnect, manual action, 500 ms debounced
-mutations, and a 60-second poll. One coordinator drains bounded pages with
-backoff and jitter after failures. Sign-out pauses sync and retains local data.
-Account changes and reconnect decisions increment a local epoch; late responses
-from the previous epoch are ignored. Remote generation changes pause sync and
-require a new connection choice rather than uploading old settings automatically.
+The desktop uses an event-driven coordinator and does not poll while idle.
+It synchronizes once at startup, after eligible mutations settle for 5 seconds
+(with a 30-second maximum wait), on a network reconnect while active, after a
+window activation settles for 2 seconds when the last automatic pull is at
+least 15 minutes old, and through the manual action. Reconnects while hidden
+defer until activation. Pending uploads retry only while online and active at
+2, 5, 15, 30, and 60 seconds, then wait for another explicit lifecycle trigger.
+Pull-only failures do not create a retry loop. One coordinator drains bounded
+pages and shares concurrent triggers. Sign-out pauses sync and retains local
+data. Account changes and reconnect decisions increment a local epoch; late
+responses from the previous epoch are ignored. Remote generation changes pause
+sync and require a new connection choice rather than uploading old settings
+automatically.
 
 Extensions restore only through the existing signed registry/checksum verifier.
 Installed packages are not silently upgraded by sync. Unavailable packages,
