@@ -1,0 +1,69 @@
+name: Apply portable setting approvals
+
+on:
+  repository_dispatch:
+    types: [registry-published]
+  workflow_dispatch:
+    inputs:
+      registry_sha:
+        description: Exact clipsx-registry commit SHA
+        required: true
+      index_sha256:
+        description: SHA-256 of index.json at that commit
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portable-settings-production
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      REGISTRY_SHA: ${{ github.event.client_payload.registry_sha || inputs.registry_sha }}
+      INDEX_SHA256: ${{ github.event.client_payload.index_sha256 || inputs.index_sha256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Check out the dispatched registry revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: azure06/clipsx-registry
+          ref: ${{ env.REGISTRY_SHA }}
+          path: signed-registry
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+      - name: Verify signature and prepare the exact replacement
+        run: node scripts/sync-portable-settings.mjs --registry signed-registry --index-sha256 "$INDEX_SHA256" --catalog-output portable-settings.json --sql-output portable-settings.sql
+      - name: Reject a stale queued publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_hash="$(gh api 'repos/azure06/clipsx-registry/contents/index.json?ref=main' --jq .content | tr -d '\n' | base64 --decode | sha256sum | cut -d ' ' -f 1)"
+          test "$current_hash" = "$INDEX_SHA256"
+      - name: Reconcile the private Supabase catalog transactionally
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          psql "$SUPABASE_DB_URL" --set ON_ERROR_STOP=1 --file portable-settings.sql
+          psql "$SUPABASE_DB_URL" --set ON_ERROR_STOP=1 --tuples-only --no-align \
+            --command "SELECT coalesce(jsonb_agg(jsonb_build_object('packageId', package_id, 'settingId', setting_id, 'valueKind', value_kind) ORDER BY package_id, setting_id), '[]'::jsonb) FROM sync_internal.extension_settings" \
+            > applied-portable-settings.json
+          node --input-type=module --eval "import{readFileSync as r}from'node:fs';const expected=JSON.parse(r('portable-settings.json')),actual=JSON.parse(r('applied-portable-settings.json'));if(JSON.stringify(expected)!==JSON.stringify(actual))throw Error('post-commit catalog readback mismatch')"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: applied-portable-settings-${{ env.REGISTRY_SHA }}
+          path: |
+            portable-settings.json
+            applied-portable-settings.json
+          retention-days: 30

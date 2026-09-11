@@ -63,11 +63,15 @@ text settings are local in v1; only explicitly portable booleans/numbers are
 eligible for server approval.
 
 `sync_internal.extension_settings` is a release-owned approval catalog, not
-user-editable metadata. After verifying a signed release and reviewing its
-portable declarations, add matching package/setting IDs and value kinds through
-a migration or release administration SQL. Do not approve settings merely because
-they are labeled non-secret. Client runtime validation still requires the
-installed signed manifest. No settings are approved implicitly or via user JWTs.
+user-editable metadata. Registry schema v4 is its source of truth. A merge of a
+signed registry publication dispatches the exact commit and index digest here;
+the protected workflow independently verifies the pinned Ed25519 trust key,
+rejects stale revisions, selects every package's latest stable unrevoked release,
+and replaces the catalog in one database transaction. Supabase keeps this
+projection because sync RPCs must reject forged package/setting IDs without
+trusting a client-supplied manifest. Do not approve settings merely because they
+are labeled non-secret. Client runtime validation still requires the installed
+signed manifest. No settings are approved implicitly or via user JWTs.
 
 ## Database and API behavior
 
