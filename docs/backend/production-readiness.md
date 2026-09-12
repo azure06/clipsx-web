@@ -9,9 +9,13 @@ were fixed by hiding them. The SQL review covers all eight existing baselines, i
 preview guard concerns unfinished browser trust ceremonies, not a requirement
 to create another vault migration for these SQL fixes.
 
-No hosted database was changed or deployed. Existing local application data was
-not reset. Baseline SQL was edited directly as authorized, with no new migration
-files or dependencies.
+The reviewed baseline was deployed to the empty hosted `clipsx` project on
+2026-09-12 after passing the local reset, SQL, concurrency, restore, and advisor
+gates. Hosted advisors then exposed a platform-installed `public.rls_auto_enable`
+function as an executable Data API RPC. A forward migration revokes execution
+from `PUBLIC`, `anon`, and `authenticated`; the platform event trigger continues
+to invoke its backing function internally. Existing application data was not
+reset and no dependency was added.
 
 ## SQL completion status
 
@@ -19,8 +23,9 @@ The final SQL contract pass also rejects null optimistic history heads and
 requires unexpired, unclosed account sessions in every vault mutation and the
 private account-sync reader. Null pagination bounds and missing rotation arrays
 are rejected explicitly. These changes are folded into the same baseline files.
-All 17 SQL suites, concurrency/restore checks and security advisors pass. There
-are no additional SQL migration files to apply for this correction pass.
+All 17 SQL suites, concurrency/restore checks and security advisors pass. One
+forward hardening migration follows the eight deployed baseline files; the
+released baseline files remain immutable.
 
 This verifies the checked-in baseline and its tested contracts; it does not
 promise that future product/protocol changes will never require schema updates.
@@ -52,6 +57,7 @@ promise that future product/protocol changes will never require schema updates.
 | Retained JWTs could outlive account closure. | Vault read policies require a live session and unclosed principal. | A valid token alone is insufficient after session revocation. Same-JWT before/after closure test passes. |
 | A closing shared member still knew the old collection key. | Fence new encrypted writes until an owner-signed removal rotation completes. | The server cannot generate an E2EE rotation itself. SQL tests verify the fence and its release. |
 | Lint and release checks were incomplete. | Fix JSX escaping and media-query subscription; add baseline, concurrency, restore and migration-history checks to CI. | Build/lint checks and repeatable database evidence should gate release rather than depend on manual inspection. |
+| The hosted platform exposed its RLS event-trigger function as a public RPC. | Revoke function execution from public Data API roles in a forward migration and assert both roles remain denied. | Event-trigger execution does not require browser roles to call the privileged backing function. Hosted security advisors must report no externally facing warning. |
 
 Correction to an intermediate investigation: item ciphertext is already detached
 from durable command bytes (`decodeVaultCommand` excludes transport label 11).
@@ -68,6 +74,9 @@ envelopes, commitments and attribution have separate retention requirements.
 - A populated logical backup restores to a second scratch database with matching
   Auth/billing rows, webhook state and RLS policies.
 - Supabase security advisors return no findings on the corrected scratch database.
+- The hosted database records all eight baseline migrations plus the forward
+  hardening migration; `anon` and `authenticated` cannot execute
+  `public.rls_auto_enable`, and neither role can read the approval catalog.
 - 79 unit tests pass; type-check and production build pass.
 - Repository lint passes with 20 existing warnings and no errors.
 - Migration guard test accepts a forward migration and rejects a rewritten
@@ -89,9 +98,9 @@ npm run build
 1. Keep vault preview disabled in production. Verify the intended project, HTTPS
    URL, email/auth redirects, exposed `private` schema with browser grants denied,
    Stripe live keys, catalog mappings and webhook destination.
-2. Apply this baseline once to the new project after reviewing the target and
-   pending SQL. Never run a production reset. Tag the deployed commit and set CI
-   variable `MIGRATION_BASE_REF` to that immutable release.
+2. The baseline was applied once to the empty hosted project on 2026-09-12.
+   Never run a production reset. Tag the deployed commit and set CI variable
+   `MIGRATION_BASE_REF` to that immutable release.
 3. For later releases, create forward migrations with Supabase CLI. Run
    `node scripts/verify-migration-history.mjs --base RELEASE_TAG`, restore a
    populated staging copy, apply only new migrations and verify preserved data.
@@ -107,10 +116,12 @@ npm run build
    deletion; retrying finishes a failed final Auth deletion. Retained billing
    records/public keys are pseudonymous and must not be described as anonymous.
 
-**Still unverified on the hosted project:** actual API grants/configuration,
-live Checkout/payment/cancellation/webhook replay, desktop sync between two real
-devices, provider backup/PITR settings and a hosted restore rehearsal. The local
-restore is real evidence, but does not establish the hosted recovery objective.
+**Still unverified on the hosted project:** Auth provider/redirect configuration,
+leaked-password protection, live Checkout/payment/cancellation/webhook replay,
+desktop sync between two real devices, provider backup/PITR settings and a hosted
+restore rehearsal. Table/schema grants and approval-catalog isolation were
+verified after deployment. The local restore is real evidence, but does not
+establish the hosted recovery objective.
 No public-production deployment approval is inferred from local test success.
 
 **Still unfinished for the full vault:** scoped external signer proof delivery,
