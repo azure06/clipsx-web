@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { BILLING_ACCOUNT_METADATA_KEY } from './billing-customer';
 import type { StripeWebhookInboxRecord } from './webhook-event';
 
-type StripeApi = Pick<Stripe, 'customers' | 'products' | 'prices' | 'subscriptions' | 'invoices' | 'checkout'>;
+type StripeApi = Pick<Stripe, 'customers' | 'products' | 'prices' | 'subscriptions' | 'invoices' | 'checkout' | 'subscriptionItems'>;
 
 export type StripeProjectionPayload = {
   products: Array<Record<string, unknown>>;
@@ -57,8 +57,15 @@ function addCustomer(payload: StripeProjectionPayload, customer: Stripe.Customer
   });
 }
 
-function addSubscription(payload: StripeProjectionPayload, subscription: Stripe.Subscription, customer: Stripe.Customer) {
-  if (subscription.items.has_more) throw new Error('Incomplete Stripe subscription item snapshot');
+async function addSubscription(payload: StripeProjectionPayload, subscription: Stripe.Subscription, customer: Stripe.Customer, stripe: StripeApi) {
+  if (subscription.items.has_more) {
+    const items: Stripe.SubscriptionItem[] = [];
+    for await (const item of stripe.subscriptionItems.list({ subscription: subscription.id, limit: 100, expand: ['data.price.product'] })) {
+      if (items.length >= 1000) throw new Error('Stripe subscription exceeds projection item limit');
+      items.push(item);
+    }
+    subscription = { ...subscription, items: { ...subscription.items, data: items, has_more: false } };
+  }
   addCustomer(payload, customer);
   payload.subscriptions.push({
     id: subscription.id, customer_id: customer.id,
@@ -102,7 +109,7 @@ export async function buildStripeProjectionPayload(event: Stripe.Event, stripe: 
     case 'subscription': {
       const subscription = await stripe.subscriptions.retrieve(event.data.object.id, { expand: ['customer', 'items.data.price.product'] });
       if (typeof subscription.customer === 'string' || ('deleted' in subscription.customer && subscription.customer.deleted)) throw new Error('Stripe Subscription Customer was unavailable');
-      addSubscription(payload, subscription, subscription.customer);
+      await addSubscription(payload, subscription, subscription.customer, stripe);
       break;
     }
     case 'invoice': {
@@ -114,7 +121,7 @@ export async function buildStripeProjectionPayload(event: Stripe.Event, stripe: 
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId, { expand: ['customer', 'items.data.price.product'] });
         if (typeof subscription.customer === 'string' || ('deleted' in subscription.customer && subscription.customer.deleted)) throw new Error('Stripe Subscription Customer was unavailable');
-        addSubscription(payload, subscription, subscription.customer);
+        await addSubscription(payload, subscription, subscription.customer, stripe);
       }
       if (customer && !('deleted' in customer && customer.deleted)) {
         payload.invoices.push({
@@ -130,7 +137,7 @@ export async function buildStripeProjectionPayload(event: Stripe.Event, stripe: 
       if (typeof session.subscription === 'string') {
         const subscription = await stripe.subscriptions.retrieve(session.subscription, { expand: ['customer', 'items.data.price.product'] });
         if (typeof subscription.customer === 'string' || ('deleted' in subscription.customer && subscription.customer.deleted)) throw new Error('Stripe Subscription Customer was unavailable');
-        addSubscription(payload, subscription, subscription.customer);
+        await addSubscription(payload, subscription, subscription.customer, stripe);
       }
       break;
     }

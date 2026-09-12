@@ -28,5 +28,6 @@ for (const eventId of eventIds) {
   const payload = JSON.stringify(event);
   const signature = stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
   const response = await fetch(webhookUrl, { method: 'POST', headers: { 'content-type': 'application/json', 'stripe-signature': signature }, body: payload });
-  console.log(`${eventId}: ${response.status} ${await response.text()}`);
+  console.log(`${eventId}: ${response.status}`);
+  if (!response.ok) process.exitCode = 1;
 }
