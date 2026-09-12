@@ -6,14 +6,14 @@ create type private.organization_membership_status as enum ('active', 'removed')
 create table private.organizations (
   id uuid primary key default gen_random_uuid(),
   name text not null check (char_length(btrim(name)) between 1 and 120),
-  created_by_user_id uuid not null references auth.users (id) on delete restrict,
+  created_by_user_id uuid not null references private.account_principals (id) on delete restrict,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 create table private.organization_memberships (
   organization_id uuid not null references private.organizations (id) on delete restrict,
-  user_id uuid not null references auth.users (id) on delete restrict,
+  user_id uuid not null references private.account_principals (id) on delete restrict,
   role private.organization_membership_role not null default 'member',
   status private.organization_membership_status not null default 'active',
   created_at timestamptz not null default now(),

@@ -9,7 +9,7 @@ create type public.vault_invitation_status as enum ('created', 'accepted', 'expi
 
 create table public.vault_devices (
   id uuid primary key default gen_random_uuid(),
-  account_id uuid not null references auth.users(id) on delete cascade,
+  account_id uuid not null references private.account_principals(id) on delete restrict,
   display_name text not null check (length(display_name) between 1 and 128),
   client_type text not null check (client_type = 'browser'),
   platform text not null check (length(platform) between 1 and 128),
@@ -33,7 +33,7 @@ create table public.vault_devices (
 
 create table public.vault_recovery_keys (
   id uuid primary key default gen_random_uuid(),
-  account_id uuid not null references auth.users(id) on delete cascade,
+  account_id uuid not null references private.account_principals(id) on delete restrict,
   encryption_public_key bytea not null check (octet_length(encryption_public_key) = 32),
   signing_public_key bytea not null check (octet_length(signing_public_key) = 32),
   key_version integer not null check (key_version >= 1),
@@ -52,7 +52,7 @@ create index vault_devices_active_account_idx on public.vault_devices(account_id
 
 create table public.vault_collections (
   id uuid primary key default gen_random_uuid(),
-  owner_account_id uuid not null references auth.users(id) on delete restrict,
+  owner_account_id uuid not null references private.account_principals(id) on delete restrict,
   encrypted_metadata bytea check (encrypted_metadata is null or octet_length(encrypted_metadata) >= 16),
   metadata_nonce bytea check (metadata_nonce is null or octet_length(metadata_nonce) = 12),
   metadata_algorithm text not null default 'aes-256-gcm',
@@ -65,13 +65,14 @@ create table public.vault_collections (
   migration_state text not null default 'complete' check (migration_state = 'complete'),
   created_at timestamptz not null default now(),
   deleted_at timestamptz,
+  requires_epoch_rotation boolean not null default false,
   check ((encrypted_metadata is null) = (metadata_nonce is null))
 );
 
 create table public.vault_collection_memberships (
   id uuid primary key default gen_random_uuid(),
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
-  account_id uuid not null references auth.users(id) on delete cascade,
+  account_id uuid not null references private.account_principals(id) on delete restrict,
   role public.vault_member_role not null,
   status public.vault_member_status not null,
   joined_at timestamptz,
@@ -94,7 +95,7 @@ create table public.vault_collection_invitations (
   collection_id uuid not null references public.vault_collections(id) on delete cascade,
   membership_id uuid not null unique references public.vault_collection_memberships(id) on delete restrict,
   inviter_device_id uuid not null references public.vault_devices(id) on delete restrict,
-  recipient_account_id uuid not null references auth.users(id) on delete cascade,
+  recipient_account_id uuid not null references private.account_principals(id) on delete restrict,
   requested_role public.vault_member_role not null check (requested_role <> 'owner'),
   verification_mode text not null check (verification_mode = 'verified'),
   status public.vault_invitation_status not null default 'created',
@@ -295,7 +296,7 @@ grant select on public.vault_devices, public.vault_recovery_keys, public.vault_c
 -- CBOR and Ed25519 before it calls its private transaction functions.
 create table public.vault_device_authorizations (
   id uuid primary key default gen_random_uuid(),
-  account_id uuid not null references auth.users(id) on delete cascade,
+  account_id uuid not null references private.account_principals(id) on delete restrict,
   device_id uuid not null unique references public.vault_devices(id) on delete restrict,
   authorized_by_device_id uuid references public.vault_devices(id) on delete restrict,
   recovery_key_id uuid references public.vault_recovery_keys(id) on delete restrict,
@@ -312,7 +313,7 @@ create index vault_device_authorizations_account_idx on public.vault_device_auth
 
 create table public.vault_account_operations (
   operation_id uuid primary key,
-  account_id uuid not null references auth.users(id) on delete cascade,
+  account_id uuid not null references private.account_principals(id) on delete restrict,
   sequence_number bigint not null check (sequence_number >= 1),
   operation_type text not null check (operation_type in (
     'device-register', 'device-authorize', 'device-revoke',

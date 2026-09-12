@@ -330,7 +330,8 @@ begin
     or not exists (select 1 from public.vault_devices where id = p_revoked_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_rotations), '') <> 'array'
     or jsonb_array_length(p_rotations) <> (
-      select count(*) from private.vault_required_epochs(p_account_id)
+      select count(*) from public.vault_collections c join public.vault_collection_memberships m on m.collection_id=c.id
+      where m.account_id=p_account_id and m.status='active' and c.deleted_at is null
     )
     or (select count(distinct r->>'collection_id') from jsonb_array_elements(p_rotations) r) <> jsonb_array_length(p_rotations)
     or exists (select 1 from jsonb_array_elements(p_rotations) r where not exists (

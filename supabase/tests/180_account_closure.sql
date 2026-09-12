@@ -1,0 +1,17 @@
+begin;
+select plan(10);
+insert into auth.users(id) values('18000000-0000-0000-0000-000000000001');
+insert into auth.sessions(id,user_id) values('18000000-0000-0000-0000-000000000002','18000000-0000-0000-0000-000000000001');
+select set_config('request.jwt.claims','{"sub":"18000000-0000-0000-0000-000000000001","session_id":"18000000-0000-0000-0000-000000000002","role":"authenticated"}',true);
+select ok(private.vault_session_active(),'live session can read before closure');
+select ok(private.close_account('18000000-0000-0000-0000-000000000001'),'new account can close');
+select ok(not private.vault_session_active(),'same unexpired JWT loses access immediately on closure');
+select is((select count(*) from auth.sessions where user_id='18000000-0000-0000-0000-000000000001'),0::bigint,'closure revokes sessions');
+select is((select status::text from private.billing_accounts where owner_user_id='18000000-0000-0000-0000-000000000001'),'closed','billing ownership record remains closed');
+select ok(private.close_account('18000000-0000-0000-0000-000000000001'),'closure is idempotent');
+select lives_ok($q$delete from auth.users where id='18000000-0000-0000-0000-000000000001'$q$,'Auth identity can be removed without deleting retained billing records');
+select ok((select auth_user_id is null and closed_at is not null from private.account_principals where id='18000000-0000-0000-0000-000000000001'),'stable attribution is detached from Auth');
+select is((select count(*) from private.account_entitlements where billing_account_id in(select id from private.billing_accounts where owner_user_id='18000000-0000-0000-0000-000000000001')),2::bigint,'financial entitlement history survives identity deletion');
+select ok(not has_function_privilege('authenticated','private.close_account(uuid)','execute'),'closure requires privileged operator');
+select * from finish();
+rollback;

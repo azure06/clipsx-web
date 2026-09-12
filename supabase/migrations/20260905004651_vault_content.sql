@@ -151,6 +151,7 @@ declare
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
   perform pg_advisory_xact_lock(hashtextextended(p_collection_id::text, 2));
+  if exists(select 1 from public.vault_collections where id=p_collection_id and requires_epoch_rotation) then raise exception 'collection_rotation_required'; end if;
   if octet_length(p_expected_account_head) <> 32
      or octet_length(p_expected_collection_head) <> 32 or p_collection_epoch < 1
      or octet_length(p_encrypted_content) not between 16 and 1048576

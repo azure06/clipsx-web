@@ -4,6 +4,12 @@ Desktop configuration sync is documented separately in [Configuration sync](conf
 
 ## Status and scope
 
+**Release configuration:** billing and desktop settings sync are the first-release
+candidate. Browser vault routes and UI require explicit preview opt-in through
+`CLIPSX_VAULT_PREVIEW_ENABLED=true`; production keeps it unset/false. Scoped
+external signer proofs and complete cross-device sharing ceremonies remain
+preview blockers. See [release evidence](production-readiness.md).
+
 This document is the normative design for the browser-based ClipsX encrypted
 vault. The billing backend, encrypted notes/tombstones, device and recovery
 authorization, verified collection invitations, and atomic member add/remove
@@ -1195,5 +1201,33 @@ creation supplies envelopes for every currently active account device, using
 encryption keys verified against signed enrollment records. Recovery rotation
 retains the old signing root on its ledger operation and verifies the device
 co-signature before accepting the replacement. Scoped external signer proofs
-still need completion before shared vault opening can launch. Account deletion and vault retention
-maintenance also remain unfinished lifecycle work.
+still need completion before shared vault opening can launch. The administrative account-closure and bounded retention workflows are described below.
+
+## Account closure and bounded retention
+
+`private.account_principals` separates immutable attribution IDs from Auth
+identities. Billing and vault public-key history reference these stable IDs;
+Auth removal detaches `auth_user_id` without deleting other members' verification
+keys. This is pseudonymous retention, not a promise of anonymity. Auth signup
+creates the principal before domain signup triggers.
+
+The privileged closure command requires Stripe subscriptions to be canceled and
+future organization ownership transferred first. It revokes sessions, removes
+settings and transient enrollment data, purges owned collections and own account
+ledger, revokes retained public keys, and closes billing. A shared collection
+with a closing member is fenced against new content until its owner signs the
+member-removal rotation. The server never attempts plaintext key rotation.
+Every vault browser RLS read requires a live, unclosed Auth session, so a retained
+JWT cannot keep reading after closure. `scripts/close-account.mjs` completes the
+Auth identity deletion after the database transaction and is safe to retry.
+
+Capacity triggers account for serialized row bytes, including both copies of
+signed control commands. Item attachments are excluded from durable commands. Each collection is capped at 32 MiB; account
+control records at 16 MiB. Accounts can create 16 collections and 64 devices;
+collections retain at most 32 epochs. Further per-table bounds prevent unbounded
+small-row growth. Counters update atomically in the mutation transaction. A quota
+failure rolls back the entire command. Item ciphertext is a detached transport attachment and is removed with its
+revision rows. Signed control records retain collection metadata and envelopes
+until their containing history is purged.
+`cleanup-vault.mjs` removes expired registration records in bounded batches; it
+never prunes signed history or sync tombstones.

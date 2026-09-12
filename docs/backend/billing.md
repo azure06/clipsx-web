@@ -142,9 +142,17 @@ is read-only at response time even if a webhook has not arrived. Recompute takes
 an account row lock and prioritizes active/trialing subscriptions with future
 coverage; missing period dates sort last. Removed subscription items become
 inactive when a complete subscription snapshot is projected. Partial item lists
-fail for retry rather than silently dropping paid coverage.
+are paginated before projection, so removed-item reconciliation uses the complete
+subscription snapshot. An over-limit or interrupted snapshot fails atomically.
 
 Projection locks the claimed inbox row before writes. An expired or different
 claim cannot project; failure to mark its final claim processed aborts the
 transaction. The replay worker includes expired processing leases. The HTTP
 webhook rejects events from the wrong configured Stripe mode.
+
+
+Administrative closure preserves the billing principal/financial projection
+while detaching the Auth identity. Recompute cannot reactivate a closed billing
+account. `scripts/close-account.mjs` cancels customer subscriptions in Stripe,
+requires the cancellation webhooks to project, closes application data, and then
+removes the Auth identity. Test and live customers require matching Stripe keys.

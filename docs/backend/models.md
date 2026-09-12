@@ -634,11 +634,9 @@ row with a monotonic `key_version`. Replacement rows in
 `vault_recovery_epoch_envelopes` identify the new recipient and set
 `sender_recovery_key_id`; exactly one of `sender_recovery_key_id` and
 `sender_device_id` is present. The corresponding `vault_account_operations`
-row has type `recovery-rotate`, names the new recovery key, and is appended in
-the same private transaction. Recovery-root rotation currently covers personal
-collections owned by that account. Verified invitation membership is now
-implemented separately; extending recovery-root rotation across collections
-shared from another owner remains part of multi-device/member sync hardening.
+row has type `recovery-rotate`, names the old recovery signing key, and is appended
+in the same private transaction. Recovery-root rotation covers every retained
+epoch permitted by the account's active memberships, including shared collections.
 
 - Signed deletion removes primary revision ciphertext/wrapped keys immediately
   and retains a non-secret tombstone. Superseded revisions remain until note or
@@ -647,7 +645,7 @@ shared from another owner remains part of multi-device/member sync hardening.
 - Rejected concurrent drafts remain encrypted and local until the user merges
   them; there is no server-side candidate table.
 - The exact cryptographic suite, deterministic-CBOR profile, and compatibility
-  behavior are frozen in [Vault protocol v1](vault-protocol-v1.md).
+  behavior are frozen in [Architecture and trust model](architecture.md).
 - V1 stores signed local/device checkpoints and compares them during device or
   invitation verification. An independently witnessed transparency service is
   deferred.
@@ -677,3 +675,18 @@ envelopes, and current envelope signer kind. Each historical envelope is verifie
 against its signer and exact collection/epoch/device binding. The worker retains
 all keys and selects the highest epoch only for new writes. Locking wipes the
 retained key map. Recovery-bootstrap no longer assumes recovery key version one.
+
+## Closure and resource accounting
+
+Billing/vault/workspace attribution now references `private.account_principals`
+instead of requiring a live Auth user. Financial records and public signing keys
+needed by other members survive identity deletion; they must not be described as
+anonymous. Own collections, account ledger and settings are purged by the
+privileged closure workflow. Shared membership removal requires a signed owner
+rotation, with `requires_epoch_rotation` fencing new encrypted writes meanwhile.
+
+`private.vault_storage_usage` holds transactionally maintained serialized-byte
+counters per account or collection. Signed control payload copies remain charged after
+item deletion; detached item ciphertext is refunded when revision rows are deleted. Capacity enforcement includes transient challenge/pending tables,
+metadata, keys, envelopes, operations, revisions and tombstones. Cleanup refunds
+only actually deleted records. Bounds are safety ceilings, not paid plan grants.

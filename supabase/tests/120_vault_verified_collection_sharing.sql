@@ -1,5 +1,5 @@
 begin;
-select plan(31);
+select plan(40);
 
 select has_table('public', 'vault_collection_invitations', 'verified invitations are persisted');
 select has_column('public', 'vault_collection_invitations', 'invitation_key_commitment', 'only the invitation-secret commitment is stored');
@@ -194,6 +194,10 @@ select ok(exists (
     and c.current_epoch_number = 2
 ), 'activated membership defaults to joining-epoch-only history');
 
+select ok(private.close_account('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2'),'shared recipient can close without breaking owner history');
+select ok((select requires_epoch_rotation from public.vault_collections where id='eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'),'closure requires a signed rotation before more content');
+select lives_ok($q$delete from auth.users where id='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2'$q$,'shared author Auth identity can be deleted');
+select is((select status::text from public.vault_devices where id='cccccccc-cccc-cccc-cccc-ccccccccccc2'),'revoked','shared verification key remains revoked');
 select is(private.remove_vault_collection_member_and_rotate_epoch(
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
@@ -230,5 +234,23 @@ select is((
 
 select is((select count(*) from private.vault_required_epochs('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1')), 3::bigint, 'owner key set includes historical and current epochs after removal');
 select is((select count(*) from private.vault_required_epochs('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2')), 0::bigint, 'removed member has no required epoch set');
+select ok(not (select requires_epoch_rotation from public.vault_collections where id='eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'),'signed removal rotation releases closure write fence');
+-- A device revocation rotates each collection once, regardless of retained epochs.
+insert into public.vault_devices(id,account_id,display_name,client_type,platform,enrollment_origin,key_protection_profile,client_crypto_capabilities,encryption_public_key,signing_public_key,encryption_algorithm,signing_algorithm,key_version,status)
+select 'cccccccc-cccc-cccc-cccc-ccccccccccc3',account_id,'Second owner device',client_type,platform,enrollment_origin,key_protection_profile,client_crypto_capabilities,decode(repeat('38',32),'hex'),decode(repeat('39',32),'hex'),encryption_algorithm,signing_algorithm,key_version,'active'
+from public.vault_devices where id='cccccccc-cccc-cccc-cccc-ccccccccccc1';
+insert into public.vault_account_operations(operation_id,account_id,sequence_number,operation_type,canonical_payload,operation_hash,author_device_id,signature,protocol_version)
+values('10000000-0000-0000-0000-000000000090','aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',1,'collection-create',decode('00','hex'),decode(repeat('90',32),'hex'),'cccccccc-cccc-cccc-cccc-ccccccccccc1',decode(repeat('90',64),'hex'),1);
+create function pg_temp.test_bytes(n integer) returns text language sql as $$select encode(decode(repeat('91',n),'hex'),'base64')$$;
+select ok(private.revoke_vault_device_and_rotate_epochs(
+ 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1','bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1','cccccccc-cccc-cccc-cccc-ccccccccccc1','cccccccc-cccc-cccc-cccc-ccccccccccc3','test',decode(repeat('90',32),'hex'),
+ jsonb_build_array(jsonb_build_object('collection_id','eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1','epoch_number',4,
+ 'membership_hash',pg_temp.test_bytes(32),'recipient_commitment',pg_temp.test_bytes(32),'transition_payload',pg_temp.test_bytes(1),'transition_signature',pg_temp.test_bytes(64),'transition_hash',pg_temp.test_bytes(32),'encrypted_metadata',pg_temp.test_bytes(16),'metadata_nonce',pg_temp.test_bytes(12),
+ 'device_envelopes',jsonb_build_array(jsonb_build_object('recipient_id','cccccccc-cccc-cccc-cccc-ccccccccccc1','encapsulation',pg_temp.test_bytes(32),'ciphertext',pg_temp.test_bytes(16),'payload',pg_temp.test_bytes(1),'signature',pg_temp.test_bytes(64))),
+ 'recovery_envelopes',jsonb_build_array(jsonb_build_object('recipient_id','dddddddd-dddd-dddd-dddd-ddddddddddd1','encapsulation',pg_temp.test_bytes(32),'ciphertext',pg_temp.test_bytes(16),'payload',pg_temp.test_bytes(1),'signature',pg_temp.test_bytes(64))))),
+ '10000000-0000-0000-0000-000000000091',decode('91','hex'),decode(repeat('91',32),'hex'),decode(repeat('91',64),'hex')),'device revocation succeeds with three retained historical epochs');
+select is((select current_epoch_number from public.vault_collections where id='eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1'),4,'revocation adds one replacement epoch');
+select ok(private.close_account('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),'owner closure purges a collection with invitation and epoch history');
+select is((select count(*) from public.vault_collections),0::bigint,'owned collection ciphertext and history are removed');
 select * from finish();
 rollback;

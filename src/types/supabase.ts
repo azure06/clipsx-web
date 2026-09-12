@@ -74,6 +74,27 @@ export type Database = {
           },
         ]
       }
+      account_principals: {
+        Row: {
+          auth_user_id: string | null
+          closed_at: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          closed_at?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          closed_at?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_allowance_periods: {
         Row: {
           billing_account_id: string
@@ -180,6 +201,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "ai_usage_events_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "account_principals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ai_usage_events_allowance_period_id_billing_account_id_fkey"
             columns: ["allowance_period_id", "billing_account_id"]
             isOneToOne: false
@@ -222,6 +250,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_accounts_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "account_principals"
             referencedColumns: ["id"]
           },
         ]
@@ -706,6 +741,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "account_principals"
+            referencedColumns: ["id"]
+          },
         ]
       }
       organizations: {
@@ -730,7 +772,15 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_created_by_user_id_fkey"
+            columns: ["created_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "account_principals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plan_features: {
         Row: {
@@ -881,6 +931,27 @@ export type Database = {
         }
         Relationships: []
       }
+      vault_storage_usage: {
+        Row: {
+          retained_bytes: number
+          scope_id: string
+          scope_kind: string
+          updated_at: string
+        }
+        Insert: {
+          retained_bytes?: number
+          scope_id: string
+          scope_kind: string
+          updated_at?: string
+        }
+        Update: {
+          retained_bytes?: number
+          scope_id?: string
+          scope_kind?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1023,6 +1094,11 @@ export type Database = {
         }
         Returns: string
       }
+      cleanup_vault_registrations: {
+        Args: { p_limit?: number }
+        Returns: number
+      }
+      close_account: { Args: { p_account_id: string }; Returns: boolean }
       confirm_vault_collection_invitation: {
         Args: {
           p_acceptance_payload_hash: string
@@ -1261,6 +1337,7 @@ export type Database = {
           epoch_number: number
         }[]
       }
+      vault_session_active: { Args: never; Returns: boolean }
     }
     Enums: {
       account_entitlement_status: "active" | "grace" | "read_only"
@@ -1772,6 +1849,7 @@ export type Database = {
           metadata_nonce: string | null
           migration_state: string
           owner_account_id: string
+          requires_epoch_rotation: boolean
         }
         Insert: {
           associated_data_version?: number
@@ -1788,6 +1866,7 @@ export type Database = {
           metadata_nonce?: string | null
           migration_state?: string
           owner_account_id: string
+          requires_epoch_rotation?: boolean
         }
         Update: {
           associated_data_version?: number
@@ -1804,6 +1883,7 @@ export type Database = {
           metadata_nonce?: string | null
           migration_state?: string
           owner_account_id?: string
+          requires_epoch_rotation?: boolean
         }
         Relationships: []
       }

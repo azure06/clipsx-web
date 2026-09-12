@@ -205,8 +205,8 @@ flowchart TB
 
 | Table | What it represents | Writer, reader, lifecycle |
 | --- | --- | --- |
-| `public.vault_collections` | Collection identity, encrypted presentation metadata, and current epoch/transition head; no plaintext collection key. Parent of every collection-scoped table below. | **Implemented.** `create_vault_collection` creates it; member-add/remove rotation functions advance its head. Members read it through `can_read_vault_collection` RLS. Soft deletion after all members are removed is planned, not implemented. |
-| `public.vault_collection_memberships` | An account’s role, status, epoch history boundary, and membership lifecycle in a collection. Child of collection and `auth.users`; links to the invitation and signed membership operation. | **Implemented.** Collection creation creates the owner membership; add/remove rotations activate or remove it. State: `invited → active → removed`; removal is terminal and rejoining uses a new row. |
+| `public.vault_collections` | Collection identity, encrypted presentation metadata, and current epoch/transition head; no plaintext collection key. Parent of every collection-scoped table below. | **Implemented.** `create_vault_collection` creates it; member-add/remove rotation functions advance its head. Members read it through `can_read_vault_collection` RLS. Administrative account closure purges owned collections; shared collection writes require an owner removal rotation after member closure. |
+| `public.vault_collection_memberships` | An account’s role, status, epoch history boundary, and membership lifecycle in a collection. Child of collection and `private.account_principals`; links to the invitation and signed membership operation. | **Implemented.** Collection creation creates the owner membership; add/remove rotations activate or remove it. State: `invited → active → removed`; removal is terminal and rejoining uses a new row. |
 | `public.vault_collection_invitations` | Signed, commitment-only evidence for a cross-user invitation. It stores no high-entropy invitation secret. Child of collection and membership; references inviter and accepting devices. | **Implemented.** Invite, accept, confirm, and member-add functions update it. Inviter/recipient can read it through RLS, but an invitee cannot read the collection until membership activates. State: `created → accepted`, `expired`, or `cancelled`; terminal states do not reactivate. |
 | `public.vault_collection_epochs` | Append-only public metadata for each collection key epoch: rotation reason, commitments, transition hash, creator, and protocol version. The epoch key itself is absent. | **Implemented.** Collection creation writes epoch 1; rotation transactions add later epochs. Members read it via RLS. State: `created → current → superseded`; epoch numbers never decrease or reactivate. |
 | `public.vault_device_epoch_envelopes` | Append-only HPKE-encrypted delivery of an epoch key to an authorized device, signed by the sender. Child of collection/epoch; references recipient and sender devices. | **Implemented.** Creation, device authorization, and rotations write it. A device reads only envelopes addressed to its account via RLS. Revoked devices receive no later-epoch envelope. |
@@ -254,3 +254,14 @@ flowchart LR
   authorization, revision, envelope, or tombstone rows. Use the corresponding
   command/recovery flow so signatures and hash chains remain valid.
 
+
+## Lifecycle and capacity additions
+
+| Table | Purpose | Access |
+| --- | --- | --- |
+| `private.account_principals` | Stable pseudonymous billing/vault attribution, optional live Auth link, closure timestamp. Prevents Auth deletion from destroying shared verification keys. | Signup trigger and privileged closure; no browser table grants. |
+| `private.vault_storage_usage` | Conservative serialized-byte counters by account/collection; transactionally updated by capacity triggers. | Trigger writes; service-role read. |
+
+The first-release web configuration leaves the vault in explicit opt-in preview.
+See [release evidence and rationale](production-readiness.md) for limits,
+maintenance, closure commands, and remaining hosted checks.

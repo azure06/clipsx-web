@@ -618,3 +618,176 @@ grant execute on function private.accept_vault_collection_invitation( uuid, uuid
 grant execute on function private.confirm_vault_collection_invitation( uuid, uuid, uuid, uuid, bytea, uuid, bytea, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
 grant execute on function private.add_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, uuid, public.vault_member_role, integer, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, jsonb, jsonb, uuid, bytea, bytea, bytea , bytea, bytea) to service_role;
 grant execute on function private.remove_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, uuid, bytea, bytea, bytea , bytea, bytea) to service_role;
+
+
+-- Capacity is measured conservatively as serialized row bytes, including
+-- retained ciphertext in both signed ledgers. Counters participate in the
+-- command transaction and do not reuse account/collection advisory locks.
+create table private.vault_storage_usage (
+  scope_kind text not null check(scope_kind in ('account','collection')),
+  scope_id uuid not null,
+  retained_bytes bigint not null default 0 check(retained_bytes >= 0),
+  updated_at timestamptz not null default now(),
+  primary key(scope_kind,scope_id)
+);
+alter table private.vault_storage_usage enable row level security;
+revoke all on private.vault_storage_usage from public,anon,authenticated;
+grant select on private.vault_storage_usage to service_role;
+
+create function private.enforce_vault_capacity() returns trigger
+language plpgsql security definer set search_path='' set timezone='UTC' set datestyle='ISO,YMD' as $$
+declare
+  before_row jsonb; after_row jsonb; scope uuid; previous_scope uuid;
+  delta bigint; row_count bigint; capacity bigint;
+begin
+  if tg_op <> 'INSERT' then before_row := to_jsonb(old); end if;
+  if tg_op <> 'DELETE' then after_row := to_jsonb(new); end if;
+  scope := coalesce(after_row->>tg_argv[1],before_row->>tg_argv[1])::uuid;
+  previous_scope := (before_row->>tg_argv[1])::uuid;
+  if previous_scope is not null and scope <> previous_scope then raise exception 'vault_scope_immutable'; end if;
+  delta := coalesce(octet_length(after_row::text),0)-coalesce(octet_length(before_row::text),0);
+  capacity := case when tg_argv[0]='collection' then 33554432 else 16777216 end;
+  if tg_argv[0]='account' and exists(select 1 from private.account_principals where id=scope and closed_at is not null) then
+    if tg_op='INSERT' then raise exception 'account_closed'; end if;
+    capacity:=9223372036854775807;
+  end if;
+  insert into private.vault_storage_usage(scope_kind,scope_id,retained_bytes)
+  values(tg_argv[0],scope,greatest(delta,0))
+  on conflict(scope_kind,scope_id) do update
+    set retained_bytes=private.vault_storage_usage.retained_bytes+delta, updated_at=now()
+    where delta<=0 or private.vault_storage_usage.retained_bytes+delta<=capacity;
+  if not found then raise exception 'vault_storage_limit'; end if;
+  if delta>capacity then raise exception 'vault_storage_limit'; end if;
+  if tg_op='INSERT' then
+    execute format('select count(*) from %I.%I where %I=$1',tg_table_schema,tg_table_name,tg_argv[1]) into row_count using scope;
+    if row_count>tg_argv[2]::bigint then raise exception 'vault_record_limit'; end if;
+  end if;
+  return null;
+end; $$;
+revoke all on function private.enforce_vault_capacity() from public,anon,authenticated;
+
+create trigger vault_capacity after insert or update or delete on public.vault_collections
+for each row execute function private.enforce_vault_capacity('account','owner_account_id','16');
+create trigger vault_capacity after insert or update or delete on public.vault_devices
+for each row execute function private.enforce_vault_capacity('account','account_id','64');
+create trigger vault_capacity after insert or update or delete on public.vault_recovery_keys
+for each row execute function private.enforce_vault_capacity('account','account_id','64');
+create trigger vault_capacity after insert or update or delete on public.vault_device_authorizations
+for each row execute function private.enforce_vault_capacity('account','account_id','64');
+create trigger vault_capacity after insert or update or delete on public.vault_account_operations
+for each row execute function private.enforce_vault_capacity('account','account_id','20000');
+create trigger vault_capacity after insert or update or delete on private.vault_device_registration_challenges
+for each row execute function private.enforce_vault_capacity('account','account_id','64');
+create trigger vault_capacity after insert or update or delete on private.vault_pending_device_registrations
+for each row execute function private.enforce_vault_capacity('account','account_id','64');
+create trigger vault_capacity after insert or update or delete on public.vault_collection_epochs
+for each row execute function private.enforce_vault_capacity('collection','collection_id','32');
+create trigger vault_capacity after insert or update or delete on public.vault_collection_memberships
+for each row execute function private.enforce_vault_capacity('collection','collection_id','256');
+create trigger vault_capacity after insert or update or delete on public.vault_collection_invitations
+for each row execute function private.enforce_vault_capacity('collection','collection_id','256');
+create trigger vault_capacity after insert or update or delete on public.vault_device_epoch_envelopes
+for each row execute function private.enforce_vault_capacity('collection','collection_id','16384');
+create trigger vault_capacity after insert or update or delete on public.vault_recovery_epoch_envelopes
+for each row execute function private.enforce_vault_capacity('collection','collection_id','1024');
+create trigger vault_capacity after insert or update or delete on public.vault_collection_operations
+for each row execute function private.enforce_vault_capacity('collection','collection_id','20000');
+create trigger vault_capacity after insert or update or delete on public.vault_notes
+for each row execute function private.enforce_vault_capacity('collection','collection_id','10000');
+create trigger vault_capacity after insert or update or delete on public.vault_note_revisions
+for each row execute function private.enforce_vault_capacity('collection','collection_id','20000');
+create trigger vault_capacity after insert or update or delete on public.vault_tombstones
+for each row execute function private.enforce_vault_capacity('collection','collection_id','10000');
+
+-- Expired transient registration data is not part of signed history. Bounded
+-- batches keep maintenance transactions short and avoid blocking live approval.
+create function private.cleanup_vault_registrations(p_limit integer default 1000)
+returns integer language plpgsql security definer set search_path='' as $$
+declare removed integer; total integer:=0;
+begin
+  if p_limit is null or p_limit not between 1 and 1000 then raise exception 'invalid_cleanup_limit'; end if;
+  if not pg_try_advisory_xact_lock(hashtextextended('vault-registration-cleanup',3)) then return 0; end if;
+  with candidates as(select id from private.vault_device_registration_challenges where expires_at<now() order by expires_at limit p_limit for update skip locked)
+    delete from private.vault_device_registration_challenges where id in(select id from candidates);
+  get diagnostics removed=row_count; total:=total+removed;
+  with candidates as(select device_id from private.vault_pending_device_registrations where expires_at<now() order by expires_at limit p_limit for update skip locked)
+    delete from private.vault_pending_device_registrations where device_id in(select device_id from candidates);
+  get diagnostics removed=row_count;
+  return total+removed;
+end; $$;
+revoke all on function private.cleanup_vault_registrations(integer) from public,anon,authenticated;
+grant execute on function private.cleanup_vault_registrations(integer) to service_role;
+
+
+-- Every browser vault read checks the live Auth session, including JWTs issued
+-- before account closure. Historical public principals alone grant no access.
+create function private.vault_session_active() returns boolean
+language sql stable security definer set search_path='' as $$
+  select exists(select 1 from auth.sessions s join private.account_principals p on p.auth_user_id=s.user_id
+    where s.user_id=(select auth.uid()) and s.id::text=(select auth.jwt()->>'session_id')
+      and (s.not_after is null or s.not_after>now()) and p.closed_at is null);
+$$;
+revoke all on function private.vault_session_active() from public,anon;
+grant execute on function private.vault_session_active() to authenticated,service_role;
+do $$ declare policy record; begin
+  for policy in select schemaname,tablename,policyname,qual from pg_policies
+    where schemaname='public' and tablename like 'vault_%' and 'authenticated'=any(roles)
+  loop
+    execute format('alter policy %I on %I.%I using ((%s) and (select private.vault_session_active()))',policy.policyname,policy.schemaname,policy.tablename,policy.qual);
+  end loop;
+end $$;
+
+create function private.close_account(p_account_id uuid) returns boolean
+language plpgsql security definer set search_path='' as $$
+declare affected uuid;
+begin
+  if p_account_id is null then raise exception 'account_required'; end if;
+  perform pg_advisory_xact_lock(hashtextextended(p_account_id::text,1));
+  if not exists(select 1 from private.account_principals where id=p_account_id) then return false; end if;
+  if exists(select 1 from private.billing_subscriptions s join private.billing_accounts a on a.id=s.billing_account_id
+    where a.owner_user_id=p_account_id and s.status not in ('canceled','incomplete_expired')) then
+    raise exception 'cancel_subscriptions_before_closure';
+  end if;
+  if exists(select 1 from private.organizations where created_by_user_id=p_account_id) then
+    raise exception 'transfer_organization_before_closure';
+  end if;
+  for affected in select c.id from public.vault_collections c where c.owner_account_id=p_account_id
+    or exists(select 1 from public.vault_collection_memberships m where m.collection_id=c.id and m.account_id=p_account_id and m.status='active') order by c.id
+  loop perform pg_advisory_xact_lock(hashtextextended(affected::text,2)); end loop;
+  update private.account_principals set closed_at=coalesce(closed_at,now()),updated_at=now() where id=p_account_id;
+  update auth.users set banned_until='infinity'::timestamptz where id=p_account_id;
+  delete from auth.sessions where user_id=p_account_id;
+  delete from public.sync_profiles where user_id=p_account_id;
+  delete from private.vault_pending_device_registrations where account_id=p_account_id;
+  delete from private.vault_device_registration_challenges where account_id=p_account_id;
+  -- Foreign-owned history stays verifiable. Stop new ciphertext until its
+  -- owner signs the member-removal rotation; the server cannot rotate keys.
+  update public.vault_collections c set requires_epoch_rotation=true where c.owner_account_id<>p_account_id
+    and exists(select 1 from public.vault_collection_memberships m where m.collection_id=c.id and m.account_id=p_account_id and m.status='active');
+  delete from public.vault_tombstones where collection_id in(select id from public.vault_collections where owner_account_id=p_account_id);
+  delete from public.vault_note_revisions where collection_id in(select id from public.vault_collections where owner_account_id=p_account_id);
+  delete from public.vault_collection_invitations where collection_id in(select id from public.vault_collections where owner_account_id=p_account_id);
+  delete from public.vault_collections where owner_account_id=p_account_id;
+  delete from public.vault_account_operations where account_id=p_account_id;
+  delete from public.vault_device_authorizations where account_id=p_account_id;
+  update public.vault_devices set status='revoked',revoked_at=coalesce(revoked_at,now()),display_name='Deleted account' where account_id=p_account_id;
+  update public.vault_recovery_keys set status='revoked',revoked_at=coalesce(revoked_at,now()) where account_id=p_account_id;
+  update private.billing_accounts set status='closed' where owner_user_id=p_account_id;
+  update private.account_entitlements set status='read_only' where billing_account_id in(select id from private.billing_accounts where owner_user_id=p_account_id);
+  delete from private.organization_memberships where user_id=p_account_id;
+  return true;
+end; $$;
+revoke all on function private.close_account(uuid) from public,anon,authenticated;
+grant execute on function private.close_account(uuid) to service_role;
+
+create function private.refresh_vault_rotation_fence() returns trigger
+language plpgsql security definer set search_path='' as $$
+begin
+  if new.current_epoch_number>old.current_epoch_number then
+    new.requires_epoch_rotation:=exists(select 1 from public.vault_collection_memberships m join private.account_principals p on p.id=m.account_id
+      where m.collection_id=new.id and m.status='active' and p.closed_at is not null);
+  end if;
+  return new;
+end; $$;
+revoke all on function private.refresh_vault_rotation_fence() from public,anon,authenticated;
+create trigger vault_rotation_fence before update on public.vault_collections for each row execute function private.refresh_vault_rotation_fence();

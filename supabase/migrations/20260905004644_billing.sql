@@ -15,7 +15,7 @@ create table private.billing_accounts (
   id uuid primary key default gen_random_uuid(),
   constraint billing_accounts_kind_matches_organization check ((kind = 'personal' and organization_id is null) or (kind = 'organization' and organization_id is not null)),
   kind private.billing_account_kind not null default 'personal',
-  owner_user_id uuid not null references auth.users (id) on delete restrict,
+  owner_user_id uuid not null references private.account_principals (id) on delete restrict,
   status private.billing_account_status not null default 'active',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -338,7 +338,7 @@ create table private.ai_usage_events (
   id uuid primary key default gen_random_uuid(),
   allowance_period_id uuid not null,
   billing_account_id uuid not null,
-  actor_user_id uuid not null references auth.users (id) on delete restrict,
+  actor_user_id uuid not null references private.account_principals (id) on delete restrict,
   idempotency_key text not null,
   kind private.ai_usage_event_kind not null,
   delta_units bigint not null check (delta_units <> 0),
@@ -513,6 +513,10 @@ declare
 begin
   perform 1 from private.billing_accounts where id = p_billing_account_id for update;
   if not found or p_livemode is null then raise exception 'invalid_billing_account'; end if;
+  if exists(select 1 from private.billing_accounts where id=p_billing_account_id and status='closed') then
+    update private.account_entitlements set status='read_only' where billing_account_id=p_billing_account_id and livemode=p_livemode;
+    return;
+  end if;
   select id into free_plan_id from private.plans where code = 'free';
 
   select
