@@ -145,3 +145,22 @@ MIT
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+### Production database release
+
+See [release evidence and rationale](docs/backend/production-readiness.md).
+Billing and desktop settings sync form the first-release configuration. The
+browser vault is an explicit preview: `CLIPSX_VAULT_PREVIEW_ENABLED` defaults to
+false and must remain unset/false in production while scoped sharing proofs are
+unfinished. Set it to `true` only in an isolated preview environment.
+
+Test the edited baseline without resetting existing development data:
+
+```sh
+python scripts/test-database-baseline.py --advisors --generate-types
+```
+
+After the first deployed release, set CI variable `MIGRATION_BASE_REF` to its
+immutable tag/commit. Existing deployed SQL files must remain unchanged; append
+new migrations and rehearse them on a populated staging restore. Never reset
+production.

@@ -497,7 +497,7 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
           </div>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Protect this browser's new local key bundle first, then scan the QR code with an already-unlocked device and compare the security code.
+          Protect this browser&apos;s new local key bundle first, then scan the QR code with an already-unlocked device and compare the security code.
         </p>
         {!qr && (
           <div className="space-y-5">
@@ -520,7 +520,7 @@ function NewDeviceEnrollment({ accountId }: { accountId: string }) {
             <Button variant="secondary" size="sm" onClick={() => void navigator.clipboard.writeText(offer)}>
               <Copy size={14} /> Copy approval offer
             </Button>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Use "Copy approval offer" when both devices are desktop browsers without cameras.</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Use &quot;Copy approval offer&quot; when both devices are desktop browsers without cameras.</p>
             <div className="rounded-xl border border-(--vault-border) bg-(--vault-muted)/60 p-4">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">Security code (SAS)</p>
               <p className="mt-2 font-mono text-3xl font-black tracking-widest text-(--vault-accent)">{sas}</p>

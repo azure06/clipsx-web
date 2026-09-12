@@ -1,3 +1,4 @@
+import { vaultReleaseGuard } from '@/lib/vault/release';
 import { NextRequest } from 'next/server';
 
 import { admitCollectionCreation, admitDeviceAuthorization, admitDeviceRevocation, admitInitialDeviceRegistration, admitItemAppend, admitItemDelete, admitPendingDeviceRegistration, admitRecoveryDeviceAuthorization, admitRecoveryRotation, admitVaultCommand } from '@/lib/vault/command-admission';
@@ -29,6 +30,8 @@ function encodeSharingEnvelope(envelope: SharingEnvelope) {
 }
 
 export async function POST(request: NextRequest) {
+  const disabled = vaultReleaseGuard();
+  if (disabled) return disabled;
   const requestId = crypto.randomUUID();
   const vaultCborError = (status: number, code: string) => createVaultCborError(status, code, requestId);
   const vaultCborResponse = (status: number, value: Map<number, CborValue>) => createVaultCborResponse(status, value, requestId);

@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -24,6 +26,7 @@ jobs:
 
       - run: npm ci
       - run: npm run test:unit
+      - run: node --test scripts/verify-migration-history.test.mjs
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
@@ -33,6 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -43,3 +48,12 @@ jobs:
       - run: npm run supabase:start
       - run: npm run supabase:reset
       - run: npm run test:db
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/test-database-baseline.py --advisors
+      - name: Preserve released migration history
+        if: ${{ vars.MIGRATION_BASE_REF != '' }}
+        env:
+          MIGRATION_BASE_REF: ${{ vars.MIGRATION_BASE_REF }}
+        run: node scripts/verify-migration-history.mjs --base "$MIGRATION_BASE_REF"

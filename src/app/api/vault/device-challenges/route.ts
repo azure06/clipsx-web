@@ -1,3 +1,4 @@
+import { vaultReleaseGuard } from '@/lib/vault/release';
 import { NextRequest } from 'next/server';
 
 import { readVaultCborRequest, VaultHttpError, vaultCborError, vaultCborResponse } from '@/lib/vault/http';
@@ -9,6 +10,8 @@ import { getUser } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
+  const disabled = vaultReleaseGuard();
+  if (disabled) return disabled;
   const requestId = crypto.randomUUID();
   try {
     const bytes = await readVaultCborRequest(request, 512);

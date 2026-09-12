@@ -1,6 +1,6 @@
 # Production SQL review — 2026-09-11
 
-Verdict: **not ready for the intended paid launch with the encrypted vault.** The baseline is executable and has useful access controls, but passing the current tests does not establish correct billing lifecycle, key lifecycle, or production upgrade behavior.
+Historical review verdict (superseded by [current fix status](production-readiness.md)): **not ready for the intended paid launch with the encrypted vault.** The baseline is executable and has useful access controls, but passing the current tests does not establish correct billing lifecycle, key lifecycle, or production upgrade behavior.
 
 Reviewed commit: `1412347`, with a clean working tree before this report. Scope: all eight migrations and thirteen SQL test files, configuration, backend design documents, CI, and the application callers needed to assess the SQL contracts. This is a database readiness review, not an independent cryptographic audit of the entire application.
 
@@ -191,3 +191,8 @@ rehearsal. These are not claimed fixed. Billing/settings checks do not certify
 those separate vault workflows. Once a baseline is deployed, subsequent schema
 changes must use forward migrations; editing an applied file will not upgrade
 a production database. No deployment was performed.
+
+
+The current correction status, validation counts, release scope and rationale
+are maintained in [production-readiness.md](production-readiness.md). This file
+retains the original review and intermediate status as historical evidence.

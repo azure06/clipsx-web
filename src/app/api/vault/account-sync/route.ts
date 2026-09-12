@@ -1,3 +1,4 @@
+import { vaultReleaseGuard } from '@/lib/vault/release';
 import { NextRequest } from 'next/server';
 
 import { vaultCborError as createVaultCborError, vaultCborResponse as createVaultCborResponse } from '@/lib/vault/http';
@@ -128,6 +129,8 @@ function decodeArray(
 }
 
 export async function GET(request: NextRequest) {
+  const disabled = vaultReleaseGuard();
+  if (disabled) return disabled;
   const requestId = crypto.randomUUID();
   const vaultCborError = (status: number, code: string) => createVaultCborError(status, code, requestId);
   const vaultCborResponse = (status: number, value: Map<number, CborValue>) => createVaultCborResponse(status, value, requestId);
