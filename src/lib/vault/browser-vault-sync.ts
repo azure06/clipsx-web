@@ -14,6 +14,7 @@ export async function openVaultCollectionSync(input: {
   deviceSigningKeys: Map<string, Uint8Array>;
   epochNumber: number;
   epochKey: Uint8Array;
+  epochKeys?: ReadonlyMap<number, Uint8Array>;
 }): Promise<SyncedVaultItem[]> {
   if (input.pages.length === 0) throw new Error('Vault collection sync returned no pages.');
   const known = new Map<string, Map<number, CborValue>>();
@@ -46,14 +47,15 @@ export async function openVaultCollectionSync(input: {
       if (!(entry instanceof Map) || entry.size !== 14) throw new Error('Invalid vault revision.');
       const authorId = text(entry, 11); const signingKey = input.deviceSigningKeys.get(authorId); const epochNumber = entry.get(3);
       const operationId = text(entry, 13);
-      if (!signingKey || epochNumber !== input.epochNumber || !known.has(operationId)) throw new Error('Invalid vault revision.');
+      const epochKey = typeof epochNumber === 'number' ? input.epochKeys?.get(epochNumber) ?? (epochNumber === input.epochNumber ? input.epochKey : undefined) : undefined;
+      if (!signingKey || !epochKey || typeof epochNumber !== 'number' || !known.has(operationId)) throw new Error('Invalid vault revision.');
       const revisionNumber = entry.get(2); if (typeof revisionNumber !== 'number' || !Number.isSafeInteger(revisionNumber) || revisionNumber < 1) throw new Error('Invalid vault revision.');
       const id = text(entry, 1); const ciphertext = bytes(entry, 4); const contentNonce = bytes(entry, 5, 12); const wrapped = bytes(entry, 6); const wrapNonce = bytes(entry, 7, 12); const ciphertextHash = bytes(entry, 8, 32); const wrappedHash = bytes(entry, 9, 32); const revisionHash = bytes(entry, 10, 32); const signature = bytes(entry, 12, 64); const previous = entry.get(14);
       if ((revisionNumber === 1) !== (previous === null) || (previous !== null && !(previous instanceof Uint8Array))) throw new Error('Invalid vault revision.');
       if (!same(await sha256(ciphertext), ciphertextHash) || !same(await sha256(wrapped), wrappedHash)) throw new Error('Vault revision hash mismatch.');
       const signed = encodeCanonicalCbor(new Map<number, CborValue>([[1, 1], [2, operationId], [3, input.collectionId], [4, id], [5, epochNumber], [6, revisionNumber], [7, previous as Uint8Array | null], [8, ciphertextHash], [9, wrappedHash], [10, authorId]]));
       if (!same(await sha256(signed), revisionHash) || !await verifyProtocolRecord('clipsx/vault/v1/item-revision', signed, signature, signingKey)) throw new Error('Unverified vault revision.');
-      const content = decodeVaultItem(await decryptRevisionContent({ accountId: input.accountId, collectionId: input.collectionId, itemId: id, epoch: epochNumber, revision: revisionNumber, epochKey: input.epochKey, encryptedContent: { ciphertext, nonce: contentNonce }, wrappedRevisionKey: { ciphertext: wrapped, nonce: wrapNonce } }));
+      const content = decodeVaultItem(await decryptRevisionContent({ accountId: input.accountId, collectionId: input.collectionId, itemId: id, epoch: epochNumber, revision: revisionNumber, epochKey, encryptedContent: { ciphertext, nonce: contentNonce }, wrappedRevisionKey: { ciphertext: wrapped, nonce: wrapNonce } }));
       // Temporary presentation adapter for the legacy shell. The encrypted
       // envelope remains generic and has no persisted `type` field.
       const item: SyncedVaultItem = { id, revisionNumber, revisionHash, authorDeviceId: authorId, ...content, type: 'note', body: content.mediaType?.startsWith('text/') || content.mediaType === 'application/vnd.clipsx.env' ? decodeItemText(content) : undefined };

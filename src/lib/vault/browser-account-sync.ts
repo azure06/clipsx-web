@@ -13,6 +13,7 @@ export type VerifiedAccountSync = {
   sequence: number;
   deviceSigningKeys: Map<string, Uint8Array>;
   recoverySigningKeys: Map<string, Uint8Array>;
+  activeDeviceEncryptionKeys: Map<string, Uint8Array>;
 };
 
 type Operation = {
@@ -138,6 +139,7 @@ export async function verifyVaultAccountSync(input: {
   if (input.pages.length === 0) throw new Error('Vault account sync returned no pages.');
   const deviceSigningKeys = new Map<string, Uint8Array>();
   const recoverySigningKeys = new Map<string, Uint8Array>();
+  const deviceEncryptionKeys = new Map<string, Uint8Array>();
   const authorizations = new Map<string, Authorization>();
   const operations: Operation[] = [];
   let expectedPageStart = 0;
@@ -156,6 +158,7 @@ export async function verifyVaultAccountSync(input: {
     for (const value of devices) {
       if (!(value instanceof Map) || value.size !== 5) throw new Error('Invalid vault device directory.');
       addDirectoryEntry(deviceSigningKeys, text(value, 1), bytes(value, 4, 32));
+      addDirectoryEntry(deviceEncryptionKeys, text(value, 1), bytes(value, 3, 32));
     }
     for (const value of recovery) {
       if (!(value instanceof Map) || value.size !== 7) throw new Error('Invalid vault recovery directory.');
@@ -185,11 +188,13 @@ export async function verifyVaultAccountSync(input: {
   let previous: Uint8Array | null = null;
   let expectedSequence = 1;
   const authorizedDevices = new Set<string>();
+  let activeRecoveryKeyId: string | null = null;
   for (const operation of operations) {
     if (operation.sequence !== expectedSequence
       || !same(operation.previous ?? new Uint8Array(), previous ?? new Uint8Array())) {
       throw new Error('Vault account operation chain is not contiguous.');
     }
+    if (operation.sequence > 1 && operation.recoveryKeyId && operation.recoveryKeyId !== activeRecoveryKeyId) throw new Error('Inactive recovery signer.');
     const signer = operation.authorDeviceId
       ? deviceSigningKeys.get(operation.authorDeviceId)
       : recoverySigningKeys.get(operation.recoveryKeyId!);
@@ -215,7 +220,11 @@ export async function verifyVaultAccountSync(input: {
     if (operation.sequence === 1) {
       if (operation.type !== 'device-register' || !operation.recoveryKeyId
       ) throw new Error('Invalid initial vault trust root.');
-      authorizedDevices.add(await verifyInitialRegistration(operation, input.accountId, signer, deviceSigningKeys));
+      const initialId = await verifyInitialRegistration(operation, input.accountId, signer, deviceSigningKeys);
+      const registration = decodeCanonicalCbor(command.get(9) as Uint8Array);
+      if (!same(bytes(registration, 8, 32), deviceEncryptionKeys.get(initialId)!)) throw new Error('Initial encryption key mismatch.');
+      authorizedDevices.add(initialId);
+      activeRecoveryKeyId = operation.recoveryKeyId;
     } else if (operation.type === 'device-authorize') {
       const commandPayload = command.get(9);
       if (!(commandPayload instanceof Uint8Array)) throw new Error('Invalid device authorization operation.');
@@ -230,11 +239,23 @@ export async function verifyVaultAccountSync(input: {
       const proofPayload = proofCommand.get(9);
       if (proofCommand.get(3) !== 'device-register' || !(proofPayload instanceof Uint8Array)) throw new Error('Invalid authorized device proof.');
       const proof = decodeCanonicalCbor(proofPayload);
-      if (text(proof, 1) !== targetDeviceId || !same(bytes(proof, 8, 32), targetSigningKey)
+      if (proofCommand.get(4) !== input.accountId || proofCommand.get(5) !== `device:${targetDeviceId}`
+        || text(proof, 1) !== targetDeviceId || !same(bytes(proof, 7, 32), deviceEncryptionKeys.get(targetDeviceId)!) || !same(bytes(proof, 8, 32), targetSigningKey)
         || !await verifyProtocolRecord('clipsx/vault/v1/command/device-register', authorization.proofPayload, authorization.proofSignature, targetSigningKey)) {
         throw new Error('Invalid authorized device proof.');
       }
       authorizedDevices.add(targetDeviceId);
+    } else if (operation.type === 'recovery-rotate') {
+      const rotation = decodeCanonicalCbor(command.get(9) as Uint8Array);
+      const deviceId = text(rotation, 4); const deviceKey = deviceSigningKeys.get(deviceId);
+      const newId = text(rotation, 1); const newSigningKey = recoverySigningKeys.get(newId);
+      const signature = bytes(rotation, 5, 64); rotation.delete(5);
+      if (!authorizedDevices.has(deviceId) || !deviceKey || !newSigningKey || !same(newSigningKey, bytes(rotation, 3, 32))
+        || !await verifyProtocolRecord('clipsx/vault/v1/recovery-rotate-active', encodeCanonicalCbor(rotation), signature, deviceKey)) throw new Error('Invalid recovery rotation.');
+      activeRecoveryKeyId = newId;
+    } else if (operation.type === 'device-revoke') {
+      const revocation = decodeCanonicalCbor(command.get(9) as Uint8Array);
+      authorizedDevices.delete(text(revocation, 1));
     }
     if (input.checkpointSequence === operation.sequence && input.checkpointHash
       && !same(input.checkpointHash, operation.hash)) throw new Error('Vault account rollback detected.');
@@ -249,5 +270,5 @@ export async function verifyVaultAccountSync(input: {
     throw new Error('Vault account rollback detected.');
   }
   if (!authorizedDevices.has(input.localDeviceId)) throw new Error('This vault device is not authorized by the verified ledger.');
-  return { accountHead: previous.slice(), sequence: operations.length, deviceSigningKeys, recoverySigningKeys };
+  return { accountHead: previous.slice(), sequence: operations.length, deviceSigningKeys, recoverySigningKeys, activeDeviceEncryptionKeys: new Map([...deviceEncryptionKeys].filter(([id]) => authorizedDevices.has(id))) };
 }

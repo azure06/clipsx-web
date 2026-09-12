@@ -44,6 +44,7 @@ export async function createCollectionCommand(input: {
   deviceSigningSecretKey: Uint8Array;
   expectedAccountHead: Uint8Array;
   metadataTitle: string;
+  additionalDevices?: Array<{ id: string; encryptionPublicKey: Uint8Array }>;
   collectionId?: string;
   operationId?: string;
 }): Promise<CollectionCreateCommand> {
@@ -63,8 +64,14 @@ export async function createCollectionCommand(input: {
     collectionId, recipientKind: 'recovery', recipientId: input.recoveryKeyId, senderId: input.deviceId,
     recipientEncryptionPublicKey: input.recoveryEncryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey,
   });
+  const additionalEnvelopes = await Promise.all((input.additionalDevices ?? []).map(async (device) => {
+    if (device.id === input.deviceId) throw new Error('Duplicate collection recipient.');
+    const envelope = await createEpochEnvelope({ collectionId, recipientKind: 'device', recipientId: device.id,
+      senderId: input.deviceId, recipientEncryptionPublicKey: device.encryptionPublicKey, epochKey, signingSecretKey: input.deviceSigningSecretKey });
+    return new Map<number, CborValue>([[1, device.id], [2, envelope.payload], [3, envelope.signature]]);
+  }));
   const recipientSetCommitment = await sha256(encodeCanonicalCbor(new Map<number, CborValue>([
-    [1, 1], [2, await sha256(deviceEnvelope.payload)], [3, await sha256(recoveryEnvelope.payload)],
+    [1, 1], [2, await sha256(deviceEnvelope.payload)], [3, await sha256(recoveryEnvelope.payload)], [4, await sha256(encodeCanonicalCbor(new Map([[1, additionalEnvelopes]])))],
   ])));
   const transitionPayload = encodeCanonicalCbor(new Map<number, CborValue>([
     [1, 1], [2, collectionId], [3, 1], [4, 'collection-created'], [5, membershipStateHash], [6, recipientSetCommitment],
@@ -75,7 +82,7 @@ export async function createCollectionCommand(input: {
     [1, collectionId], [2, metadata.ciphertext], [3, metadata.nonce], [4, membershipStateHash],
     [5, recipientSetCommitment], [6, transitionPayload], [7, transitionSignature], [8, transitionHash],
     [9, deviceEnvelope.payload], [10, deviceEnvelope.signature], [11, recoveryEnvelope.payload],
-    [12, recoveryEnvelope.signature], [13, input.recoveryKeyId],
+    [12, recoveryEnvelope.signature], [13, input.recoveryKeyId], [14, additionalEnvelopes],
   ]));
   const unsigned = new Map<number, CborValue>([
     [1, 1], [2, input.operationId ?? crypto.randomUUID()], [3, 'collection-create'], [4, input.accountId],

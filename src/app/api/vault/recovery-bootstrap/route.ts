@@ -47,8 +47,7 @@ export async function GET(_request: NextRequest) {
     const { data: envelopes, error: envelopeError } = await supabase
       .from('vault_recovery_epoch_envelopes')
       .select('collection_id, epoch_number, encapsulation, ciphertext, envelope_payload, envelope_payload_hash, signature')
-      .eq('recovery_key_id', recoveryKeyId)
-      .eq('key_version', 1);
+      .eq('recovery_key_id', recoveryKeyId);
     if (envelopeError) throw envelopeError;
 
     const envelopeRecords: CborValue[] = [];
@@ -58,7 +57,7 @@ export async function GET(_request: NextRequest) {
       const payload = decodePostgresBytea(row.envelope_payload);
       const payloadHash = decodePostgresBytea(row.envelope_payload_hash);
       const signature = decodePostgresBytea(row.signature);
-      if (!encapsulation || !ciphertext || !payload || !payloadHash || !signature) continue;
+      if (!encapsulation || !ciphertext || !payload || !payloadHash || !signature) throw new Error('Invalid recovery envelope.');
       envelopeRecords.push(new Map<number, CborValue>([
         [1, row.collection_id], [2, row.epoch_number],
         [3, encapsulation], [4, ciphertext], [5, payload], [6, payloadHash], [7, signature],

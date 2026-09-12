@@ -197,6 +197,19 @@ grant execute on function private.consume_vault_device_registration_challenge(uu
 grant execute on function private.register_pending_vault_device(uuid, uuid, uuid, bytea, uuid, text, text, text, text, jsonb, bytea, bytea, bytea, bytea, bytea, bytea) to service_role;
 grant execute on function private.register_initial_vault_device(uuid, uuid, uuid, bytea, uuid, text, text, text, text, jsonb, bytea, bytea, uuid, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea) to service_role;
 
+-- Complete retained key set, bounded by the member's authorized history.
+create function private.vault_required_epochs(p_account_id uuid)
+returns table(collection_id uuid, epoch_number integer)
+language sql stable security definer set search_path = '' as $$
+  select ce.collection_id, ce.epoch_number
+  from public.vault_collection_epochs ce
+  join public.vault_collections c on c.id = ce.collection_id
+  join public.vault_collection_memberships m on m.collection_id = c.id
+  where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
+    and ce.epoch_number between m.history_access_from_epoch and c.current_epoch_number;
+$$;
+revoke all on function private.vault_required_epochs(uuid) from public, anon, authenticated;
+
 create function private.authorize_pending_vault_device(
   p_account_id uuid, p_session_id uuid, p_authorizer_device_id uuid, p_device_id uuid,
   p_expected_previous_operation_hash bytea, p_authorization_payload bytea, p_authorization_payload_hash bytea,
@@ -221,21 +234,15 @@ begin
     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
     or not exists (select 1 from public.vault_devices where id = p_authorizer_device_id and account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id) then return false; end if;
-  -- Every collection the account can currently read receives exactly one
-  -- opaque, signed envelope for the proposed device.
-  if jsonb_typeof(p_envelopes) <> 'array'
+  -- Every retained authorized epoch receives exactly one signed envelope.
+  if coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
     or jsonb_array_length(p_envelopes) <> (
-      select count(*) from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
+      select count(*) from private.vault_required_epochs(p_account_id)
     )
-    or (select count(distinct e->>'collection_id') from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
+    or (select count(distinct (e->>'collection_id', e->>'epoch_number')) from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
     or exists (select 1 from jsonb_array_elements(p_envelopes) e where not exists (
-      select 1 from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      join public.vault_collection_epochs ce on ce.collection_id = c.id and ce.state = 'current'
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
-        and c.id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
+      select 1 from private.vault_required_epochs(p_account_id) ce
+      where ce.collection_id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
     )) then return false; end if;
   insert into public.vault_devices (id, account_id, display_name, client_type, platform, enrollment_origin, key_protection_profile, client_crypto_capabilities, encryption_public_key, signing_public_key, encryption_algorithm, signing_algorithm, key_version, status)
   values (pending.device_id, pending.account_id, pending.display_name, 'browser', pending.platform, pending.enrollment_origin, pending.protection_profile, pending.capabilities, pending.encryption_public_key, pending.signing_public_key, 'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active');
@@ -276,19 +283,14 @@ begin
     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
     or not exists (select 1 from public.vault_recovery_keys where id = p_recovery_key_id and account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id) then return false; end if;
-  if jsonb_typeof(p_envelopes) <> 'array'
+  if coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
     or jsonb_array_length(p_envelopes) <> (
-      select count(*) from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
+      select count(*) from private.vault_required_epochs(p_account_id)
     )
-    or (select count(distinct e->>'collection_id') from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
+    or (select count(distinct (e->>'collection_id', e->>'epoch_number')) from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
     or exists (select 1 from jsonb_array_elements(p_envelopes) e where not exists (
-      select 1 from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      join public.vault_collection_epochs ce on ce.collection_id = c.id and ce.state = 'current'
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
-        and c.id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
+      select 1 from private.vault_required_epochs(p_account_id) ce
+      where ce.collection_id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
     )) then return false; end if;
   insert into public.vault_devices (id, account_id, display_name, client_type, platform, enrollment_origin, key_protection_profile, client_crypto_capabilities, encryption_public_key, signing_public_key, encryption_algorithm, signing_algorithm, key_version, status)
   values (pending.device_id, pending.account_id, pending.display_name, 'browser', pending.platform, pending.enrollment_origin, pending.protection_profile, pending.capabilities, pending.encryption_public_key, pending.signing_public_key, 'hpke-x25519-hkdf-sha256-aes-256-gcm', 'ed25519', 1, 'active');
@@ -328,9 +330,7 @@ begin
     or not exists (select 1 from public.vault_devices where id = p_revoked_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_rotations), '') <> 'array'
     or jsonb_array_length(p_rotations) <> (
-      select count(*) from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
+      select count(*) from private.vault_required_epochs(p_account_id)
     )
     or (select count(distinct r->>'collection_id') from jsonb_array_elements(p_rotations) r) <> jsonb_array_length(p_rotations)
     or exists (select 1 from jsonb_array_elements(p_rotations) r where not exists (
@@ -427,18 +427,12 @@ begin
     or not exists (select 1 from public.vault_devices where id = p_active_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
     or jsonb_array_length(p_envelopes) <> (
-      select count(*) from public.vault_collections c
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      where m.account_id = p_account_id and m.status = 'active' and c.deleted_at is null
+      select count(*) from private.vault_required_epochs(p_account_id)
     )
-    or (select count(distinct e->>'collection_id') from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
+    or (select count(distinct (e->>'collection_id', e->>'epoch_number')) from jsonb_array_elements(p_envelopes) e) <> jsonb_array_length(p_envelopes)
     or exists (select 1 from jsonb_array_elements(p_envelopes) e where not exists (
-      select 1 from public.vault_collection_epochs ce
-      join public.vault_collections c on c.id = ce.collection_id
-      join public.vault_collection_memberships m on m.collection_id = c.id
-      where m.account_id = p_account_id and m.status = 'active'
-        and c.deleted_at is null and ce.state = 'current'
-        and ce.collection_id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
+      select 1 from private.vault_required_epochs(p_account_id) ce
+      where ce.collection_id::text = e->>'collection_id' and ce.epoch_number = (e->>'epoch_number')::integer
     )) then return false; end if;
   update public.vault_recovery_keys set status = 'revoked', revoked_at = now() where id = p_old_recovery_key_id;
   insert into public.vault_recovery_keys (id, account_id, encryption_public_key, signing_public_key, key_version, status, authorization_payload, authorization_signature)
@@ -448,7 +442,7 @@ begin
     values ((envelope->>'collection_id')::uuid, (envelope->>'epoch_number')::integer, p_new_recovery_key_id, p_new_recovery_key_id, decode(envelope->>'encapsulation','base64'), decode(envelope->>'ciphertext','base64'), 'hpke-x25519-hkdf-sha256-aes-256-gcm', next_version, 1, decode(envelope->>'payload','base64'), extensions.digest(decode(envelope->>'payload','base64'),'sha256'), decode(envelope->>'signature','base64'));
   end loop;
   insert into public.vault_account_operations (operation_id, account_id, sequence_number, operation_type, canonical_payload, previous_operation_hash, operation_hash, recovery_key_id, signature, protocol_version)
-  values (p_operation_id, p_account_id, current_operation.sequence_number+1, 'recovery-rotate', p_authorization_payload, current_operation.operation_hash, p_command_hash, p_new_recovery_key_id, p_recovery_signature, 1);
+  values (p_operation_id, p_account_id, current_operation.sequence_number+1, 'recovery-rotate', p_authorization_payload, current_operation.operation_hash, p_command_hash, p_old_recovery_key_id, p_recovery_signature, 1);
   return true;
 end; $$;
 revoke all on function private.rotate_vault_recovery_root(uuid,uuid,uuid,uuid,uuid,bytea,bytea,bytea,bytea,bytea,jsonb,uuid,bytea,bytea) from public, anon, authenticated;

@@ -20,6 +20,8 @@ type BootstrapCollection = {
   operationPayload: Uint8Array;
   operationSignature: Uint8Array;
   operationAuthorDeviceId: string;
+  senderKind: 'device' | 'recovery';
+  historicalEnvelopes: CborValue[];
 };
 
 function text(record: Map<number, CborValue>, label: number): string {
@@ -36,8 +38,12 @@ export function decodeVaultBootstrap(input: Uint8Array): { deviceId: string; dev
   return {
     deviceId: text(record, 2), deviceSigningPublicKey: bytes(record, 3, 32), deviceEncryptionPublicKey: bytes(record, 4, 32), recoveryKeyId: text(record, 5), recoveryEncryptionPublicKey: bytes(record, 6, 32), accountHead: bytes(record, 8, 32),
     collections: collections.map((entry) => {
-      if (!(entry instanceof Map) || (entry.size !== 17 && entry.size !== 18)) throw new Error('Invalid vault bootstrap.');
+      if (!(entry instanceof Map) || (entry.size !== 17 && entry.size !== 18 && entry.size !== 20)) throw new Error('Invalid vault bootstrap.');
+      const historicalEnvelopes = entry.get(19) ?? [];
+      const senderKind = entry.get(20) ?? 'device';
+      if (!Array.isArray(historicalEnvelopes) || (senderKind !== 'device' && senderKind !== 'recovery')) throw new Error('Invalid vault bootstrap.');
       return {
+        historicalEnvelopes, senderKind,
         id: text(entry, 1), metadataCiphertext: bytes(entry, 2), metadataNonce: bytes(entry, 3, 12),
         epochNumber: (() => { const value = entry.get(4); if (!Number.isSafeInteger(value) || (value as number) < 1) throw new Error('Invalid vault bootstrap.'); return value as number; })(),
         transitionPayload: bytes(entry, 5), transitionSignature: bytes(entry, 6, 64), transitionHash: bytes(entry, 7, 32),
@@ -56,6 +62,7 @@ export async function openVaultBootstrap(input: {
   deviceSigningSecretKey: Uint8Array;
   expectedAccountHead: Uint8Array;
   deviceSigningKeys: Map<string, Uint8Array>;
+  recoverySigningKeys?: Map<string, Uint8Array>;
 }): Promise<{ collections: Array<{ id: string; title: string }>; epochKeys: Array<{ collectionId: string; epochNumber: number; epochKey: Uint8Array; operationHead: Uint8Array }>; recoveryKeyId: string; recoveryEncryptionPublicKey: Uint8Array; accountHead: Uint8Array }> {
   const bootstrap = decodeVaultBootstrap(input.bytes);
   if (!sameBytes(bootstrap.accountHead, input.expectedAccountHead)) throw new Error('Vault bootstrap account head mismatch.');
@@ -66,7 +73,7 @@ export async function openVaultBootstrap(input: {
     const operationType = operation.get(3);
     const operationSigningKey = input.deviceSigningKeys.get(collection.operationAuthorDeviceId);
     const transitionSigningKey = input.deviceSigningKeys.get(collection.transitionAuthorDeviceId);
-    const senderSigningKey = input.deviceSigningKeys.get(collection.senderDeviceId);
+    const senderSigningKey = (collection.senderKind === 'recovery' ? input.recoverySigningKeys : input.deviceSigningKeys)?.get(collection.senderDeviceId);
     if (!operationSigningKey || !senderSigningKey || !transitionSigningKey || operation.get(1) !== 1 || operation.get(5) !== `device:${collection.operationAuthorDeviceId}`
       || operation.get(6) !== collection.id || typeof operationType !== 'string') throw new Error('Unverified collection-operation head.');
     operation.set(10, collection.operationSignature);
@@ -99,7 +106,28 @@ export async function openVaultBootstrap(input: {
       const decoded = decodeCanonicalCbor(metadata);
       const title = decoded.get(2);
       if (decoded.size !== 2 || decoded.get(1) !== 1 || typeof title !== 'string' || !title) throw new Error('Invalid encrypted collection metadata.');
-      return { id: collection.id, title, epochKey, operationHead: collection.operationHead };
+      const history: Array<{ collectionId: string; epochNumber: number; epochKey: Uint8Array; operationHead: Uint8Array }> = [];
+      try {
+        const seen = new Set<number>();
+        for (const entry of collection.historicalEnvelopes) {
+          if (!(entry instanceof Map) || entry.size !== 5) throw new Error('Invalid historical epoch envelope.');
+          const epoch = entry.get(1); const kind = entry.get(4); const senderId = text(entry, 5);
+          if (typeof epoch !== 'number' || !Number.isSafeInteger(epoch) || epoch < 1 || epoch >= collection.epochNumber || seen.has(epoch)
+            || (kind !== 'device' && kind !== 'recovery')) throw new Error('Invalid historical epoch envelope.');
+          seen.add(epoch);
+          const signer = (kind === 'device' ? input.deviceSigningKeys : input.recoverySigningKeys)?.get(senderId);
+          const payload = bytes(entry, 2); const signature = bytes(entry, 3, 64);
+          if (!signer || !await verifyProtocolRecord('clipsx/vault/v1/epoch-envelope', payload, signature, signer)) throw new Error('Unverified historical epoch envelope.');
+          const envelope = decodeCanonicalCbor(payload);
+          if (envelope.size !== 8 || envelope.get(1) !== 1 || envelope.get(2) !== collection.id || envelope.get(3) !== epoch
+            || envelope.get(4) !== 'device' || envelope.get(5) !== bootstrap.deviceId || envelope.get(6) !== senderId) throw new Error('Historical epoch envelope binding mismatch.');
+          const key = await openHpke(await importHpkePrivateKey(input.deviceEncryptionSecretKey),
+            { enc: bytes(envelope, 7, 32), ciphertext: bytes(envelope, 8) },
+            utf8(`clipsx/vault/v1/epoch-envelope\0${collection.id}\0${epoch}\0device\0${bootstrap.deviceId}`));
+          history.push({ collectionId: collection.id, epochNumber: epoch, epochKey: key, operationHead: collection.operationHead });
+        }
+        return { id: collection.id, title, epochKey, operationHead: collection.operationHead, history };
+      } catch (error) { for (const entry of history) entry.epochKey.fill(0); throw error; }
     } catch (error) {
       epochKey.fill(0);
       throw error;
@@ -107,7 +135,7 @@ export async function openVaultBootstrap(input: {
   }));
   return {
     collections: opened.map(({ id, title }) => ({ id, title })),
-    epochKeys: opened.map(({ id, epochKey, operationHead }, index) => ({ collectionId: id, epochNumber: bootstrap.collections[index].epochNumber, epochKey, operationHead })),
+    epochKeys: opened.flatMap(({ id, epochKey, operationHead, history }, index) => [...history, { collectionId: id, epochNumber: bootstrap.collections[index].epochNumber, epochKey, operationHead }]),
     recoveryKeyId: bootstrap.recoveryKeyId,
     recoveryEncryptionPublicKey: bootstrap.recoveryEncryptionPublicKey,
     accountHead: bootstrap.accountHead,

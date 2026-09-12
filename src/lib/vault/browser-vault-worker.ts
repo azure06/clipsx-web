@@ -16,6 +16,9 @@ const epochKeys = new Map<string, { key: Uint8Array; operationHead?: Uint8Array;
 let recoveryKey: { id: string; encryptionPublicKey: Uint8Array } | null = null;
 let accountHead: Uint8Array | null = null;
 let accountSequence = 0;
+const historicalEpochKeys = new Map<string, Map<number, Uint8Array>>();
+const activeDeviceEncryptionKeys = new Map<string, Uint8Array>();
+const recoverySigningKeys = new Map<string, Uint8Array>();
 const deviceSigningKeys = new Map<string, Uint8Array>();
 
 function wipe(bytes: Uint8Array | undefined) {
@@ -29,12 +32,16 @@ function lock() {
   bundle = null;
   for (const epochKey of epochKeys.values()) { wipe(epochKey.key); wipe(epochKey.operationHead); }
   epochKeys.clear();
+  for (const keys of historicalEpochKeys.values()) for (const key of keys.values()) wipe(key);
+  historicalEpochKeys.clear();
   recoveryKey?.encryptionPublicKey.fill(0);
   recoveryKey = null;
   wipe(accountHead ?? undefined); accountHead = null;
   accountSequence = 0;
   for (const key of deviceSigningKeys.values()) wipe(key);
   deviceSigningKeys.clear();
+  recoverySigningKeys.clear();
+  activeDeviceEncryptionKeys.clear();
 }
 
 function respond(message: VaultWorkerResponse) {
@@ -78,6 +85,10 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         for (const key of deviceSigningKeys.values()) wipe(key);
         deviceSigningKeys.clear();
         for (const [id, key] of opened.deviceSigningKeys) deviceSigningKeys.set(id, key.slice());
+        activeDeviceEncryptionKeys.clear();
+        for (const [id, key] of opened.activeDeviceEncryptionKeys) activeDeviceEncryptionKeys.set(id, key.slice());
+        recoverySigningKeys.clear();
+        for (const [id, key] of opened.recoverySigningKeys) recoverySigningKeys.set(id, key.slice());
         respond({ id: request.id, type: 'account-sync-opened', sequence: accountSequence, accountHead: accountHead.slice() });
         return;
       }
@@ -98,6 +109,7 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           recoveryEncryptionPublicKey: recoveryKey?.encryptionPublicKey ?? (() => { throw new Error('Vault bootstrap is required before collection creation.'); })(),
           deviceSigningSecretKey: bundle.deviceSigningSecretKey,
           expectedAccountHead: accountHead,
+          additionalDevices: [...activeDeviceEncryptionKeys].filter(([id]) => id !== request.deviceId).map(([id, encryptionPublicKey]) => ({ id, encryptionPublicKey })),
           metadataTitle: request.metadataTitle,
           collectionId: request.collectionId,
           operationId: request.operationId,
@@ -114,14 +126,22 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
           deviceEncryptionSecretKey: bundle.deviceEncryptionSecretKey,
           deviceSigningSecretKey: bundle.deviceSigningSecretKey,
           expectedAccountHead: accountHead,
-          deviceSigningKeys,
+          deviceSigningKeys, recoverySigningKeys,
         });
         recoveryKey?.encryptionPublicKey.fill(0);
         recoveryKey = { id: opened.recoveryKeyId, encryptionPublicKey: opened.recoveryEncryptionPublicKey.slice() };
         wipe(accountHead ?? undefined); accountHead = opened.accountHead.slice();
         for (const epochKey of epochKeys.values()) { wipe(epochKey.key); wipe(epochKey.operationHead); }
         epochKeys.clear();
-        for (const entry of opened.epochKeys) epochKeys.set(entry.collectionId, { key: entry.epochKey, operationHead: entry.operationHead, epochNumber: entry.epochNumber });
+  for (const keys of historicalEpochKeys.values()) for (const key of keys.values()) wipe(key);
+  historicalEpochKeys.clear();
+        for (const entry of opened.epochKeys) {
+          let history = historicalEpochKeys.get(entry.collectionId);
+          if (!history) { history = new Map(); historicalEpochKeys.set(entry.collectionId, history); }
+          history.set(entry.epochNumber, entry.epochKey);
+          if ((epochKeys.get(entry.collectionId)?.epochNumber ?? 0) < entry.epochNumber)
+            epochKeys.set(entry.collectionId, { key: entry.epochKey, operationHead: entry.operationHead, epochNumber: entry.epochNumber });
+        }
         respond({
           id: request.id,
           type: 'bootstrap-opened',
@@ -133,7 +153,7 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         const authorized = await createDeviceAuthorizationCommand({
           accountId: request.accountId, authorDeviceId: request.deviceId, expectedAccountHead: accountHead,
           deviceSigningSecretKey: bundle.deviceSigningSecretKey, offer: request.offer, operationId: request.operationId,
-          epochs: [...epochKeys].map(([collectionId, value]) => ({ collectionId, epochNumber: value.epochNumber ?? 1, key: value.key })),
+          epochs: [...historicalEpochKeys].flatMap(([collectionId, history]) => [...history].map(([epochNumber, key]) => ({ collectionId, epochNumber, key }))),
         });
         respond({ id: request.id, type: 'device-authorized', ...authorized });
         return;
@@ -180,7 +200,7 @@ self.addEventListener('message', async (event: MessageEvent<VaultWorkerRequest>)
         if (!bundle || !accountHead) throw new Error('Verified account sync is required before collection sync.');
         const epoch = epochKeys.get(request.collectionId);
         if (!epoch) throw new Error('Collection epoch key is unavailable.');
-        respond({ id: request.id, type: 'sync-opened', items: await openVaultCollectionSync({ pages: request.pages, accountId: request.accountId, collectionId: request.collectionId, deviceSigningKeys, epochNumber: epoch.epochNumber ?? 1, epochKey: epoch.key }) });
+        respond({ id: request.id, type: 'sync-opened', items: await openVaultCollectionSync({ pages: request.pages, accountId: request.accountId, collectionId: request.collectionId, deviceSigningKeys, epochNumber: epoch.epochNumber ?? 1, epochKey: epoch.key, epochKeys: historicalEpochKeys.get(request.collectionId) }) });
         return;
       }
     }

@@ -21,6 +21,7 @@ export type CollectionCreation = {
   membershipStateHash: Uint8Array; recipientSetCommitment: Uint8Array; transitionPayload: Uint8Array;
   transitionSignature: Uint8Array; transitionHash: Uint8Array; recoveryKeyId: string;
   deviceEnvelope: { encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array };
+  additionalDeviceEnvelopes: Array<{ recipientId: string; encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array }>;
   recoveryEnvelope: { encapsulation: Uint8Array; ciphertext: Uint8Array; payload: Uint8Array; signature: Uint8Array };
 };
 export type InitialDeviceRegistration = {
@@ -74,11 +75,19 @@ export function admitCollectionCreation(command: VaultCommand): CollectionCreati
   if (command.operationType !== 'collection-create' || !command.authorDeviceId || !command.collectionId
     || !command.expectedAccountHead || command.expectedAccountHead.byteLength !== 32) throw new Error('invalid-collection-create');
   const payload = decodeCanonicalCbor(command.payload) as Map<number, unknown>;
-  if (payload.size !== 13 || text(payload, 1) !== command.collectionId) throw new Error('invalid-collection-create');
+  if ((payload.size !== 13 && payload.size !== 14) || text(payload, 1) !== command.collectionId) throw new Error('invalid-collection-create');
   const recoveryKeyId = text(payload, 13);
   const transitionSignature = bytes(payload, 7, 64);
+  const additional = payload.get(14) ?? [];
+  if (!Array.isArray(additional)) throw new Error('invalid-collection-create');
+  const additionalDeviceEnvelopes = additional.map((entry) => {
+    if (!(entry instanceof Map) || entry.size !== 3) throw new Error('invalid-collection-create');
+    const recipientId = text(entry, 1);
+    return { recipientId, ...envelope(entry, 2, 'device', command.collectionId!, recipientId, command.authorDeviceId!, bytes(entry, 3, 64)) };
+  });
+  if (new Set(additionalDeviceEnvelopes.map((entry) => entry.recipientId)).size !== additional.length) throw new Error('invalid-collection-create');
   return {
-    collectionId: command.collectionId, encryptedMetadata: payloadBytes(payload, 2, 16), metadataNonce: bytes(payload, 3, 12),
+    additionalDeviceEnvelopes, collectionId: command.collectionId, encryptedMetadata: payloadBytes(payload, 2, 16), metadataNonce: bytes(payload, 3, 12),
     membershipStateHash: bytes(payload, 4, 32), recipientSetCommitment: bytes(payload, 5, 32),
     transitionPayload: payloadBytes(payload, 6, 1), transitionSignature, transitionHash: bytes(payload, 8, 32), recoveryKeyId,
     deviceEnvelope: envelope(payload, 9, 'device', command.collectionId, command.authorDeviceId, command.authorDeviceId, bytes(payload, 10, 64)),

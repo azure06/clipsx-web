@@ -1,5 +1,5 @@
 begin;
-select plan(29);
+select plan(31);
 
 select has_table('public', 'vault_collection_invitations', 'verified invitations are persisted');
 select has_column('public', 'vault_collection_invitations', 'invitation_key_commitment', 'only the invitation-secret commitment is stored');
@@ -228,5 +228,7 @@ select is((
     and recipient_device_id = 'cccccccc-cccc-cccc-cccc-ccccccccccc2'
 ), 0::bigint, 'removed recipient receives no replacement-epoch device envelope');
 
+select is((select count(*) from private.vault_required_epochs('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1')), 3::bigint, 'owner key set includes historical and current epochs after removal');
+select is((select count(*) from private.vault_required_epochs('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2')), 0::bigint, 'removed member has no required epoch set');
 select * from finish();
 rollback;

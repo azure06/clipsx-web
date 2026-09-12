@@ -9,7 +9,8 @@ create function private.create_vault_collection(
   p_device_envelope_payload bytea, p_device_envelope_signature bytea, p_recovery_key_id uuid,
   p_recovery_envelope_enc bytea, p_recovery_envelope_ciphertext bytea,
   p_recovery_envelope_payload bytea, p_recovery_envelope_signature bytea,
-  p_operation_id uuid, p_command_payload bytea, p_command_hash bytea, p_command_signature bytea
+  p_operation_id uuid, p_command_payload bytea, p_command_hash bytea, p_command_signature bytea,
+  p_additional_device_envelopes jsonb default '[]'::jsonb
 )
 returns boolean
 language plpgsql
@@ -18,6 +19,7 @@ set search_path = ''
 as $$
 declare
   current_account_operation public.vault_account_operations%rowtype;
+  envelope jsonb;
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
   perform pg_advisory_xact_lock(hashtextextended(p_collection_id::text, 2));
@@ -48,6 +50,13 @@ begin
     return false;
   end if;
 
+  if coalesce(jsonb_typeof(p_additional_device_envelopes), '') <> 'array'
+    or jsonb_array_length(p_additional_device_envelopes) <> (select count(*) from public.vault_devices where account_id=p_account_id and status='active' and id<>p_device_id)
+    or (select count(distinct e->>'recipient_id') from jsonb_array_elements(p_additional_device_envelopes) e) <> jsonb_array_length(p_additional_device_envelopes)
+    or exists(select 1 from jsonb_array_elements(p_additional_device_envelopes) e where not exists(
+      select 1 from public.vault_devices where account_id=p_account_id and status='active' and id<>p_device_id and id::text=e->>'recipient_id'
+    )) then return false; end if;
+
   insert into public.vault_collections (
     id, owner_account_id, encrypted_metadata, metadata_nonce, current_epoch_number,
     current_epoch_transition_hash, membership_log_head_hash
@@ -75,6 +84,17 @@ begin
     p_collection_id, 1, p_device_id, p_device_id, p_device_envelope_enc, p_device_envelope_ciphertext,
     'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, p_device_envelope_payload, extensions.digest(p_device_envelope_payload, 'sha256'), p_device_envelope_signature
   );
+  for envelope in select * from jsonb_array_elements(p_additional_device_envelopes) loop
+    insert into public.vault_device_epoch_envelopes (
+      collection_id, epoch_number, recipient_device_id, sender_device_id, encapsulation, ciphertext,
+      algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature
+    ) values (
+      p_collection_id, 1, (envelope->>'recipient_id')::uuid, p_device_id,
+      decode(envelope->>'encapsulation','base64'), decode(envelope->>'ciphertext','base64'),
+      'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, decode(envelope->>'payload','base64'),
+      extensions.digest(decode(envelope->>'payload','base64'),'sha256'), decode(envelope->>'signature','base64')
+    );
+  end loop;
   insert into public.vault_recovery_epoch_envelopes (
     collection_id, epoch_number, recovery_key_id, sender_device_id, encapsulation, ciphertext,
     algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature
@@ -103,7 +123,7 @@ $$;
 
 revoke all on function private.create_vault_collection(
   uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea,
-  bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea
+  bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, jsonb
 ) from public, anon, authenticated;
 
 -- Only the route handler reaches this transaction after validating the outer
@@ -292,6 +312,6 @@ revoke all on function private.delete_vault_note(
 -- Invitation evidence is deliberately split from membership activation.  The
 -- URL-fragment secret never reaches this function; only its commitments do.
 
-grant execute on function private.create_vault_collection( uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
+grant execute on function private.create_vault_collection( uuid, uuid, uuid, uuid, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea, jsonb ) to service_role;
 grant execute on function private.append_vault_note_revision( uuid, uuid, uuid, uuid, bytea, bytea, uuid, bytea, integer, bytea, bytea, bytea, bytea, bytea, bytea, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
 grant execute on function private.delete_vault_note( uuid, uuid, uuid, uuid, bytea, bytea, uuid, bytea, uuid, bytea, bytea, bytea ) to service_role;

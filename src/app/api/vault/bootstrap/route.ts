@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     const [epochResult, envelopeResult, operationResult] = await Promise.all([
       supabase.from('vault_collection_epochs').select('collection_id, epoch_number, transition_payload, transition_signature, transition_hash, created_by_device_id').in('collection_id', collectionIds).eq('state', 'current'),
-      supabase.from('vault_device_epoch_envelopes').select('collection_id, epoch_number, encapsulation, ciphertext, envelope_payload, envelope_payload_hash, signature, sender_device_id').eq('recipient_device_id', device.id).in('collection_id', collectionIds),
+      supabase.from('vault_device_epoch_envelopes').select('collection_id, epoch_number, encapsulation, ciphertext, envelope_payload, envelope_payload_hash, signature, sender_device_id, sender_recovery_key_id').eq('recipient_device_id', device.id).in('collection_id', collectionIds),
       supabase.from('vault_collection_operations').select('collection_id, sequence_number, operation_hash, canonical_payload, signature, author_device_id').in('collection_id', collectionIds).order('sequence_number', { ascending: false }),
     ]);
     if (epochResult.error || envelopeResult.error || operationResult.error) {
@@ -83,7 +83,10 @@ export async function GET(request: NextRequest) {
         console.error({ requestId, endpoint: 'bootstrap', stage: 'incomplete-record', collectionId: collection.id });
         return vaultCborError(503, 'bootstrap-unavailable');
       }
-      records.push(new Map([[1, collection.id], [2, metadata], [3, nonce], [4, epoch.epoch_number], [5, transitionPayload], [6, transitionSignature], [7, transitionHash], [8, encapsulation], [9, ciphertext], [10, envelopePayload], [11, envelopeHash], [12, envelopeSignature], [13, envelope.sender_device_id], [14, operationHead.hash], [15, operationHead.payload], [16, operationHead.signature], [17, operationHead.authorDeviceId], [18, epoch.created_by_device_id]]));
+      records.push(new Map([[1, collection.id], [2, metadata], [3, nonce], [4, epoch.epoch_number], [5, transitionPayload], [6, transitionSignature], [7, transitionHash], [8, encapsulation], [9, ciphertext], [10, envelopePayload], [11, envelopeHash], [12, envelopeSignature], [13, envelope.sender_device_id ?? envelope.sender_recovery_key_id], [14, operationHead.hash], [15, operationHead.payload], [16, operationHead.signature], [17, operationHead.authorDeviceId], [18, epoch.created_by_device_id], [19, (envelopeResult.data ?? []).filter((entry) => entry.collection_id === collection.id && entry.epoch_number < epoch.epoch_number).map((entry) => new Map<number, CborValue>([
+        [1, entry.epoch_number], [2, decodePostgresBytea(entry.envelope_payload)!], [3, decodePostgresBytea(entry.signature)!],
+        [4, entry.sender_device_id ? 'device' : 'recovery'], [5, entry.sender_device_id ?? entry.sender_recovery_key_id!],
+      ]))], [20, envelope.sender_device_id ? 'device' : 'recovery']]));
     }
     return vaultCborResponse(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, records], [8, accountHead]]));
   } catch (error) {

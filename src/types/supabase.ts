@@ -1053,6 +1053,7 @@ export type Database = {
       create_vault_collection: {
         Args: {
           p_account_id: string
+          p_additional_device_envelopes?: Json
           p_collection_id: string
           p_command_hash: string
           p_command_payload: string
@@ -1252,6 +1253,13 @@ export type Database = {
           p_session_id: string
         }
         Returns: boolean
+      }
+      vault_required_epochs: {
+        Args: { p_account_id: string }
+        Returns: {
+          collection_id: string
+          epoch_number: number
+        }[]
       }
     }
     Enums: {

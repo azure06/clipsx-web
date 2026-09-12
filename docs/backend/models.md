@@ -660,3 +660,20 @@ shared from another owner remains part of multi-device/member sync hardening.
 - IndexedDB eviction is a lost-device event; bundle rewrap is atomic, tabs use
   a lock broadcast, and v1 has no service worker/background sync while the
   vault can be unlocked.
+
+## Retained epoch distribution
+
+For an active membership, the required key set consists of every stored epoch
+from `history_access_from_epoch` through the collection's current epoch.
+Device approval, phrase recovery, and recovery-root replacement require exactly
+one envelope per (collection, epoch) pair. Duplicate, missing, or unauthorized
+pairs fail atomically. Collection creation also checks the exact set of other
+active devices under the account lock. Browser account verification binds device
+encryption keys to enrollment proofs and excludes revoked devices from new
+recipients, while retaining signing keys for historical verification.
+
+Bootstrap record labels 18, 19 and 20 carry the transition author, historical
+envelopes, and current envelope signer kind. Each historical envelope is verified
+against its signer and exact collection/epoch/device binding. The worker retains
+all keys and selects the highest epoch only for new writes. Locking wipes the
+retained key map. Recovery-bootstrap no longer assumes recovery key version one.

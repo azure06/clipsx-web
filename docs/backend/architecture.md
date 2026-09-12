@@ -1188,8 +1188,12 @@ pending memberships for reinvitation.
 
 Account-ledger reads are restricted to the authenticated account. Shared
 collection membership does not authorize disclosure of another account's whole
-ledger. Shared opening needs a scoped external signer-proof protocol. Historical
-key delivery to new/recovered devices, recovery-root replacement, and delivery
-of new collections to other active devices remain incomplete. The encrypted
-vault must not launch with these gaps. Account deletion and vault retention
+ledger. Shared opening needs a scoped external signer-proof protocol. Device approval and recovery-root replacement require every retained epoch in
+the active membership history range. Bootstrap retains historical keys for
+decryption and forwards the complete set during approval. New collection
+creation supplies envelopes for every currently active account device, using
+encryption keys verified against signed enrollment records. Recovery rotation
+retains the old signing root on its ledger operation and verifies the device
+co-signature before accepting the replacement. Scoped external signer proofs
+still need completion before shared vault opening can launch. Account deletion and vault retention
 maintenance also remain unfinished lifecycle work.

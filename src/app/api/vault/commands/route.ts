@@ -295,6 +295,7 @@ export async function POST(request: NextRequest) {
       const creation = admitCollectionCreation(admission.command);
       const { command } = admission;
       const { data, error } = await admin.schema('private').rpc('create_vault_collection', {
+        p_additional_device_envelopes: creation.additionalDeviceEnvelopes.map((entry) => ({ recipient_id: entry.recipientId, encapsulation: encodeJsonBase64(entry.encapsulation), ciphertext: encodeJsonBase64(entry.ciphertext), payload: encodeJsonBase64(entry.payload), signature: encodeJsonBase64(entry.signature) })),
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_device_id: command.authorDeviceId!, p_collection_id: creation.collectionId,
         p_expected_account_head: encodePostgresBytea(command.expectedAccountHead!),
         p_encrypted_metadata: encodePostgresBytea(creation.encryptedMetadata), p_metadata_nonce: encodePostgresBytea(creation.metadataNonce),
