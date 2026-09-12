@@ -40,14 +40,22 @@ begin
          and m.collection_id = p_collection_id
          and m.status = 'active' and m.role = 'owner'
      )
-     or exists (select 1 from public.vault_collection_memberships
-       where collection_id = p_collection_id and account_id = p_recipient_account_id
-         and status in ('invited', 'active'))
+
      or exists (select 1 from public.vault_collection_invitations
        where id = p_invitation_id or invitation_key_commitment = p_invitation_key_commitment
          or verification_commitment = p_verification_commitment)
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
   then return false; end if;
+
+  with expired as (
+    update public.vault_collection_invitations set status = 'expired'
+    where collection_id = p_collection_id and status = 'created' and expires_at <= now()
+    returning membership_id
+  )
+  update public.vault_collection_memberships set status = 'expired'
+  where id in (select membership_id from expired) and status = 'invited';
+  if exists (select from public.vault_collection_memberships where collection_id = p_collection_id
+    and account_id = p_recipient_account_id and status in ('invited', 'active')) then return false; end if;
 
   insert into public.vault_collection_memberships (
     id, collection_id, account_id, role, status, joined_epoch,
@@ -222,7 +230,7 @@ create function private.add_vault_collection_member_and_rotate_epoch(
   p_device_envelopes jsonb, p_recovery_envelopes jsonb,
   p_historical_device_envelopes jsonb, p_historical_recovery_envelopes jsonb,
   p_operation_id uuid, p_command_payload bytea, p_command_hash bytea,
-  p_command_signature bytea
+  p_command_signature bytea, p_encrypted_metadata bytea, p_metadata_nonce bytea
 )
 returns boolean
 language plpgsql
@@ -272,6 +280,8 @@ begin
      or invitation.acceptance_payload is null or invitation.confirmation_payload is null
      or p_joined_epoch <> collection_row.current_epoch_number + 1
      or p_history_access_from_epoch < 1 or p_history_access_from_epoch > p_joined_epoch
+     or p_encrypted_metadata is null or octet_length(p_encrypted_metadata) not between 16 and 65536
+     or p_metadata_nonce is null or octet_length(p_metadata_nonce) <> 12
      or octet_length(p_expected_collection_head) <> 32
      or octet_length(p_membership_state_hash) <> 32
      or octet_length(p_recipient_set_commitment) <> 32
@@ -363,6 +373,7 @@ begin
   );
   update public.vault_collections
   set current_epoch_number = p_joined_epoch,
+      encrypted_metadata = p_encrypted_metadata, metadata_nonce = p_metadata_nonce,
       current_epoch_transition_hash = p_transition_hash,
       membership_log_head_hash = p_membership_state_hash
   where id = p_collection_id;
@@ -443,7 +454,7 @@ revoke all on function private.add_vault_collection_member_and_rotate_epoch(
   uuid, uuid, uuid, uuid, bytea, uuid, uuid, uuid, public.vault_member_role,
   integer, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, jsonb,
   jsonb, uuid, bytea, bytea, bytea
-) from public, anon, authenticated;
+, bytea, bytea) from public, anon, authenticated;
 
 create function private.remove_vault_collection_member_and_rotate_epoch(
   p_account_id uuid, p_session_id uuid, p_device_id uuid, p_collection_id uuid,
@@ -453,7 +464,7 @@ create function private.remove_vault_collection_member_and_rotate_epoch(
   p_transition_payload bytea, p_transition_signature bytea, p_transition_hash bytea,
   p_device_envelopes jsonb, p_recovery_envelopes jsonb,
   p_operation_id uuid, p_command_payload bytea, p_command_hash bytea,
-  p_command_signature bytea
+  p_command_signature bytea, p_encrypted_metadata bytea, p_metadata_nonce bytea
 )
 returns boolean
 language plpgsql
@@ -494,6 +505,8 @@ begin
      or membership.account_id <> p_removed_account_id or membership.status <> 'active'
      or membership.role = 'owner' or p_removed_account_id = p_account_id
      or p_epoch_number <> collection_row.current_epoch_number + 1
+     or p_encrypted_metadata is null or octet_length(p_encrypted_metadata) not between 16 and 65536
+     or p_metadata_nonce is null or octet_length(p_metadata_nonce) <> 12
      or octet_length(p_expected_collection_head) <> 32
      or octet_length(p_membership_state_hash) <> 32
      or octet_length(p_recipient_set_commitment) <> 32
@@ -550,6 +563,7 @@ begin
   );
   update public.vault_collections
   set current_epoch_number = p_epoch_number,
+      encrypted_metadata = p_encrypted_metadata, metadata_nonce = p_metadata_nonce,
       current_epoch_transition_hash = p_transition_hash,
       membership_log_head_hash = p_membership_state_hash
   where id = p_collection_id;
@@ -597,10 +611,10 @@ $$;
 revoke all on function private.remove_vault_collection_member_and_rotate_epoch(
   uuid, uuid, uuid, uuid, bytea, uuid, uuid, integer, bytea, bytea, bytea,
   bytea, bytea, jsonb, jsonb, uuid, bytea, bytea, bytea
-) from public, anon, authenticated;
+, bytea, bytea) from public, anon, authenticated;
 
 grant execute on function private.create_vault_collection_invitation( uuid, uuid, uuid, uuid, bytea, uuid, uuid, uuid, public.vault_member_role, timestamptz, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
 grant execute on function private.accept_vault_collection_invitation( uuid, uuid, uuid, uuid, bytea, uuid, bytea, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
 grant execute on function private.confirm_vault_collection_invitation( uuid, uuid, uuid, uuid, bytea, uuid, bytea, bytea, bytea, uuid, bytea, bytea, bytea ) to service_role;
-grant execute on function private.add_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, uuid, public.vault_member_role, integer, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, jsonb, jsonb, uuid, bytea, bytea, bytea ) to service_role;
-grant execute on function private.remove_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, uuid, bytea, bytea, bytea ) to service_role;
+grant execute on function private.add_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, uuid, public.vault_member_role, integer, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, jsonb, jsonb, uuid, bytea, bytea, bytea , bytea, bytea) to service_role;
+grant execute on function private.remove_vault_collection_member_and_rotate_epoch( uuid, uuid, uuid, uuid, bytea, uuid, uuid, integer, bytea, bytea, bytea, bytea, bytea, jsonb, jsonb, uuid, bytea, bytea, bytea , bytea, bytea) to service_role;

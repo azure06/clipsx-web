@@ -16,7 +16,7 @@ let eventIds = suppliedIds ?? [];
 
 if (eventIds.length === 0) {
   const { data, error } = await supabase.schema('private').from('billing_webhook_events')
-    .select('stripe_event_id').eq('livemode', livemode).in('processing_state', ['pending', 'failed']).order('received_at');
+    .select('stripe_event_id').eq('livemode', livemode).or(`processing_state.in.(pending,failed),and(processing_state.eq.processing,lease_expires_at.lt.${new Date().toISOString()})`).order('received_at');
   if (error) throw new Error(`Unable to load pending Stripe events: ${error.message}`);
   eventIds = (data ?? []).map((row) => row.stripe_event_id);
 }

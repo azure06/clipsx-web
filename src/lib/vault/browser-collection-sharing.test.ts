@@ -113,6 +113,7 @@ describe('verified collection sharing', () => {
     const recipientDevice = x25519.keygen(new Uint8Array(32).fill(13));
     const recipientRecovery = x25519.keygen(new Uint8Array(32).fill(14));
     const result = await createMemberAddCommand({
+      metadataTitle: 'Shared collection',
       accountId: 'owner-account',
       deviceId: 'owner-device',
       deviceSigningSecretKey: signer.secretKey,
@@ -150,6 +151,7 @@ describe('verified collection sharing', () => {
     const ownerDevice = x25519.keygen(new Uint8Array(32).fill(21));
     const ownerRecovery = x25519.keygen(new Uint8Array(32).fill(22));
     const result = await createMemberRemoveCommand({
+      metadataTitle: 'Shared collection',
       accountId: 'owner-account',
       deviceId: 'owner-device',
       deviceSigningSecretKey: signer.secretKey,
@@ -172,6 +174,7 @@ describe('verified collection sharing', () => {
     expect(admitted.recipientAccountId).toBe('removed-account');
     expect(admitted.deviceEnvelopes.map((entry) => entry.recipientId)).toEqual(['owner-device']);
     await expect(createMemberRemoveCommand({
+      metadataTitle: 'Shared collection',
       accountId: 'owner-account',
       deviceId: 'owner-device',
       deviceSigningSecretKey: signer.secretKey,

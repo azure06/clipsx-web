@@ -2,6 +2,8 @@ import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { getStripeLivemode } from '../stripe/billing-customer';
+
 import { resolveBillingWorkspace, type BillingWorkspace } from './workspace';
 
 export type BillingSummary = BillingWorkspace & {
@@ -23,6 +25,7 @@ export async function getBillingSummary(
     .from('account_entitlements')
     .select('status, paid_through, source_subscription_id, plans!inner(code)')
     .eq('billing_account_id', workspace.billingAccountId)
+    .eq('livemode', getStripeLivemode())
     .single();
   if (error) throw new Error(`Unable to load account entitlement: ${error.message}`);
 
@@ -51,7 +54,8 @@ export async function getBillingSummary(
   return {
     ...workspace,
     planCode: entitlement.plans.code,
-    entitlementStatus: entitlement.status,
+    entitlementStatus: entitlement.status === 'active' && entitlement.paid_through !== null
+      && Date.parse(entitlement.paid_through) <= Date.now() ? 'read_only' : entitlement.status,
     paidThrough: entitlement.paid_through,
     subscriptionStatus,
     cancelAtPeriodEnd,

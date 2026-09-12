@@ -1,6 +1,7 @@
 import { createEpochEnvelope } from './browser-collection-create';
 import {
   concatBytes,
+  encryptAesGcm,
   decodeCanonicalCbor,
   decodeVaultCommand,
   encodeCanonicalCbor,
@@ -450,12 +451,15 @@ async function rotation(input: {
   collectionId: string;
   epochNumber: number;
   reason: 'member-added' | 'member-removed';
+  metadataTitle: string;
   memberships: SharingMembership[];
   recipients: SharingRecipient[];
   senderDeviceId: string;
   signingSecretKey: Uint8Array;
 }) {
+  if (!input.metadataTitle.trim()) throw new Error('Collection title is required.');
   const epochKey = randomBytes(32);
+  const metadata = await encryptAesGcm(epochKey, encodeCanonicalCbor(new Map<number, CborValue>([[1, 1], [2, input.metadataTitle]])), utf8(`clipsx/vault/v1/collection-metadata\0${input.collectionId}`));
   const epoch = { epochNumber: input.epochNumber, key: epochKey };
   const deviceEnvelopes = await createEnvelopeMaps({
     collectionId: input.collectionId,
@@ -484,6 +488,7 @@ async function rotation(input: {
     [4, input.reason],
     [5, membershipStateHash],
     [6, recipientSetCommitment],
+    [7, metadata.ciphertext], [8, metadata.nonce],
   ]));
   return {
     epochKey,
@@ -513,6 +518,7 @@ export async function createMemberAddCommand(input: {
   recipientAccountId: string;
   role: 'editor' | 'viewer';
   joinedEpoch: number;
+  metadataTitle: string;
   memberships: SharingMembership[];
   recipients: SharingRecipient[];
   historicalEpochs?: HistoricalEpoch[];
@@ -539,6 +545,7 @@ export async function createMemberAddCommand(input: {
     collectionId: input.collectionId,
     epochNumber: input.joinedEpoch,
     reason: 'member-added',
+    metadataTitle: input.metadataTitle,
     memberships: input.memberships,
     recipients: input.recipients,
     senderDeviceId: input.deviceId,
@@ -598,6 +605,7 @@ export async function createMemberRemoveCommand(input: {
   membershipId: string;
   removedAccountId: string;
   epochNumber: number;
+  metadataTitle: string;
   memberships: SharingMembership[];
   recipients: SharingRecipient[];
   operationId?: string;
@@ -610,6 +618,7 @@ export async function createMemberRemoveCommand(input: {
     collectionId: input.collectionId,
     epochNumber: input.epochNumber,
     reason: 'member-removed',
+    metadataTitle: input.metadataTitle,
     memberships: input.memberships,
     recipients: input.recipients,
     senderDeviceId: input.deviceId,

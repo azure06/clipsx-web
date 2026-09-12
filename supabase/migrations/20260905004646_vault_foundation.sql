@@ -4,7 +4,7 @@
 -- All state changes are intentionally reserved for the forthcoming command route.
 create type public.vault_device_status as enum ('pending', 'active', 'revoked');
 create type public.vault_member_role as enum ('owner', 'editor', 'viewer');
-create type public.vault_member_status as enum ('invited', 'active', 'removed');
+create type public.vault_member_status as enum ('invited', 'active', 'removed', 'expired');
 create type public.vault_invitation_status as enum ('created', 'accepted', 'expired', 'cancelled');
 
 create table public.vault_devices (

@@ -340,6 +340,8 @@ begin
         and m.status = 'active' and c.deleted_at is null
     ))
     or exists (select 1 from jsonb_array_elements(p_rotations) r where jsonb_typeof(r->'device_envelopes') <> 'array' or jsonb_typeof(r->'recovery_envelopes') <> 'array'
+      or coalesce(octet_length(decode(r->>'encrypted_metadata','base64')),0) not between 16 and 65536
+      or coalesce(octet_length(decode(r->>'metadata_nonce','base64')),0) <> 12
       or (r->>'epoch_number')::integer <> (select c.current_epoch_number + 1 from public.vault_collections c where c.id::text = r->>'collection_id')
       or jsonb_array_length(r->'device_envelopes') <> (
         select count(*) from public.vault_devices d
@@ -379,7 +381,7 @@ begin
     update public.vault_collection_epochs set state = 'superseded' where collection_id = (rotation->>'collection_id')::uuid and state = 'current';
     insert into public.vault_collection_epochs (collection_id, epoch_number, created_by_device_id, rotation_reason, previous_epoch_hash, membership_state_hash, recipient_set_commitment, transition_payload, transition_signature, transition_hash, state)
     values ((rotation->>'collection_id')::uuid, next_epoch, p_author_device_id, 'device-revoked', (select current_epoch_transition_hash from public.vault_collections where id = (rotation->>'collection_id')::uuid), decode(rotation->>'membership_hash','base64'), decode(rotation->>'recipient_commitment','base64'), decode(rotation->>'transition_payload','base64'), decode(rotation->>'transition_signature','base64'), decode(rotation->>'transition_hash','base64'), 'current');
-    update public.vault_collections set current_epoch_number = next_epoch, current_epoch_transition_hash = decode(rotation->>'transition_hash','base64'), membership_log_head_hash = decode(rotation->>'membership_hash','base64') where id = (rotation->>'collection_id')::uuid;
+    update public.vault_collections set encrypted_metadata = decode(rotation->>'encrypted_metadata','base64'), metadata_nonce = decode(rotation->>'metadata_nonce','base64'), current_epoch_number = next_epoch, current_epoch_transition_hash = decode(rotation->>'transition_hash','base64'), membership_log_head_hash = decode(rotation->>'membership_hash','base64') where id = (rotation->>'collection_id')::uuid;
     for device_envelope in select * from jsonb_array_elements(rotation->'device_envelopes') loop
       insert into public.vault_device_epoch_envelopes (collection_id, epoch_number, recipient_device_id, sender_device_id, encapsulation, ciphertext, algorithm, key_version, protocol_version, envelope_payload, envelope_payload_hash, signature)
       values ((rotation->>'collection_id')::uuid, next_epoch, (device_envelope->>'recipient_id')::uuid, p_author_device_id, decode(device_envelope->>'encapsulation','base64'), decode(device_envelope->>'ciphertext','base64'), 'hpke-x25519-hkdf-sha256-aes-256-gcm', 1, 1, decode(device_envelope->>'payload','base64'), extensions.digest(decode(device_envelope->>'payload','base64'),'sha256'), decode(device_envelope->>'signature','base64'));
@@ -478,24 +480,7 @@ begin
        select 1 from auth.sessions s
        where s.id = p_requester_session_id and s.user_id = p_requester_account_id
      )
-     or (
-       p_target_account_id <> p_requester_account_id
-       and (
-         p_collection_id is null
-         or not exists (
-           select 1 from public.vault_collection_memberships requester
-           where requester.collection_id = p_collection_id
-             and requester.account_id = p_requester_account_id
-             and requester.status = 'active'
-         )
-         or not exists (
-           select 1 from public.vault_collection_memberships target
-           where target.collection_id = p_collection_id
-             and target.account_id = p_target_account_id
-             and target.status in ('active', 'removed')
-         )
-       )
-     )
+     or p_target_account_id is distinct from p_requester_account_id
      or (
        p_after > 0 and not exists (
          select 1 from public.vault_account_operations operation

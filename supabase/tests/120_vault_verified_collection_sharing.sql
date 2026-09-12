@@ -13,13 +13,13 @@ select ok(not has_table_privilege('authenticated', 'public.vault_collection_invi
 select ok(to_regprocedure('private.create_vault_collection_invitation(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,timestamptz,bytea,bytea,uuid,bytea,bytea,bytea)') is not null, 'invitation-create transaction exists');
 select ok(to_regprocedure('private.accept_vault_collection_invitation(uuid,uuid,uuid,uuid,bytea,uuid,bytea,bytea,bytea,uuid,bytea,bytea,bytea)') is not null, 'invitation-accept transaction exists');
 select ok(to_regprocedure('private.confirm_vault_collection_invitation(uuid,uuid,uuid,uuid,bytea,uuid,bytea,bytea,bytea,uuid,bytea,bytea,bytea)') is not null, 'invitation-confirm transaction exists');
-select ok(to_regprocedure('private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea)') is not null, 'member activation and epoch rotation transaction exists');
-select ok(to_regprocedure('private.remove_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,uuid,bytea,bytea,bytea)') is not null, 'member removal and epoch rotation transaction exists');
+select ok(to_regprocedure('private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea,bytea,bytea)') is not null, 'member activation and epoch rotation transaction exists');
+select ok(to_regprocedure('private.remove_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,uuid,bytea,bytea,bytea,bytea,bytea)') is not null, 'member removal and epoch rotation transaction exists');
 
 select ok(not has_function_privilege('authenticated', 'private.create_vault_collection_invitation(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,timestamptz,bytea,bytea,uuid,bytea,bytea,bytea)', 'execute'), 'browser roles cannot create invitations through RPC');
-select ok(not has_function_privilege('authenticated', 'private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea)', 'execute'), 'browser roles cannot activate members through RPC');
-select ok(not has_function_privilege('authenticated', 'private.remove_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,uuid,bytea,bytea,bytea)', 'execute'), 'browser roles cannot remove members through RPC');
-select ok(has_function_privilege('service_role', 'private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea)', 'execute'), 'server service role can dispatch the private transaction');
+select ok(not has_function_privilege('authenticated', 'private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea,bytea,bytea)', 'execute'), 'browser roles cannot activate members through RPC');
+select ok(not has_function_privilege('authenticated', 'private.remove_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,uuid,bytea,bytea,bytea,bytea,bytea)', 'execute'), 'browser roles cannot remove members through RPC');
+select ok(has_function_privilege('service_role', 'private.add_vault_collection_member_and_rotate_epoch(uuid,uuid,uuid,uuid,bytea,uuid,uuid,uuid,public.vault_member_role,integer,integer,bytea,bytea,bytea,bytea,bytea,jsonb,jsonb,jsonb,jsonb,uuid,bytea,bytea,bytea,bytea,bytea)', 'execute'), 'server service role can dispatch the private transaction');
 
 select is(
   private.add_vault_collection_member_and_rotate_epoch(
@@ -31,7 +31,7 @@ select is(
     '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, gen_random_uuid(),
     decode('00', 'hex'), decode(repeat('00', 32), 'hex'),
     decode(repeat('00', 64), 'hex')
-  ),
+  , decode(repeat('aa',16),'hex'), decode(repeat('bb',12),'hex')),
   false,
   'invalid member activation is rejected before writes'
 );
@@ -185,7 +185,7 @@ select is(private.add_vault_collection_member_and_rotate_epoch(
   '[]'::jsonb, '[]'::jsonb,
   '10000000-0000-0000-0000-000000000005', decode('05', 'hex'),
   decode(repeat('05', 32), 'hex'), decode(repeat('05', 64), 'hex')
-), true, 'member activation and clean joining epoch commit together');
+, decode(repeat('aa',16),'hex'), decode(repeat('bb',12),'hex')), true, 'member activation and clean joining epoch commit together');
 select ok(exists (
   select 1 from public.vault_collection_memberships m
   join public.vault_collections c on c.id = m.collection_id
@@ -213,7 +213,7 @@ select is(private.remove_vault_collection_member_and_rotate_epoch(
   ),
   '10000000-0000-0000-0000-000000000006', decode('06', 'hex'),
   decode(repeat('06', 32), 'hex'), decode(repeat('06', 64), 'hex')
-), true, 'member removal and replacement epoch commit together');
+, decode(repeat('aa',16),'hex'), decode(repeat('bb',12),'hex')), true, 'member removal and replacement epoch commit together');
 select ok(exists (
   select 1 from public.vault_collection_memberships m
   join public.vault_collections c on c.id = m.collection_id

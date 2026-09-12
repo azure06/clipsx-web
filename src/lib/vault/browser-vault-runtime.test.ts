@@ -142,6 +142,12 @@ describe('BrowserVaultRuntime', () => {
     let locks = 0;
     runtime.onLock = () => { locks += 1; };
 
+    await runtime.unlock({
+      accountId: 'account-1', deviceId: 'device-1', schemaVersion: 1,
+      protectionProfile: 'vault-passphrase-wrapped', encryptedBundle: new Uint8Array([1]),
+      bundleNonce: new Uint8Array(12), bundleSalt: new Uint8Array(16),
+      passphraseKdfSalt: new Uint8Array(16), createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z',
+    }, new Uint8Array(32).fill(7));
     await runtime.lock(false);
 
     expect(locks).toBe(1);

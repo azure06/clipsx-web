@@ -58,6 +58,7 @@ function addCustomer(payload: StripeProjectionPayload, customer: Stripe.Customer
 }
 
 function addSubscription(payload: StripeProjectionPayload, subscription: Stripe.Subscription, customer: Stripe.Customer) {
+  if (subscription.items.has_more) throw new Error('Incomplete Stripe subscription item snapshot');
   addCustomer(payload, customer);
   payload.subscriptions.push({
     id: subscription.id, customer_id: customer.id,

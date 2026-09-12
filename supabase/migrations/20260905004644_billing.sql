@@ -180,6 +180,7 @@ create table private.billing_subscription_items (
   stripe_subscription_item_id text not null,
   livemode boolean not null,
   quantity integer not null default 1 check (quantity >= 0),
+  active boolean not null default true,
   current_period_start timestamptz,
   current_period_end timestamptz,
   stripe_created_at timestamptz,
@@ -275,16 +276,20 @@ comment on table private.billing_webhook_events is
   'Durable Stripe webhook inbox. It stores routing and processing metadata, not raw event payloads.';
 
 create table private.account_entitlements (
-  billing_account_id uuid primary key references private.billing_accounts (id) on delete restrict,
+  billing_account_id uuid not null references private.billing_accounts (id) on delete restrict,
+  livemode boolean not null,
   plan_id uuid not null references private.plans (id) on delete restrict,
-  source_subscription_id uuid references private.billing_subscriptions (id) on delete restrict,
+  source_subscription_id uuid,
   status private.account_entitlement_status not null default 'active',
   effective_from timestamptz not null default now(),
   paid_through timestamptz,
   grace_until timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  check (paid_through is null or paid_through >= effective_from),
+  primary key (billing_account_id, livemode),
+  foreign key (source_subscription_id, billing_account_id, livemode)
+    references private.billing_subscriptions(id, billing_account_id, livemode) on delete restrict,
+  -- effective_from is the decision time; paid_through may be in the past.
   check (
     grace_until is null
     or (paid_through is not null and grace_until >= paid_through)
@@ -446,12 +451,13 @@ begin
   if new_billing_account_id is not null then
     insert into private.account_entitlements (
       billing_account_id,
+      livemode,
       plan_id,
       status,
       effective_from
     )
-    select new_billing_account_id, plans.id, 'active', now()
-    from private.plans
+    select new_billing_account_id, modes.livemode, plans.id, 'active', now()
+    from private.plans cross join (values (false), (true)) modes(livemode)
     where plans.code = 'free';
   end if;
 
@@ -473,14 +479,16 @@ on conflict do nothing;
 
 insert into private.account_entitlements (
   billing_account_id,
+  livemode,
   plan_id,
   status,
   effective_from
 )
-select billing_accounts.id, plans.id, 'active', billing_accounts.created_at
+select billing_accounts.id, modes.livemode, plans.id, 'active', billing_accounts.created_at
 from private.billing_accounts
 join private.plans on plans.code = 'free'
-on conflict (billing_account_id) do nothing;
+cross join (values (false), (true)) modes(livemode)
+on conflict (billing_account_id, livemode) do nothing;
 
 revoke all on schema private from anon, authenticated;
 revoke all on all tables in schema private from anon, authenticated;
@@ -492,7 +500,7 @@ alter default privileges for role postgres in schema private
   grant select, insert, update, delete on tables to service_role;
 
 create unique index billing_accounts_one_account_per_organization on private.billing_accounts (organization_id) where organization_id is not null;
-create or replace function private.recompute_account_entitlement(p_billing_account_id uuid)
+create or replace function private.recompute_account_entitlement(p_billing_account_id uuid, p_livemode boolean)
 returns void
 language plpgsql
 security definer
@@ -503,6 +511,8 @@ declare
   free_plan_id uuid;
   entitlement_status private.account_entitlement_status;
 begin
+  perform 1 from private.billing_accounts where id = p_billing_account_id for update;
+  if not found or p_livemode is null then raise exception 'invalid_billing_account'; end if;
   select id into free_plan_id from private.plans where code = 'free';
 
   select
@@ -519,15 +529,18 @@ begin
   join private.billing_products products
     on products.id = prices.product_id and products.livemode = prices.livemode
   where subscriptions.billing_account_id = p_billing_account_id
+    and subscriptions.livemode = p_livemode
+    and items.active and items.quantity > 0
     and products.plan_id is not null
   group by subscriptions.id, subscriptions.status, products.plan_id, subscriptions.stripe_event_created_at
-  order by subscriptions.stripe_event_created_at desc nulls last, subscriptions.created_at desc
+  order by (subscriptions.status in ('active', 'trialing') and max(items.current_period_end) > now()) desc nulls last,
+    subscriptions.stripe_created_at desc nulls last, subscriptions.created_at desc, subscriptions.id, products.plan_id
   limit 1;
 
   if selected_subscription.subscription_id is null then
-    insert into private.account_entitlements (billing_account_id, plan_id, status, effective_from, paid_through, grace_until)
-    values (p_billing_account_id, free_plan_id, 'read_only', now(), null, null)
-    on conflict (billing_account_id) do update
+    insert into private.account_entitlements (billing_account_id, livemode, plan_id, status, effective_from, paid_through, grace_until)
+    values (p_billing_account_id, p_livemode, free_plan_id, 'active', now(), null, null)
+    on conflict (billing_account_id, livemode) do update
       set plan_id = excluded.plan_id,
           source_subscription_id = null,
           status = excluded.status,
@@ -538,21 +551,22 @@ begin
   end if;
 
   entitlement_status := case
-    when selected_subscription.subscription_status in ('active', 'trialing') then 'active'::private.account_entitlement_status
+    when selected_subscription.subscription_status in ('active', 'trialing') and selected_subscription.paid_through > now() then 'active'::private.account_entitlement_status
     else 'read_only'::private.account_entitlement_status
   end;
 
   insert into private.account_entitlements (
-    billing_account_id, plan_id, source_subscription_id, status, effective_from, paid_through, grace_until
+    billing_account_id, livemode, plan_id, source_subscription_id, status, effective_from, paid_through, grace_until
   ) values (
     p_billing_account_id,
+    p_livemode,
     selected_subscription.plan_id,
     selected_subscription.subscription_id,
     entitlement_status,
     now(),
     selected_subscription.paid_through,
     null
-  ) on conflict (billing_account_id) do update
+  ) on conflict (billing_account_id, livemode) do update
     set plan_id = excluded.plan_id,
         source_subscription_id = excluded.source_subscription_id,
         status = excluded.status,
@@ -562,8 +576,8 @@ begin
 end;
 $$;
 
-revoke all on function private.recompute_account_entitlement(uuid) from public, anon, authenticated;
-grant execute on function private.recompute_account_entitlement(uuid) to service_role;
+revoke all on function private.recompute_account_entitlement(uuid, boolean) from public, anon, authenticated;
+grant execute on function private.recompute_account_entitlement(uuid, boolean) to service_role;
 create or replace function private.claim_stripe_webhook_event(
   p_livemode boolean,
   p_stripe_event_id text,
@@ -583,7 +597,7 @@ declare
   existing_state private.billing_webhook_processing_state;
   existing_lease timestamptz;
 begin
-  if p_lease_seconds not between 5 and 60 then
+  if p_lease_seconds is null or p_lease_seconds not between 5 and 60 or nullif(p_request_id, '') is null then
     raise exception 'lease seconds must be between 5 and 60';
   end if;
 
@@ -665,13 +679,14 @@ declare
   billing_account uuid;
   affected_accounts uuid[] := array[]::uuid[];
   plan_uuid uuid;
+  accepted_subscription_ids uuid[] := array[]::uuid[];
 begin
-  if not exists (
-    select 1 from private.billing_webhook_events
+  perform 1 from private.billing_webhook_events
     where livemode = p_livemode and stripe_event_id = p_stripe_event_id
       and processing_state = 'processing' and locked_by = p_request_id
-      and lease_expires_at > now()
-  ) then
+      and lease_expires_at > clock_timestamp()
+    for update;
+  if not found then
     return false;
   end if;
 
@@ -772,12 +787,19 @@ begin
       where private.billing_subscriptions.stripe_event_created_at is null
          or private.billing_subscriptions.stripe_event_created_at <= excluded.stripe_event_created_at
     returning id into local_subscription_id;
+    if local_subscription_id is not null then
+      accepted_subscription_ids := array_append(accepted_subscription_ids, local_subscription_id);
+      -- Retain removed item identities for history, exclude them from current access.
+      update private.billing_subscription_items set active = false, stripe_event_created_at = p_event_created_at
+      where subscription_id = local_subscription_id;
+    end if;
     affected_accounts := array_append(affected_accounts, billing_account);
   end loop;
 
   for item in select value from jsonb_array_elements(coalesce(p_payload->'subscription_items', '[]'::jsonb)) loop
     select id into local_subscription_id from private.billing_subscriptions
     where livemode = p_livemode and stripe_subscription_id = item->>'subscription_id';
+    if not (local_subscription_id = any(accepted_subscription_ids)) then continue; end if;
     select id into local_price_id from private.billing_prices
     where livemode = p_livemode and stripe_price_id = item->>'price_id';
     if local_subscription_id is null or local_price_id is null then raise exception 'missing subscription or price for Stripe item'; end if;
@@ -790,7 +812,7 @@ begin
       nullif(item->>'period_start', '')::timestamptz, nullif(item->>'period_end', '')::timestamptz,
       nullif(item->>'created_at', '')::timestamptz, p_event_created_at
     ) on conflict (livemode, stripe_subscription_item_id) do update
-      set price_id = excluded.price_id, quantity = excluded.quantity,
+      set active = true, price_id = excluded.price_id, quantity = excluded.quantity,
           current_period_start = excluded.current_period_start, current_period_end = excluded.current_period_end,
           stripe_event_created_at = excluded.stripe_event_created_at
       where private.billing_subscription_items.stripe_event_created_at is null
@@ -823,7 +845,7 @@ begin
   end loop;
 
   foreach billing_account in array affected_accounts loop
-    perform private.recompute_account_entitlement(billing_account);
+    perform private.recompute_account_entitlement(billing_account, p_livemode);
   end loop;
 
   update private.billing_webhook_events
@@ -831,7 +853,8 @@ begin
       locked_by = null, lease_expires_at = null, last_error = null, updated_at = now()
   where livemode = p_livemode and stripe_event_id = p_stripe_event_id
     and processing_state = 'processing' and locked_by = p_request_id;
-  return found;
+  if not found then raise exception 'stripe_projection_lease_lost'; end if;
+  return true;
 end;
 $$;
 

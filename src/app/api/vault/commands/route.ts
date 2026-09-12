@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     if (admission.command.operationType === 'device-revoke') {
       const { command } = admission; const revoked = admitDeviceRevocation(command);
       const encodeEnvelope = (entry: Map<number, unknown>) => ({ recipient_id: entry.get(1), encapsulation: encodeJsonBase64(entry.get(2) as Uint8Array), ciphertext: encodeJsonBase64(entry.get(3) as Uint8Array), payload: encodeJsonBase64(entry.get(4) as Uint8Array), signature: encodeJsonBase64(entry.get(5) as Uint8Array) });
-      const rotations = revoked.rotations.map((rotation) => ({ collection_id: rotation.collectionId, epoch_number: rotation.epochNumber, membership_hash: encodeJsonBase64(rotation.membershipHash), recipient_commitment: encodeJsonBase64(rotation.recipientCommitment), transition_payload: encodeJsonBase64(rotation.transitionPayload), transition_signature: encodeJsonBase64(rotation.transitionSignature), transition_hash: encodeJsonBase64(rotation.transitionHash), device_envelopes: rotation.deviceEnvelopes.map(encodeEnvelope), recovery_envelopes: rotation.recoveryEnvelopes.map(encodeEnvelope) }));
+      const rotations = revoked.rotations.map((rotation) => ({ encrypted_metadata: encodeJsonBase64(rotation.encryptedMetadata), metadata_nonce: encodeJsonBase64(rotation.metadataNonce), collection_id: rotation.collectionId, epoch_number: rotation.epochNumber, membership_hash: encodeJsonBase64(rotation.membershipHash), recipient_commitment: encodeJsonBase64(rotation.recipientCommitment), transition_payload: encodeJsonBase64(rotation.transitionPayload), transition_signature: encodeJsonBase64(rotation.transitionSignature), transition_hash: encodeJsonBase64(rotation.transitionHash), device_envelopes: rotation.deviceEnvelopes.map(encodeEnvelope), recovery_envelopes: rotation.recoveryEnvelopes.map(encodeEnvelope) }));
       const { data, error } = await admin.schema('private').rpc('revoke_vault_device_and_rotate_epochs', {
         p_account_id: principal.user.id, p_session_id: principal.sessionId, p_author_device_id: command.authorDeviceId!, p_revoked_device_id: revoked.deviceId, p_reason: revoked.reason, p_expected_previous_operation_hash: encodePostgresBytea(command.expectedAccountHead!), p_rotations: rotations, p_operation_id: command.operationId, p_command_payload: encodePostgresBytea(command.signedBytes), p_command_hash: encodePostgresBytea(await sha256(command.operationBytes)), p_signature: encodePostgresBytea(command.signature),
       });
@@ -238,6 +238,8 @@ export async function POST(request: NextRequest) {
         p_history_access_from_epoch: member.historyAccessFromEpoch,
         p_membership_state_hash: encodePostgresBytea(member.membershipStateHash),
         p_recipient_set_commitment: encodePostgresBytea(member.recipientSetCommitment),
+        p_encrypted_metadata: encodePostgresBytea(member.encryptedMetadata),
+        p_metadata_nonce: encodePostgresBytea(member.metadataNonce),
         p_transition_payload: encodePostgresBytea(member.transitionPayload),
         p_transition_signature: encodePostgresBytea(member.transitionSignature),
         p_transition_hash: encodePostgresBytea(member.transitionHash),
@@ -273,6 +275,8 @@ export async function POST(request: NextRequest) {
         p_epoch_number: member.epochNumber,
         p_membership_state_hash: encodePostgresBytea(member.membershipStateHash),
         p_recipient_set_commitment: encodePostgresBytea(member.recipientSetCommitment),
+        p_encrypted_metadata: encodePostgresBytea(member.encryptedMetadata),
+        p_metadata_nonce: encodePostgresBytea(member.metadataNonce),
         p_transition_payload: encodePostgresBytea(member.transitionPayload),
         p_transition_signature: encodePostgresBytea(member.transitionSignature),
         p_transition_hash: encodePostgresBytea(member.transitionHash),

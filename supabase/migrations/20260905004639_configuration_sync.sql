@@ -76,6 +76,14 @@ end $$;
 revoke all on function sync_internal.session_id() from public, anon, authenticated;
 grant execute on function sync_internal.session_id() to configuration_sync_executor;
 
+create function sync_internal.is_live_session(p_session_id uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (select from auth.sessions where id = p_session_id and user_id = auth.uid()
+    and (not_after is null or not_after > now()))
+$$;
+revoke all on function sync_internal.is_live_session(uuid) from public, anon, authenticated;
+grant execute on function sync_internal.is_live_session(uuid) to configuration_sync_executor;
+
 -- Closed vocabulary for v1. Extension settings require server-approved signed
 -- registry declarations; arbitrary strings/objects are never syncable settings.
 create table sync_internal.extension_settings (
@@ -159,6 +167,12 @@ begin
   if found then
     if d.revoked_at is not null then raise exception 'sync_device_revoked' using errcode = '42501'; end if;
   else
+    -- Expired Auth sessions cannot re-enroll; their device records are safe to remove.
+    delete from public.sync_devices expired_device where expired_device.user_id = sync_internal.user_id()
+      and not sync_internal.is_live_session(expired_device.session_id);
+    if (select count(*) from public.sync_devices where user_id = sync_internal.user_id()) >= 64 then
+      raise exception 'sync_device_limit';
+    end if;
     insert into public.sync_devices(user_id, device_id, session_id, display_name)
       values(sync_internal.user_id(),case when exists(select from public.sync_devices where user_id=sync_internal.user_id() and device_id=p_device_id) then gen_random_uuid() else p_device_id end,sid,p_device_name) returning * into d;
   end if;
@@ -217,7 +231,14 @@ begin
       'revisionCounter',item->'revisionCounter','status',outcome,
       'winner',case when outcome in ('accepted','superseded') then sync_internal.record_json(current_record) else null end));
   end loop;
-  update public.sync_profiles set cursor = p.cursor, initialized = initialized or jsonb_array_length(p_records) > 0 where user_id = sync_internal.user_id();
+  -- This is outside the per-record exception handler: quota failure rolls back
+  -- the entire batch and clients retain their pending outbox (no new ack status).
+  if (select count(*) > 1000 or coalesce(sum(octet_length(sync_internal.record_json(r)::text) + 1), 0) + 2 > 4194304
+      from public.sync_records r where user_id = sync_internal.user_id()) then
+    raise exception 'sync_profile_limit';
+  end if;
+  update public.sync_profiles set cursor = p.cursor, initialized = initialized or exists (
+    select from public.sync_records where user_id = sync_internal.user_id()) where user_id = sync_internal.user_id();
   update public.sync_devices set last_seen_at = now() where user_id = sync_internal.user_id() and device_id = p_device_id;
   select coalesce(jsonb_agg(sync_internal.record_json(page) order by page.server_cursor),'[]'::jsonb), coalesce(max(page.server_cursor),p_after_cursor)
     into downloaded,next_cursor from (select r.* from public.sync_records r where user_id = sync_internal.user_id()
@@ -273,7 +294,9 @@ begin
   if not found or p.generation is distinct from p_generation then raise exception 'sync_generation_changed'; end if;
   if not exists(select from public.sync_devices where user_id=sync_internal.user_id() and device_id=p_device_id and session_id=sid and revoked_at is null) then
     raise exception 'sync_device_revoked' using errcode='42501'; end if;
+  if p_replace is null then raise exception 'sync_replace_required'; end if;
   if p_records is null or jsonb_typeof(p_records)<>'array' or jsonb_array_length(p_records)>1000 or octet_length(p_records::text)>4194304 then raise exception 'sync_snapshot_limit'; end if;
+  if (select count(distinct (item->>'kind', item->>'key')) from jsonb_array_elements(p_records) item) <> jsonb_array_length(p_records) then raise exception 'sync_snapshot_duplicate'; end if;
   if p_replace is true then p.generation:=sync_internal.reset_profile(p_generation);
   elsif p.initialized then raise exception 'sync_profile_already_initialized'; end if;
   while offset_rows<jsonb_array_length(p_records) loop

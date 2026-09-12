@@ -167,3 +167,17 @@ Auth callback configuration, approved extension-setting catalog, generated clien
 types, and installed two-device certification. Verify the existing
 `/auth/desktop/callback` bridge with desktop PKCE; callback unit tests alone do
 not certify the hosted OAuth provider or OS deep-link registration.
+
+## Server storage bounds (2026-09-12)
+
+Each profile retains at most 1,000 records and 4 MiB of serialized records,
+including tombstones. Incremental writes enforce the aggregate bound under the
+profile lock. Overflow raises `sync_profile_limit` outside per-record handling,
+rolling back the whole request so clients retain their outbox. Tombstones are
+not expired independently; generation replacement/reset is the reclamation
+boundary. Snapshot replacement rejects duplicate identities and a null replace
+choice. Invalid-only batches do not initialize a profile.
+
+Enrollment removes device rows whose Auth sessions no longer exist or have
+expired before admitting a new session; a profile allows at most 64 enrolled
+sessions. This does not change Auth token validation or make sync billing-gated.

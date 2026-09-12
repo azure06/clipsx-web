@@ -132,3 +132,19 @@ and billing-model complexity. Stripe Billing Credits also apply to metered
 subscription items. ClipsX v1 instead grants a plan allowance and keeps a
 general local usage ledger; a future higher tier can change the allowance
 without redesigning this model.
+
+## Baseline corrections (2026-09-12)
+
+Entitlements are keyed by billing account and Stripe mode. Signup provisions both
+free-mode rows; the application reads only the configured mode. `effective_from`
+is the decision timestamp, so `paid_through` may be historical. Expired coverage
+is read-only at response time even if a webhook has not arrived. Recompute takes
+an account row lock and prioritizes active/trialing subscriptions with future
+coverage; missing period dates sort last. Removed subscription items become
+inactive when a complete subscription snapshot is projected. Partial item lists
+fail for retry rather than silently dropping paid coverage.
+
+Projection locks the claimed inbox row before writes. An expired or different
+claim cannot project; failure to mark its final claim processed aborts the
+transaction. The replay worker includes expired processing leases. The HTTP
+webhook rejects events from the wrong configured Stripe mode.

@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -7,31 +7,6 @@
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   private: {
     Tables: {
       account_entitlements: {
@@ -40,6 +15,7 @@ export type Database = {
           created_at: string
           effective_from: string
           grace_until: string | null
+          livemode: boolean
           paid_through: string | null
           plan_id: string
           source_subscription_id: string | null
@@ -51,6 +27,7 @@ export type Database = {
           created_at?: string
           effective_from?: string
           grace_until?: string | null
+          livemode: boolean
           paid_through?: string | null
           plan_id: string
           source_subscription_id?: string | null
@@ -62,6 +39,7 @@ export type Database = {
           created_at?: string
           effective_from?: string
           grace_until?: string | null
+          livemode?: boolean
           paid_through?: string | null
           plan_id?: string
           source_subscription_id?: string | null
@@ -72,7 +50,7 @@ export type Database = {
           {
             foreignKeyName: "account_entitlements_billing_account_id_fkey"
             columns: ["billing_account_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "billing_accounts"
             referencedColumns: ["id"]
           },
@@ -84,11 +62,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "account_entitlements_source_subscription_id_fkey"
-            columns: ["source_subscription_id"]
+            foreignKeyName: "account_entitlements_source_subscription_id_billing_accoun_fkey"
+            columns: [
+              "source_subscription_id",
+              "billing_account_id",
+              "livemode",
+            ]
             isOneToOne: false
             referencedRelation: "billing_subscriptions"
-            referencedColumns: ["id"]
+            referencedColumns: ["id", "billing_account_id", "livemode"]
           },
         ]
       }
@@ -480,6 +462,7 @@ export type Database = {
       }
       billing_subscription_items: {
         Row: {
+          active: boolean
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
@@ -494,6 +477,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -508,6 +492,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
@@ -928,6 +913,7 @@ export type Database = {
           p_command_signature: string
           p_device_envelopes: Json
           p_device_id: string
+          p_encrypted_metadata: string
           p_expected_collection_head: string
           p_historical_device_envelopes: Json
           p_historical_recovery_envelopes: Json
@@ -936,6 +922,7 @@ export type Database = {
           p_joined_epoch: number
           p_membership_id: string
           p_membership_state_hash: string
+          p_metadata_nonce: string
           p_operation_id: string
           p_recipient_account_id: string
           p_recipient_set_commitment: string
@@ -1153,7 +1140,7 @@ export type Database = {
         Returns: Json
       }
       recompute_account_entitlement: {
-        Args: { p_billing_account_id: string }
+        Args: { p_billing_account_id: string; p_livemode: boolean }
         Returns: undefined
       }
       register_initial_vault_device: {
@@ -1214,10 +1201,12 @@ export type Database = {
           p_command_signature: string
           p_device_envelopes: Json
           p_device_id: string
+          p_encrypted_metadata: string
           p_epoch_number: number
           p_expected_collection_head: string
           p_membership_id: string
           p_membership_state_hash: string
+          p_metadata_nonce: string
           p_operation_id: string
           p_recipient_set_commitment: string
           p_recovery_envelopes: Json
@@ -2405,7 +2394,7 @@ export type Database = {
       vault_device_status: "pending" | "active" | "revoked"
       vault_invitation_status: "created" | "accepted" | "expired" | "cancelled"
       vault_member_role: "owner" | "editor" | "viewer"
-      vault_member_status: "invited" | "active" | "removed"
+      vault_member_status: "invited" | "active" | "removed" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2531,9 +2520,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   private: {
     Enums: {
       account_entitlement_status: ["active", "grace", "read_only"],
@@ -2555,7 +2541,7 @@ export const Constants = {
       vault_device_status: ["pending", "active", "revoked"],
       vault_invitation_status: ["created", "accepted", "expired", "cancelled"],
       vault_member_role: ["owner", "editor", "viewer"],
-      vault_member_status: ["invited", "active", "removed"],
+      vault_member_status: ["invited", "active", "removed", "expired"],
     },
   },
 } as const

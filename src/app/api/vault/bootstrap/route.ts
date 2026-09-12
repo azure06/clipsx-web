@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       throw epochResult.error ?? envelopeResult.error ?? operationResult.error;
     }
     const epochByCollection = new Map((epochResult.data ?? []).map((epoch) => [epoch.collection_id, epoch]));
-    const envelopeByCollection = new Map((envelopeResult.data ?? []).map((envelope) => [envelope.collection_id, envelope]));
+    const envelopeByCollection = new Map((envelopeResult.data ?? []).map((envelope) => [`${envelope.collection_id}:${envelope.epoch_number}`, envelope]));
     const headByCollection = new Map<string, { hash: Uint8Array; payload: Uint8Array; signature: Uint8Array; authorDeviceId: string }>();
     for (const operation of operationResult.data ?? []) if (!headByCollection.has(operation.collection_id)) {
       const hash = decodePostgresBytea(operation.operation_hash);
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     const records: import('@/lib/vault/protocol').CborValue[] = [];
     for (const collection of collections ?? []) {
       const epoch = epochByCollection.get(collection.id);
-      const envelope = envelopeByCollection.get(collection.id);
+      const envelope = envelopeByCollection.get(`${collection.id}:${collection.current_epoch_number}`);
       const metadata = decodePostgresBytea(collection.encrypted_metadata);
       const nonce = decodePostgresBytea(collection.metadata_nonce);
       const transitionPayload = decodePostgresBytea(epoch?.transition_payload);
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         console.error({ requestId, endpoint: 'bootstrap', stage: 'incomplete-record', collectionId: collection.id });
         return vaultCborError(503, 'bootstrap-unavailable');
       }
-      records.push(new Map([[1, collection.id], [2, metadata], [3, nonce], [4, epoch.epoch_number], [5, transitionPayload], [6, transitionSignature], [7, transitionHash], [8, encapsulation], [9, ciphertext], [10, envelopePayload], [11, envelopeHash], [12, envelopeSignature], [13, envelope.sender_device_id], [14, operationHead.hash], [15, operationHead.payload], [16, operationHead.signature], [17, operationHead.authorDeviceId]]));
+      records.push(new Map([[1, collection.id], [2, metadata], [3, nonce], [4, epoch.epoch_number], [5, transitionPayload], [6, transitionSignature], [7, transitionHash], [8, encapsulation], [9, ciphertext], [10, envelopePayload], [11, envelopeHash], [12, envelopeSignature], [13, envelope.sender_device_id], [14, operationHead.hash], [15, operationHead.payload], [16, operationHead.signature], [17, operationHead.authorDeviceId], [18, epoch.created_by_device_id]]));
     }
     return vaultCborResponse(200, new Map([[1, 1], [2, device.id], [3, signingPublicKey], [4, encryptionPublicKey], [5, recovery.id], [6, recoveryEncryptionPublicKey], [7, records], [8, accountHead]]));
   } catch (error) {

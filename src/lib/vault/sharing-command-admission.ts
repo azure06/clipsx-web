@@ -51,6 +51,8 @@ export type MemberAdd = {
   historyAccessFromEpoch: number;
   membershipStateHash: Uint8Array;
   recipientSetCommitment: Uint8Array;
+  encryptedMetadata: Uint8Array;
+  metadataNonce: Uint8Array;
   transitionPayload: Uint8Array;
   transitionSignature: Uint8Array;
   transitionHash: Uint8Array;
@@ -216,7 +218,9 @@ async function verifyTransition(
   recipientSetCommitment: Uint8Array,
 ) {
   const transition = decodeCanonicalCbor(transitionPayload) as Map<number, unknown>;
-  if (transition.size !== 6 || transition.get(1) !== 1 || transition.get(2) !== command.collectionId
+  if (bytes(transition, 7).byteLength < 16) throw new Error('invalid-sharing-transition');
+  bytes(transition, 8, 12);
+  if (transition.size !== 8 || transition.get(1) !== 1 || transition.get(2) !== command.collectionId
     || transition.get(3) !== epochNumber || transition.get(4) !== reason
     || !same(bytes(transition, 5, 32), membershipStateHash)
     || !same(bytes(transition, 6, 32), recipientSetCommitment)
@@ -274,6 +278,8 @@ export async function admitMemberAdd(
     historyAccessFromEpoch,
     membershipStateHash: bytes(payload, 7, 32),
     recipientSetCommitment: bytes(payload, 8, 32),
+    encryptedMetadata: bytes(decodeCanonicalCbor(bytes(payload, 9)), 7),
+    metadataNonce: bytes(decodeCanonicalCbor(bytes(payload, 9)), 8, 12),
     transitionPayload: bytes(payload, 9),
     transitionSignature: bytes(payload, 10, 64),
     transitionHash: bytes(payload, 11, 32),
@@ -343,6 +349,8 @@ export async function admitMemberRemove(
     epochNumber,
     membershipStateHash: bytes(payload, 4, 32),
     recipientSetCommitment: bytes(payload, 5, 32),
+    encryptedMetadata: bytes(decodeCanonicalCbor(bytes(payload, 6)), 7),
+    metadataNonce: bytes(decodeCanonicalCbor(bytes(payload, 6)), 8, 12),
     transitionPayload: bytes(payload, 6),
     transitionSignature: bytes(payload, 7, 64),
     transitionHash: bytes(payload, 8, 32),

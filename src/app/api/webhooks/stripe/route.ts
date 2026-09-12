@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { getStripeLivemode } from '@/lib/stripe/billing-customer';
 import { getStripe } from '@/lib/stripe';
 import { applyStripeWebhookProjection } from '@/lib/stripe/supabase-projector';
 
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Webhook verification failed';
     return NextResponse.json({ error: message }, { status: 400 });
+  }
+
+  if (event.livemode !== getStripeLivemode()) {
+    return NextResponse.json({ error: 'Webhook billing mode mismatch' }, { status: 400 });
   }
 
   if (!isSupportedStripeWebhookEvent(event.type)) {

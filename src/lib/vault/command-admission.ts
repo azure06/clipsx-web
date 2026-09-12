@@ -48,7 +48,7 @@ export type ItemAppend = {
 };
 
 export type ItemDelete = { itemId: string; expectedRevisionHash: Uint8Array };
-export type DeviceRevocation = { deviceId: string; reason: string; rotations: Array<{ collectionId: string; epochNumber: number; membershipHash: Uint8Array; recipientCommitment: Uint8Array; transitionPayload: Uint8Array; transitionSignature: Uint8Array; transitionHash: Uint8Array; deviceEnvelopes: Map<number, unknown>[]; recoveryEnvelopes: Map<number, unknown>[] }> };
+export type DeviceRevocation = { deviceId: string; reason: string; rotations: Array<{ collectionId: string; epochNumber: number; membershipHash: Uint8Array; recipientCommitment: Uint8Array; encryptedMetadata: Uint8Array; metadataNonce: Uint8Array; transitionPayload: Uint8Array; transitionSignature: Uint8Array; transitionHash: Uint8Array; deviceEnvelopes: Map<number, unknown>[]; recoveryEnvelopes: Map<number, unknown>[] }> };
 export type RecoveryRotation = { newRecoveryKeyId: string; encryptionPublicKey: Uint8Array; signingPublicKey: Uint8Array; activeDeviceId: string; activeSignature: Uint8Array; envelopes: Map<number, unknown>[]; activeSignedPayload: Uint8Array };
 
 function text(record: Map<number, unknown>, label: number): string {
@@ -140,7 +140,7 @@ export function admitDeviceRevocation(command: VaultCommand): DeviceRevocation {
   return { deviceId: text(payload, 1), reason: text(payload, 2), rotations: rotations.map((entry) => {
     const epochNumber = entry instanceof Map ? entry.get(9) : null;
     if (!(entry instanceof Map) || entry.size !== 9 || !Array.isArray(entry.get(7)) || !Array.isArray(entry.get(8)) || typeof epochNumber !== 'number' || !Number.isSafeInteger(epochNumber) || epochNumber < 2) throw new Error('invalid-device-revocation');
-    return { collectionId: text(entry, 1), epochNumber, membershipHash: bytes(entry, 2, 32), recipientCommitment: bytes(entry, 3, 32), transitionPayload: payloadBytes(entry, 4, 1), transitionSignature: bytes(entry, 5, 64), transitionHash: bytes(entry, 6, 32), deviceEnvelopes: entry.get(7) as Map<number, unknown>[], recoveryEnvelopes: entry.get(8) as Map<number, unknown>[] };
+    return { encryptedMetadata: payloadBytes(decodeCanonicalCbor(payloadBytes(entry, 4, 1)), 7, 16), metadataNonce: bytes(decodeCanonicalCbor(payloadBytes(entry, 4, 1)), 8, 12), collectionId: text(entry, 1), epochNumber, membershipHash: bytes(entry, 2, 32), recipientCommitment: bytes(entry, 3, 32), transitionPayload: payloadBytes(entry, 4, 1), transitionSignature: bytes(entry, 5, 64), transitionHash: bytes(entry, 6, 32), deviceEnvelopes: entry.get(7) as Map<number, unknown>[], recoveryEnvelopes: entry.get(8) as Map<number, unknown>[] };
   }) };
 }
 export async function admitRecoveryRotation(command: VaultCommand, activeSigningPublicKey: Uint8Array): Promise<RecoveryRotation> {

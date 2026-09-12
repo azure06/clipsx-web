@@ -1175,3 +1175,21 @@ retry path. Billing tables live in `private` and are exposed only to
 - **Authenticated associated data (AAD):** canonical unencrypted context bound
   to an AEAD ciphertext so it cannot be moved to another account, collection,
   note, revision, epoch, author, or purpose without detection.
+
+## Preproduction correction status (2026-09-12)
+
+The baseline enforces separate test/live billing entitlements and cumulative
+settings-sync bounds; see billing.md and configuration-sync.md. Vault metadata,
+revision ciphertext and key wraps use collection-scoped associated data. Epoch
+rotations atomically replace metadata and nonce, bound into the signed
+transition. Bootstrap selects the exact current-epoch envelope and verifies
+transition and envelope authors independently. Expired invitations release
+pending memberships for reinvitation.
+
+Account-ledger reads are restricted to the authenticated account. Shared
+collection membership does not authorize disclosure of another account's whole
+ledger. Shared opening needs a scoped external signer-proof protocol. Historical
+key delivery to new/recovered devices, recovery-root replacement, and delivery
+of new collections to other active devices remain incomplete. The encrypted
+vault must not launch with these gaps. Account deletion and vault retention
+maintenance also remain unfinished lifecycle work.

@@ -51,7 +51,7 @@ export async function createCollectionCommand(input: {
   const collectionId = input.collectionId ?? crypto.randomUUID();
   const epochKey = randomBytes(32);
   if (!input.metadataTitle.trim()) throw new Error('Collection title is required.');
-  const metadata = await encryptAesGcm(epochKey, encodeCanonicalCbor(new Map<number, CborValue>([[1, 1], [2, input.metadataTitle]])), utf8(`clipsx/vault/v1/collection-metadata\0${input.accountId}\0${collectionId}`));
+  const metadata = await encryptAesGcm(epochKey, encodeCanonicalCbor(new Map<number, CborValue>([[1, 1], [2, input.metadataTitle]])), utf8(`clipsx/vault/v1/collection-metadata\0${collectionId}`));
   const membershipStateHash = await sha256(encodeCanonicalCbor(new Map<number, CborValue>([
     [1, 1], [2, collectionId], [3, input.accountId], [4, input.deviceId], [5, 'owner'], [6, 'active'],
   ])));

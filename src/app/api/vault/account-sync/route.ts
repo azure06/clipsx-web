@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
     if ((after === 0 && rawAnchor !== null) || (after > 0 && !anchor)) {
       return vaultCborError(422, 'invalid-anchor');
     }
-    if (accountId !== principal.user.id && !collectionId) {
+    if (accountId !== principal.user.id) {
       return vaultCborError(403, 'cross-account-proof-forbidden');
     }
 
