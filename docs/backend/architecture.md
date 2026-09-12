@@ -1231,3 +1231,13 @@ revision rows. Signed control records retain collection metadata and envelopes
 until their containing history is purged.
 `cleanup-vault.mjs` removes expired registration records in bounded batches; it
 never prunes signed history or sync tombstones.
+
+## SQL preconditions
+
+Vault mutations and private account-ledger reads use
+`private.live_account_session(account_id, session_id)`: the session must belong
+to the account, remain unexpired, and reference an unclosed principal. An existing
+Auth session row is not sufficient. Optimistic history/proof commitments use
+null-safe comparisons; missing expected hashes do not disable concurrency
+checks. Null pagination bounds and absent rotation arrays are rejected. These
+are baseline corrections, including the vault baseline, not new migrations.

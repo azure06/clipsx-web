@@ -1,5 +1,5 @@
 begin;
-select plan(40);
+select plan(42);
 
 select has_table('public', 'vault_collection_invitations', 'verified invitations are persisted');
 select has_column('public', 'vault_collection_invitations', 'invitation_key_commitment', 'only the invitation-secret commitment is stored');
@@ -121,6 +121,34 @@ insert into public.vault_collection_operations (
   decode(repeat('01', 64), 'hex'), 1
 );
 
+select is(private.create_vault_collection_invitation(
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+  'cccccccc-cccc-cccc-cccc-ccccccccccc1',
+  'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+  null,
+  '11000000-0000-0000-0000-000000000001',
+  'ffffffff-ffff-ffff-ffff-fffffffffff2',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'viewer', now() + interval '1 day',
+  decode(repeat('51', 32), 'hex'), decode(repeat('52', 32), 'hex'),
+  '10000000-0000-0000-0000-000000000002', decode('02', 'hex'),
+  decode(repeat('02', 32), 'hex'), decode(repeat('02', 64), 'hex')
+), false, 'missing expected collection head is rejected without writes');
+update auth.sessions set not_after=now()-interval '1 second' where id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
+select is(private.create_vault_collection_invitation(
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',
+  'cccccccc-cccc-cccc-cccc-ccccccccccc1',
+  'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeee1',
+  decode(repeat('01', 32), 'hex'),
+  '11000000-0000-0000-0000-000000000001',
+  'ffffffff-ffff-ffff-ffff-fffffffffff2',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', 'viewer', now() + interval '1 day',
+  decode(repeat('51', 32), 'hex'), decode(repeat('52', 32), 'hex'),
+  '10000000-0000-0000-0000-000000000002', decode('02', 'hex'),
+  decode(repeat('02', 32), 'hex'), decode(repeat('02', 64), 'hex')
+), false, 'expired session cannot create a vault invitation');
+update auth.sessions set not_after=null where id='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1';
 select is(private.create_vault_collection_invitation(
   'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
   'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1',

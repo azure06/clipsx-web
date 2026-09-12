@@ -1204,6 +1204,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      live_account_session: {
+        Args: { p_account_id: string; p_session_id: string }
+        Returns: boolean
+      }
       read_vault_account_sync_page: {
         Args: {
           p_after: number

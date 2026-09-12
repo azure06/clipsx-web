@@ -36,3 +36,15 @@ end; $$;
 revoke all on function private.create_account_principal() from public,anon,authenticated;
 create trigger a_create_account_principal after insert on auth.users for each row execute function private.create_account_principal();
 insert into private.account_principals(id,auth_user_id) select id,id from auth.users on conflict do nothing;
+
+
+-- Shared session invariant for privileged application transactions. A retained
+-- session row alone is not authority after its deadline or account closure.
+create function private.live_account_session(p_account_id uuid,p_session_id uuid)
+returns boolean language sql stable security definer set search_path='' as $$
+  select exists(select 1 from auth.sessions s join private.account_principals p on p.auth_user_id=s.user_id
+    where s.id=p_session_id and s.user_id=p_account_id and p.closed_at is null
+      and (s.not_after is null or s.not_after>now()));
+$$;
+revoke all on function private.live_account_session(uuid,uuid) from public,anon,authenticated;
+grant execute on function private.live_account_session(uuid,uuid) to service_role;

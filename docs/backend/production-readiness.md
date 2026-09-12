@@ -5,17 +5,32 @@ vault is not approved for production.** Vault pages and all seven API routes
 default to disabled. `CLIPSX_VAULT_PREVIEW_ENABLED=true` is only for isolated
 preview testing until scoped signer proofs and complete sharing ceremonies are
 finished. This is an explicit release safeguard, not a claim that those workflows
-were fixed by hiding them. The user was asked to confirm release scope; no answer
-had arrived when this configuration was prepared.
+were fixed by hiding them. The SQL review covers all eight existing baselines, including the vault. The
+preview guard concerns unfinished browser trust ceremonies, not a requirement
+to create another vault migration for these SQL fixes.
 
 No hosted database was changed or deployed. Existing local application data was
 not reset. Baseline SQL was edited directly as authorized, with no new migration
 files or dependencies.
 
+## SQL completion status
+
+The final SQL contract pass also rejects null optimistic history heads and
+requires unexpired, unclosed account sessions in every vault mutation and the
+private account-sync reader. Null pagination bounds and missing rotation arrays
+are rejected explicitly. These changes are folded into the same baseline files.
+All 17 SQL suites, concurrency/restore checks and security advisors pass. There
+are no additional SQL migration files to apply for this correction pass.
+
+This verifies the checked-in baseline and its tested contracts; it does not
+promise that future product/protocol changes will never require schema updates.
+
 ## Problems, fixes, and rationale
 
 | What was wrong | What changed | Rationale / evidence |
 | --- | --- | --- |
+| Missing expected hashes could bypass SQL comparison guards. | Use null-safe history/proof comparisons and reject missing bounds/rotation data. | Optimistic concurrency must fail closed. Real invitation rejection tests pass. |
+| Existing but expired session rows could authorize vault transactions. | A shared live-session predicate checks expiry and account closure at the SQL boundary. | Read and write authority now use the same lifecycle invariant. Expired-session transaction regression passes. |
 | Expired paid periods violated the entitlement date constraint. | Coverage dates may precede the decision timestamp; expired coverage becomes read-only. | Cancellation and delayed projection must succeed, rather than leave stale access. SQL lifecycle regression passes. |
 | Test and live subscriptions shared one entitlement row. | Entitlements use `(billing_account_id, livemode)`; reads and webhook admission use configured mode. | Test payments cannot grant or overwrite live access. SQL mode-isolation checks pass. |
 | A canceled/newer subscription or missing period date could outrank valid paid coverage. | Eligible active/trialing coverage sorts first, with null dates last and stable tie-breakers. | An unrelated cancellation must not revoke valid paid access. Regression includes both valid and unknown-period subscriptions. |

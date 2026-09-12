@@ -24,15 +24,15 @@ begin
   where id = p_collection_id and deleted_at is null for update;
 
   if current_operation.operation_id is null or joining_epoch is null
-     or current_operation.operation_hash <> p_expected_collection_head
+     or current_operation.operation_hash is distinct from p_expected_collection_head
      or p_account_id = p_recipient_account_id or p_requested_role = 'owner'
      or p_expires_at <= now() or p_expires_at > now() + interval '30 days'
-     or octet_length(p_expected_collection_head) <> 32
-     or octet_length(p_invitation_key_commitment) <> 32
-     or octet_length(p_verification_commitment) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
+     or coalesce(octet_length(p_expected_collection_head), 0) <> 32
+     or coalesce(octet_length(p_invitation_key_commitment), 0) <> 32
+     or coalesce(octet_length(p_verification_commitment), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64
      or not exists (select 1 from auth.users where id = p_recipient_account_id)
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+     or not private.live_account_session(p_account_id, p_session_id)
      or not exists (
        select 1 from public.vault_devices d
        join public.vault_collection_memberships m on m.account_id = d.account_id
@@ -115,17 +115,17 @@ begin
   where id = p_invitation_id and collection_id = p_collection_id for update;
 
   if current_operation.operation_id is null or invitation.id is null
-     or current_operation.operation_hash <> p_expected_collection_head
+     or current_operation.operation_hash is distinct from p_expected_collection_head
      or invitation.status <> 'created' or invitation.expires_at <= now()
      or invitation.recipient_account_id <> p_account_id
-     or invitation.invitation_operation_hash <> p_invitation_command_hash
-     or invitation.verification_commitment <> p_verification_commitment
+     or invitation.invitation_operation_hash is distinct from p_invitation_command_hash
+     or invitation.verification_commitment is distinct from p_verification_commitment
      or invitation.acceptance_payload is not null
-     or octet_length(p_invitation_command_hash) <> 32
-     or octet_length(p_verification_commitment) <> 32
-     or octet_length(p_acceptance_transcript_hash) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+     or coalesce(octet_length(p_invitation_command_hash), 0) <> 32
+     or coalesce(octet_length(p_verification_commitment), 0) <> 32
+     or coalesce(octet_length(p_acceptance_transcript_hash), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64
+     or not private.live_account_session(p_account_id, p_session_id)
      or not exists (
        select 1 from public.vault_devices d
        where d.id = p_device_id and d.account_id = p_account_id
@@ -179,18 +179,18 @@ begin
   where id = p_invitation_id and collection_id = p_collection_id for update;
 
   if current_operation.operation_id is null or invitation.id is null
-     or current_operation.operation_hash <> p_expected_collection_head
+     or current_operation.operation_hash is distinct from p_expected_collection_head
      or invitation.status <> 'created' or invitation.expires_at <= now()
      or invitation.inviter_device_id <> p_device_id
-     or invitation.acceptance_payload_hash <> p_acceptance_payload_hash
-     or invitation.acceptance_transcript_hash <> p_acceptance_transcript_hash
-     or invitation.verification_commitment <> p_verification_commitment
+     or invitation.acceptance_payload_hash is distinct from p_acceptance_payload_hash
+     or invitation.acceptance_transcript_hash is distinct from p_acceptance_transcript_hash
+     or invitation.verification_commitment is distinct from p_verification_commitment
      or invitation.confirmation_payload is not null
-     or octet_length(p_acceptance_payload_hash) <> 32
-     or octet_length(p_acceptance_transcript_hash) <> 32
-     or octet_length(p_verification_commitment) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+     or coalesce(octet_length(p_acceptance_payload_hash), 0) <> 32
+     or coalesce(octet_length(p_acceptance_transcript_hash), 0) <> 32
+     or coalesce(octet_length(p_verification_commitment), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64
+     or not private.live_account_session(p_account_id, p_session_id)
      or not exists (
        select 1 from public.vault_devices d
        join public.vault_collection_memberships m on m.account_id = d.account_id
@@ -272,7 +272,7 @@ begin
   history_epoch_count := p_joined_epoch - p_history_access_from_epoch;
 
   if current_operation.operation_id is null or collection_row.id is null or invitation.id is null
-     or current_operation.operation_hash <> p_expected_collection_head
+     or current_operation.operation_hash is distinct from p_expected_collection_head
      or invitation.status <> 'created' or invitation.expires_at <= now()
      or invitation.membership_id <> p_membership_id
      or invitation.recipient_account_id <> p_recipient_account_id
@@ -280,14 +280,14 @@ begin
      or invitation.acceptance_payload is null or invitation.confirmation_payload is null
      or p_joined_epoch <> collection_row.current_epoch_number + 1
      or p_history_access_from_epoch < 1 or p_history_access_from_epoch > p_joined_epoch
-     or p_encrypted_metadata is null or octet_length(p_encrypted_metadata) not between 16 and 65536
-     or p_metadata_nonce is null or octet_length(p_metadata_nonce) <> 12
-     or octet_length(p_expected_collection_head) <> 32
-     or octet_length(p_membership_state_hash) <> 32
-     or octet_length(p_recipient_set_commitment) <> 32
-     or octet_length(p_transition_signature) <> 64 or octet_length(p_transition_hash) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+     or p_encrypted_metadata is null or coalesce(octet_length(p_encrypted_metadata), 0) not between 16 and 65536
+     or p_metadata_nonce is null or coalesce(octet_length(p_metadata_nonce), 0) <> 12
+     or coalesce(octet_length(p_expected_collection_head), 0) <> 32
+     or coalesce(octet_length(p_membership_state_hash), 0) <> 32
+     or coalesce(octet_length(p_recipient_set_commitment), 0) <> 32
+     or coalesce(octet_length(p_transition_signature), 0) <> 64 or coalesce(octet_length(p_transition_hash), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64
+     or not private.live_account_session(p_account_id, p_session_id)
      or not exists (
        select 1 from public.vault_devices d
        join public.vault_collection_memberships m on m.account_id = d.account_id
@@ -501,18 +501,18 @@ begin
   );
 
   if current_operation.operation_id is null or collection_row.id is null or membership.id is null
-     or current_operation.operation_hash <> p_expected_collection_head
+     or current_operation.operation_hash is distinct from p_expected_collection_head
      or membership.account_id <> p_removed_account_id or membership.status <> 'active'
      or membership.role = 'owner' or p_removed_account_id = p_account_id
      or p_epoch_number <> collection_row.current_epoch_number + 1
-     or p_encrypted_metadata is null or octet_length(p_encrypted_metadata) not between 16 and 65536
-     or p_metadata_nonce is null or octet_length(p_metadata_nonce) <> 12
-     or octet_length(p_expected_collection_head) <> 32
-     or octet_length(p_membership_state_hash) <> 32
-     or octet_length(p_recipient_set_commitment) <> 32
-     or octet_length(p_transition_signature) <> 64 or octet_length(p_transition_hash) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+     or p_encrypted_metadata is null or coalesce(octet_length(p_encrypted_metadata), 0) not between 16 and 65536
+     or p_metadata_nonce is null or coalesce(octet_length(p_metadata_nonce), 0) <> 12
+     or coalesce(octet_length(p_expected_collection_head), 0) <> 32
+     or coalesce(octet_length(p_membership_state_hash), 0) <> 32
+     or coalesce(octet_length(p_recipient_set_commitment), 0) <> 32
+     or coalesce(octet_length(p_transition_signature), 0) <> 64 or coalesce(octet_length(p_transition_hash), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64
+     or not private.live_account_session(p_account_id, p_session_id)
      or not exists (
        select 1 from public.vault_devices d
        join public.vault_collection_memberships m on m.account_id = d.account_id

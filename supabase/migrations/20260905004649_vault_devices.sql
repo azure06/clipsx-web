@@ -70,8 +70,8 @@ begin
   for update;
 
   if not found or challenge.consumed_at is not null or challenge.expires_at <= now()
-     or challenge.device_encryption_public_key <> p_device_encryption_public_key
-     or challenge.challenge_hash <> p_challenge_response_hash then
+     or challenge.device_encryption_public_key is distinct from p_device_encryption_public_key
+     or challenge.challenge_hash is distinct from p_challenge_response_hash then
     return false;
   end if;
 
@@ -92,7 +92,7 @@ create function private.register_pending_vault_device(
 ) returns boolean language plpgsql security definer set search_path = '' as $$
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
-  if not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+  if not private.live_account_session(p_account_id, p_session_id)
     or not exists (select 1 from public.vault_devices where account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_devices where id = p_device_id)
     or exists (select 1 from private.vault_pending_device_registrations where device_id = p_device_id) then return false; end if;
@@ -141,7 +141,7 @@ begin
 
   if exists (select 1 from public.vault_recovery_keys where account_id = p_account_id)
      or exists (select 1 from public.vault_devices where account_id = p_account_id and status = 'active')
-     or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id) then
+     or not private.live_account_session(p_account_id, p_session_id) then
     return false;
   end if;
 
@@ -229,9 +229,9 @@ begin
   end loop;
   select * into pending from private.vault_pending_device_registrations where device_id = p_device_id and account_id = p_account_id and expires_at > now() for update;
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or pending.device_id is null or current_operation.operation_hash <> p_expected_previous_operation_hash or pending.proof_hash <> p_pending_command_hash
-    or pending.sas_commitment <> p_sas_hash or octet_length(p_sas_hash) <> 32 or octet_length(p_authorization_payload_hash) <> 32 or octet_length(p_command_hash) <> 32 or octet_length(p_signature) <> 64
-    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+  if not found or pending.device_id is null or current_operation.operation_hash is distinct from p_expected_previous_operation_hash or pending.proof_hash is distinct from p_pending_command_hash
+    or pending.sas_commitment is distinct from p_sas_hash or coalesce(octet_length(p_sas_hash), 0) <> 32 or coalesce(octet_length(p_authorization_payload_hash), 0) <> 32 or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_signature), 0) <> 64
+    or not private.live_account_session(p_account_id, p_session_id)
     or not exists (select 1 from public.vault_devices where id = p_authorizer_device_id and account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id) then return false; end if;
   -- Every retained authorized epoch receives exactly one signed envelope.
@@ -277,10 +277,10 @@ begin
   end loop;
   select * into pending from private.vault_pending_device_registrations where device_id = p_device_id and account_id = p_account_id and expires_at > now() for update;
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or pending.device_id is null or current_operation.operation_hash <> p_expected_previous_operation_hash
-    or pending.proof_hash <> p_pending_command_hash or octet_length(p_authorization_payload_hash) <> 32
-    or octet_length(p_command_hash) <> 32 or octet_length(p_signature) <> 64
-    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+  if not found or pending.device_id is null or current_operation.operation_hash is distinct from p_expected_previous_operation_hash
+    or pending.proof_hash is distinct from p_pending_command_hash or coalesce(octet_length(p_authorization_payload_hash), 0) <> 32
+    or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_signature), 0) <> 64
+    or not private.live_account_session(p_account_id, p_session_id)
     or not exists (select 1 from public.vault_recovery_keys where id = p_recovery_key_id and account_id = p_account_id and status = 'active')
     or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id) then return false; end if;
   if coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
@@ -324,8 +324,8 @@ begin
     perform pg_advisory_xact_lock(hashtextextended(affected_collection_id::text, 2));
   end loop;
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or current_operation.operation_hash <> p_expected_previous_operation_hash or p_author_device_id = p_revoked_device_id
-    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+  if not found or current_operation.operation_hash is distinct from p_expected_previous_operation_hash or p_author_device_id = p_revoked_device_id
+    or not private.live_account_session(p_account_id, p_session_id)
     or not exists (select 1 from public.vault_devices where id = p_author_device_id and account_id = p_account_id and status = 'active')
     or not exists (select 1 from public.vault_devices where id = p_revoked_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_rotations), '') <> 'array'
@@ -340,10 +340,10 @@ begin
       where c.id::text = r->>'collection_id' and m.account_id = p_account_id
         and m.status = 'active' and c.deleted_at is null
     ))
-    or exists (select 1 from jsonb_array_elements(p_rotations) r where jsonb_typeof(r->'device_envelopes') <> 'array' or jsonb_typeof(r->'recovery_envelopes') <> 'array'
+    or exists (select 1 from jsonb_array_elements(p_rotations) r where coalesce(jsonb_typeof(r->'device_envelopes'),'') <> 'array' or coalesce(jsonb_typeof(r->'recovery_envelopes'),'') <> 'array'
       or coalesce(octet_length(decode(r->>'encrypted_metadata','base64')),0) not between 16 and 65536
       or coalesce(octet_length(decode(r->>'metadata_nonce','base64')),0) <> 12
-      or (r->>'epoch_number')::integer <> (select c.current_epoch_number + 1 from public.vault_collections c where c.id::text = r->>'collection_id')
+      or (r->>'epoch_number')::integer is distinct from (select c.current_epoch_number + 1 from public.vault_collections c where c.id::text = r->>'collection_id')
       or jsonb_array_length(r->'device_envelopes') <> (
         select count(*) from public.vault_devices d
         where d.status = 'active' and d.id <> p_revoked_device_id and exists (
@@ -421,10 +421,10 @@ begin
   end loop;
   select * into current_operation from public.vault_account_operations where account_id = p_account_id order by sequence_number desc limit 1 for update;
   select key_version + 1 into next_version from public.vault_recovery_keys where id = p_old_recovery_key_id and account_id = p_account_id and status = 'active' for update;
-  if not found or next_version is null or current_operation.operation_hash <> p_expected_previous_operation_hash
-    or octet_length(p_new_encryption_public_key) <> 32 or octet_length(p_new_signing_public_key) <> 32 or p_new_encryption_public_key = p_new_signing_public_key
-    or octet_length(p_active_device_signature) <> 64 or octet_length(p_recovery_signature) <> 64
-    or not exists (select 1 from auth.sessions where id = p_session_id and user_id = p_account_id)
+  if not found or next_version is null or current_operation.operation_hash is distinct from p_expected_previous_operation_hash
+    or coalesce(octet_length(p_new_encryption_public_key), 0) <> 32 or coalesce(octet_length(p_new_signing_public_key), 0) <> 32 or p_new_encryption_public_key = p_new_signing_public_key
+    or coalesce(octet_length(p_active_device_signature), 0) <> 64 or coalesce(octet_length(p_recovery_signature), 0) <> 64
+    or not private.live_account_session(p_account_id, p_session_id)
     or not exists (select 1 from public.vault_devices where id = p_active_device_id and account_id = p_account_id and status = 'active')
     or coalesce(jsonb_typeof(p_envelopes), '') <> 'array'
     or jsonb_array_length(p_envelopes) <> (
@@ -468,13 +468,10 @@ as $$
 declare
   result jsonb;
 begin
-  if p_after < 0 or p_limit < 1 or p_limit > 100
+  if p_after is null or p_limit is null or p_after < 0 or p_limit < 1 or p_limit > 100
      or (p_after = 0 and p_anchor is not null)
-     or (p_after > 0 and octet_length(p_anchor) <> 32)
-     or not exists (
-       select 1 from auth.sessions s
-       where s.id = p_requester_session_id and s.user_id = p_requester_account_id
-     )
+     or (p_after > 0 and coalesce(octet_length(p_anchor), 0) <> 32)
+     or not private.live_account_session(p_requester_account_id, p_requester_session_id)
      or p_target_account_id is distinct from p_requester_account_id
      or (
        p_after > 0 and not exists (

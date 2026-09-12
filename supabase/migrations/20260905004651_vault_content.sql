@@ -25,24 +25,22 @@ begin
   perform pg_advisory_xact_lock(hashtextextended(p_collection_id::text, 2));
   select * into current_account_operation from public.vault_account_operations
   where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or current_account_operation.operation_hash <> p_expected_account_head
-     or octet_length(p_expected_account_head) <> 32
-     or octet_length(p_metadata_nonce) <> 12 or octet_length(p_membership_state_hash) <> 32
-     or octet_length(p_recipient_set_commitment) <> 32 or octet_length(p_transition_hash) <> 32
-     or octet_length(p_transition_signature) <> 64 or octet_length(p_device_envelope_enc) <> 32
-     or octet_length(p_recovery_envelope_enc) <> 32 or octet_length(p_device_envelope_signature) <> 64
-     or octet_length(p_recovery_envelope_signature) <> 64 or octet_length(p_command_hash) <> 32
-     or octet_length(p_command_signature) <> 64 or octet_length(p_encrypted_metadata) < 16
-     or octet_length(p_device_envelope_ciphertext) < 16 or octet_length(p_recovery_envelope_ciphertext) < 16 then
+  if not found or current_account_operation.operation_hash is distinct from p_expected_account_head
+     or coalesce(octet_length(p_expected_account_head), 0) <> 32
+     or coalesce(octet_length(p_metadata_nonce), 0) <> 12 or coalesce(octet_length(p_membership_state_hash), 0) <> 32
+     or coalesce(octet_length(p_recipient_set_commitment), 0) <> 32 or coalesce(octet_length(p_transition_hash), 0) <> 32
+     or coalesce(octet_length(p_transition_signature), 0) <> 64 or coalesce(octet_length(p_device_envelope_enc), 0) <> 32
+     or coalesce(octet_length(p_recovery_envelope_enc), 0) <> 32 or coalesce(octet_length(p_device_envelope_signature), 0) <> 64
+     or coalesce(octet_length(p_recovery_envelope_signature), 0) <> 64 or coalesce(octet_length(p_command_hash), 0) <> 32
+     or coalesce(octet_length(p_command_signature), 0) <> 64 or coalesce(octet_length(p_encrypted_metadata), 0) < 16
+     or coalesce(octet_length(p_device_envelope_ciphertext), 0) < 16 or coalesce(octet_length(p_recovery_envelope_ciphertext), 0) < 16 then
     return false;
   end if;
 
   if not exists (
     select 1 from public.vault_devices d
     where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-  ) or not exists (
-    select 1 from auth.sessions s where s.id = p_session_id and s.user_id = p_account_id
-  ) or not exists (
+  ) or not private.live_account_session(p_account_id, p_session_id) or not exists (
     select 1 from public.vault_recovery_keys where id = p_recovery_key_id and account_id = p_account_id and status = 'active'
   ) or exists (select 1 from public.vault_collections where id = p_collection_id)
     or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
@@ -152,33 +150,31 @@ begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
   perform pg_advisory_xact_lock(hashtextextended(p_collection_id::text, 2));
   if exists(select 1 from public.vault_collections where id=p_collection_id and requires_epoch_rotation) then raise exception 'collection_rotation_required'; end if;
-  if octet_length(p_expected_account_head) <> 32
-     or octet_length(p_expected_collection_head) <> 32 or p_collection_epoch < 1
-     or octet_length(p_encrypted_content) not between 16 and 1048576
-     or octet_length(p_content_nonce) <> 12 or octet_length(p_wrapped_revision_key) < 16
-     or octet_length(p_key_wrap_nonce) <> 12 or octet_length(p_ciphertext_hash) <> 32
-     or octet_length(p_wrapped_revision_key_hash) <> 32 or octet_length(p_revision_hash) <> 32
-     or octet_length(p_revision_signature) <> 64 or octet_length(p_command_hash) <> 32
-     or octet_length(p_command_signature) <> 64 then return false;
+  if coalesce(octet_length(p_expected_account_head), 0) <> 32
+     or coalesce(octet_length(p_expected_collection_head), 0) <> 32 or p_collection_epoch < 1
+     or coalesce(octet_length(p_encrypted_content), 0) not between 16 and 1048576
+     or coalesce(octet_length(p_content_nonce), 0) <> 12 or coalesce(octet_length(p_wrapped_revision_key), 0) < 16
+     or coalesce(octet_length(p_key_wrap_nonce), 0) <> 12 or coalesce(octet_length(p_ciphertext_hash), 0) <> 32
+     or coalesce(octet_length(p_wrapped_revision_key_hash), 0) <> 32 or coalesce(octet_length(p_revision_hash), 0) <> 32
+     or coalesce(octet_length(p_revision_signature), 0) <> 64 or coalesce(octet_length(p_command_hash), 0) <> 32
+     or coalesce(octet_length(p_command_signature), 0) <> 64 then return false;
   end if;
 
   select * into current_account_operation from public.vault_account_operations
   where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or current_account_operation.operation_hash <> p_expected_account_head then return false; end if;
+  if not found or current_account_operation.operation_hash is distinct from p_expected_account_head then return false; end if;
   select * into current_operation from public.vault_collection_operations
   where collection_id = p_collection_id order by sequence_number desc limit 1 for update;
   if not found then return false; end if;
   select * into current_note from public.vault_notes where id = p_note_id and collection_id = p_collection_id for update;
   note_exists := found;
-  if current_operation.operation_hash <> p_expected_collection_head
+  if current_operation.operation_hash is distinct from p_expected_collection_head
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
      or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id)
      or not exists (
        select 1 from public.vault_devices d
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-     ) or not exists (
-       select 1 from auth.sessions s where s.id = p_session_id and s.user_id = p_account_id
-     ) or not exists (
+     ) or not private.live_account_session(p_account_id, p_session_id) or not exists (
        select 1 from public.vault_collection_memberships m
        where m.collection_id = p_collection_id and m.account_id = p_account_id and m.status = 'active' and m.role in ('owner', 'editor')
      ) or not exists (
@@ -250,31 +246,29 @@ declare
 begin
   perform pg_advisory_xact_lock(hashtextextended(p_account_id::text, 1));
   perform pg_advisory_xact_lock(hashtextextended(p_collection_id::text, 2));
-  if octet_length(p_expected_account_head) <> 32
-     or octet_length(p_expected_collection_head) <> 32 or octet_length(p_expected_revision_hash) <> 32
-     or octet_length(p_command_hash) <> 32 or octet_length(p_command_signature) <> 64 then return false;
+  if coalesce(octet_length(p_expected_account_head), 0) <> 32
+     or coalesce(octet_length(p_expected_collection_head), 0) <> 32 or coalesce(octet_length(p_expected_revision_hash), 0) <> 32
+     or coalesce(octet_length(p_command_hash), 0) <> 32 or coalesce(octet_length(p_command_signature), 0) <> 64 then return false;
   end if;
 
   select * into current_account_operation from public.vault_account_operations
   where account_id = p_account_id order by sequence_number desc limit 1 for update;
-  if not found or current_account_operation.operation_hash <> p_expected_account_head then return false; end if;
+  if not found or current_account_operation.operation_hash is distinct from p_expected_account_head then return false; end if;
   select * into current_operation from public.vault_collection_operations
   where collection_id = p_collection_id order by sequence_number desc limit 1 for update;
   if not found then return false; end if;
   select * into current_note from public.vault_notes
   where id = p_note_id and collection_id = p_collection_id for update;
   if not found or current_note.deleted_at is not null
-     or current_operation.operation_hash <> p_expected_collection_head
-     or current_note.current_revision_hash <> p_expected_revision_hash
+     or current_operation.operation_hash is distinct from p_expected_collection_head
+     or current_note.current_revision_hash is distinct from p_expected_revision_hash
      or exists (select 1 from public.vault_collection_operations where operation_id = p_operation_id)
      or exists (select 1 from public.vault_account_operations where operation_id = p_operation_id)
      or exists (select 1 from public.vault_tombstones where note_id = p_note_id)
      or not exists (
        select 1 from public.vault_devices d
        where d.id = p_device_id and d.account_id = p_account_id and d.status = 'active'
-     ) or not exists (
-       select 1 from auth.sessions s where s.id = p_session_id and s.user_id = p_account_id
-     ) or not exists (
+     ) or not private.live_account_session(p_account_id, p_session_id) or not exists (
        select 1 from public.vault_collection_memberships m
        where m.collection_id = p_collection_id and m.account_id = p_account_id and m.status = 'active' and m.role in ('owner', 'editor')
      ) then return false;
