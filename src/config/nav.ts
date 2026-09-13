@@ -4,23 +4,26 @@ export interface NavItem {
 }
 
 export const mainNav: NavItem[] = [
-  { labelKey: 'Nav.features', href: '/features' },
-  { labelKey: 'Nav.pricing', href: '/pricing' },
+  { labelKey: 'Nav.product', href: '/product' },
+  { labelKey: 'Nav.extensions', href: '/extensions' },
+  { labelKey: 'Nav.developers', href: '/developers' },
+  { labelKey: 'Nav.docs', href: '/docs' },
   { labelKey: 'Nav.blog', href: '/blog' },
-  { labelKey: 'Nav.download', href: '/download' },
-  { labelKey: 'Nav.changelog', href: '/changelog' },
-  { labelKey: 'Nav.faq', href: '/faq' },
+  { labelKey: 'Nav.pricing', href: '/pricing' },
 ];
 
 export const footerNav = {
   product: [
-    { labelKey: 'Footer.features', href: '/features' },
+    { labelKey: 'Footer.productLink', href: '/product' },
+    { labelKey: 'Footer.extensions', href: '/extensions' },
     { labelKey: 'Footer.pricing', href: '/pricing' },
     { labelKey: 'Footer.download', href: '/download' },
     { labelKey: 'Footer.changelog', href: '/changelog' },
     { labelKey: 'Footer.blog', href: '/blog' },
   ],
   company: [
+    { labelKey: 'Footer.developers', href: '/developers' },
+    { labelKey: 'Footer.docs', href: '/docs' },
     { labelKey: 'Footer.contact', href: '/contact' },
     { labelKey: 'Footer.faq', href: '/faq' },
   ],

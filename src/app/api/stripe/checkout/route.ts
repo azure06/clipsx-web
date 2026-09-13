@@ -25,6 +25,9 @@ function getProPriceId(interval: 'monthly' | 'yearly') {
 }
 
 export async function POST(request: NextRequest) {
+  if (process.env.CLIPSX_ENABLE_PAID_CHECKOUT !== 'true') {
+    return NextResponse.json({ code: 'BILLING_NOT_AVAILABLE', error: 'Paid plans are not available yet' }, { status: 409 });
+  }
   const user = await getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

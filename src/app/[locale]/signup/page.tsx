@@ -1,6 +1,6 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,6 +9,8 @@ import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { GoogleIcon, GitHubIcon } from '@/components/auth/ProviderIcon';
+import { asSupabaseProvider, safeNextPath, type ClipsXOauthProvider } from '@/lib/auth/oauth';
 
 const schema = z.object({
   email: z.string().email(),
@@ -18,8 +20,10 @@ type FormValues = z.infer<typeof schema>;
 
 export default function SignUpPage() {
   const t = useTranslations('SignUpPage');
+  const locale = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<ClipsXOauthProvider | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
@@ -37,6 +41,15 @@ export default function SignUpPage() {
       return;
     }
     setSuccess(true);
+  }
+
+  async function handleOAuth(provider: ClipsXOauthProvider) {
+    setError(null); setOauthLoading(provider);
+    const redirectTo = new URL('/auth/callback', window.location.origin);
+    redirectTo.searchParams.set('next', safeNextPath('/account', locale));
+    const { data, error: oauthError } = await createClient().auth.signInWithOAuth({ provider: asSupabaseProvider(provider), options: { redirectTo: redirectTo.toString() } });
+    if (oauthError || !data.url) { setError(t('oauth_error')); setOauthLoading(null); return; }
+    window.location.assign(data.url);
   }
 
   if (success) {
@@ -61,7 +74,9 @@ export default function SignUpPage() {
           <p className="text-gray-600 text-sm dark:text-gray-400">{t('subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <div className="space-y-3"><Button type="button" variant="secondary" size="lg" loading={oauthLoading==='google'} disabled={oauthLoading!==null} onClick={()=>handleOAuth('google')} className="w-full"><GoogleIcon/>{t('continue_with_google')}</Button><Button type="button" variant="secondary" size="lg" loading={oauthLoading==='github'} disabled={oauthLoading!==null} onClick={()=>handleOAuth('github')} className="w-full"><GitHubIcon/>{t('continue_with_github')}</Button></div>
+        <div className="my-5 flex items-center gap-3 text-xs text-gray-500"><span className="hgast h ryth anybody-px flex-1 bg-gray-200 dark:bg-gray-800"/>{t('or')}<span className="h-px flex-1 bg-gray-200 dark:bg-gray-800"/></div>
+        <form onSubmit={handleSubmit(onSubmit)} className=" Cyn space-y-5">
           <Input
             label={t('email_label')}
             id="email"

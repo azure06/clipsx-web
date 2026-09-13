@@ -1,6 +1,14 @@
 {
   "Nav": {
     "home": "ホーム",
+    "product": "製品",
+    "extensions": "拡張機能",
+    "developers": "開発者向け",
+    "docs": "ドキュメント",
+    "github": "GitHub で ClipsX を開く（新しいタブ）",
+    "menu": "ナビゲーションを切り替える",
+    "billing": "請求",
+    "signingOut": "サインアウト中…",
     "features": "機能",
     "pricing": "料金",
     "blog": "ブログ",
@@ -15,6 +23,12 @@
     "account": "アカウント"
   },
   "Footer": {
+    "productLink": "製品",
+    "extensions": "拡張機能",
+    "developers": "開発者向け",
+    "docs": "ドキュメント",
+    "github": "GitHub でソースを見る",
+    "localPromise": "クリップボードの内容は端末内に保存されます。",
     "product": "プロダクト",
     "features": "機能",
     "pricing": "料金",
@@ -208,6 +222,7 @@
     "last_updated": "最終更新日：2025年6月"
   },
   "SignInPage": {
+    "continue_with_github": "GitHub で続ける",
     "title": "ClipsXにサインイン",
     "subtitle": "アカウントと請求情報にアクセス。",
     "email_label": "メールアドレス",
@@ -221,6 +236,10 @@
     "oauth_error": "サインインできませんでした。もう一度お試しください。"
   },
   "SignUpPage": {
+    "continue_with_google": "Google で続ける",
+    "continue_with_github": "GitHub で続ける",
+    "oauth_error": "認証を開始できませんでした。もう一度お試しください。",
+    "or": "またはメールを使用",
     "title": "アカウントを作成",
     "subtitle": "無料でスタート — クレジットカード不要。",
     "email_label": "メールアドレス",
@@ -233,6 +252,17 @@
     "privacy_link": "プライバシーポリシー"
   },
   "AccountPage": {
+    "delete_title": "アカウントを削除",
+    "delete_body": "ClipsX アカウントを完全に閉鎖し、ホスト上のアカウントデータを削除します。端末内のクリップは残ります。組織は先に移管し、有効な購読は解約されます。",
+    "delete_label": "確認のため DELETE と入力",
+    "delete_action": "アカウントを削除",
+    "delete_cancel": "キャンセル",
+    "delete_confirm": "完全に削除",
+    "delete_reauth": "削除前にサインアウトして再度サインインしてください。",
+    "delete_org": "所有する組織を先に移管または削除してください。",
+    "delete_subscription": "購読の解約完了後に閉鎖できます。",
+    "delete_pending": "購読を解約しました。請求側の確認後に再試行してください。",
+    "delete_error": "アカウントを閉鎖できませんでした。アカウントは有効なままです。",
     "title": "アカウント",
     "email_label": "メール",
     "plan_label": "現在のプラン",

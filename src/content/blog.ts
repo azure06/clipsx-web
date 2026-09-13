@@ -1,22 +1,6 @@
-import type { Locale } from '@/i18n/config';
-
-export interface BlogPostPreview {
-  slug: string;
-  translationKey: 'privacy' | 'search' | 'office';
-  status: 'comingSoon';
-}
-
-// This is the publishing boundary for the initial blog. Replace previews with
-// localized article content when the editorial workflow is selected.
-export const blogPostPreviews: Record<Locale, BlogPostPreview[]> = {
-  en: [
-    { slug: 'local-first-clipboard-privacy', translationKey: 'privacy', status: 'comingSoon' },
-    { slug: 'local-semantic-and-image-search', translationKey: 'search', status: 'comingSoon' },
-    { slug: 'preserving-rich-office-clips', translationKey: 'office', status: 'comingSoon' },
-  ],
-  ja: [
-    { slug: 'local-first-clipboard-privacy', translationKey: 'privacy', status: 'comingSoon' },
-    { slug: 'local-semantic-and-image-search', translationKey: 'search', status: 'comingSoon' },
-    { slug: 'preserving-rich-office-clips', translationKey: 'office', status: 'comingSoon' },
-  ],
-};
+import { l, type Localized } from './marketing';
+export type BlogPost={slug:string;title:Localized;description:Localized;date:string;readMinutes:number;sections:Array<{title:Localized;body:Localized}>};
+export const blogPosts:BlogPost[]=[
+ {slug:'local-first-is-a-data-boundary',date:'2026-09-13',readMinutes:4,title:l('Local-first is a data boundary, not a badge','ローカルファーストは飾りではなくデータ境界'),description:l('Exactly what ClipsX keeps on your device—and the narrow role an optional account plays.','ClipsX が端末内に保持するものと、任意アカウントの限定的な役割。'),sections:[{title:l('Start with the clipboard','クリップボードから考える'),body:l('A clipboard can contain credentials, private conversations, customer data, and unfinished work. ClipsX therefore treats captured content as device-owned canonical data. Files, OCR, search indexes, embeddings, provider configuration, and permission grants follow that boundary.','クリップボードには認証情報、個人的な会話、顧客データ、作業途中の内容が含まれます。そのため ClipsX は保存内容を端末所有の原本データとして扱い、ファイル、OCR、検索インデックス、埋め込み、接続設定、権限も同じ境界に置きます。')},{title:l('An account is optional','アカウントは任意'),body:l('The desktop product works without an account. When you sign in, the current sync protocol covers selected settings and reviewed extension intent. It does not turn clipboard history into cloud storage.','デスクトップ製品はアカウントなしで動作します。サインイン時、現在の同期対象は一部設定と審査済み拡張機能の選択情報です。履歴をクラウドストレージにはしません。')}]},
+ {slug:'meaning-search-with-ollama',date:'2026-09-13',readMinutes:5,title:l('Meaning Search, on your machine','自分の端末で動く意味検索'),description:l('How ClipsX combines exact retrieval with optional Ollama-powered semantic search.','完全一致検索と Ollama を使う任意の意味検索を組み合わせる仕組み。'),sections:[{title:l('Exact first, meaning when useful','まず正確に、必要なら意味で'),body:l('Commands, identifiers, and filenames reward exact search. Concepts and half-remembered phrases benefit from semantic retrieval. ClipsX keeps both paths and merges their strengths instead of pretending one search mode solves everything.','コマンド、識別子、ファイル名には完全一致が向いています。概念や曖昧な記憶には意味検索が役立ちます。ClipsX は両方を保ち、ひとつの方式ですべて解決できるとは考えません。')},{title:l('You choose the provider','接続先は自分で選ぶ'),body:l('Ollama runs separately on loopback. You select the endpoint and compatible model; ClipsX checks health before building a derived index. Models are not downloaded silently, and deleting the index never deletes clips.','Ollama はループバック上で別に動作します。接続先と対応モデルを選び、ClipsX が状態を確認してから派生インデックスを作成します。モデルを無断取得せず、インデックスを削除してもクリップは消えません。')}]},
+ {slug:'why-clipboard-extensions-need-boundaries',date:'2026-09-13',readMinutes:4,title:l('Why clipboard extensions need boundaries','クリップボード拡張に境界が必要な理由'),description:l('Programmability is useful only when permissions, packages, and rendering stay reviewable.','権限、パッケージ、表示を審査可能にしてこそ、拡張性は役立ちます。'),sections:[{title:l('Programmable, not unrestricted','拡張可能でも無制限ではない'),body:l('ClipsX extensions are bounded WASM packages. They contribute structured detectors, transformations, views, and actions through a host-owned contract rather than receiving arbitrary access to your machine.','ClipsX 拡張機能は制限付き WASM パッケージです。端末への任意アクセスではなく、ホスト管理の契約を通じて検出、変換、表示、操作を追加します。')},{title:l('Trust can be inspected','信頼を確認できる'),body:l('Signed registry entries identify immutable versions. ClipsX reviews requested capabilities, renews consent after meaningful package changes, and retains quarantine and recovery controls.','署名レジストリが不変バージョンを特定します。ClipsX は要求権限を確認し、重要な変更後に同意を更新し、隔離と復旧手段を保持します。')}]}];

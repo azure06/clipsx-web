@@ -1,6 +1,14 @@
 {
   "Nav": {
     "home": "Home",
+    "product": "Product",
+    "extensions": "Extensions",
+    "developers": "Developers",
+    "docs": "Docs",
+    "github": "Open ClipsX on GitHub (opens in a new tab)",
+    "menu": "Toggle navigation",
+    "billing": "Billing",
+    "signingOut": "Signing out…",
     "features": "Features",
     "pricing": "Pricing",
     "blog": "Blog",
@@ -17,6 +25,12 @@
   "Footer": {
     "product": "Product",
     "features": "Features",
+    "productLink": "Product",
+    "extensions": "Extensions",
+    "developers": "Developers",
+    "docs": "Documentation",
+    "github": "View the source on GitHub",
+    "localPromise": "Clipboard content stays on your device.",
     "pricing": "Pricing",
     "blog": "Blog",
     "download": "Download",
@@ -27,7 +41,7 @@
     "legal": "Legal",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "tagline": "Fast, private clipboard history with semantic search.",
+    "tagline": "A desktop clipboard for everything worth keeping. Find it again and make it useful with extensions.",
     "rights": "All rights reserved."
   },
   "HomePage": {
@@ -37,7 +51,7 @@
     "hero_subtitle": "ClipsX remembers everything you copy. Find it by meaning, not just keywords. Local-first, privacy-first, always fast.",
     "hero_cta_download": "Download Free",
     "hero_cta_pricing": "View Pricing",
-    "hero_platform": "Available for macOS · Windows · Linux",
+    "hero_platform": "Windows and Linux are the first release targets",
     "feature_search_title": "Semantic Search",
     "feature_search_body": "Find \"Python sorting code\" without remembering exact words. ClipsX understands meaning, not just letters.",
     "feature_ocr_title": "OCR Workflows",
@@ -58,7 +72,7 @@
     "platform_windows": "Windows",
     "platform_linux": "Linux",
     "cta_title": "Ready to remember everything?",
-    "cta_body": "Download ClipsX free. Upgrade to Pro for secure sync, hosted AI actions, and intentional sharing.",
+    "cta_body": "ClipsX is free by default. Download only platform builds marked ready.",
     "cta_download": "Download Free"
   },
   "FeaturesPage": {
@@ -72,7 +86,7 @@
     "detect_body": "Every clip is analyzed: URL, code snippet, JSON, JWT, CSV, color hex, file path. Detected types unlock context-aware previews and actions.",
     "local_title": "Local-First Architecture",
     "local_body": "All data lives in SQLite on your device. Semantic vectors are computed locally. No internet connection required for any core feature.",
-    "history_title": "Unlimited Clipboard History",
+    "history_title": "Rich Clipboard History",
     "history_body": "Never lose a clip again. ClipsX stores your full clipboard history with fast full-text search alongside semantic search.",
     "tags_title": "Tags & Notes",
     "tags_body": "Label and annotate clips. Organize by project, client, or workflow. Tags and notes are full-text searchable.",
@@ -83,7 +97,7 @@
   },
   "PricingPage": {
     "title": "Simple, honest pricing",
-    "subtitle": "A complete local clipboard manager is free. Upgrade for secure cloud services and hosted AI.",
+    "subtitle": "The complete implemented local product is free. A supporter plan is still being considered.",
     "monthly": "Monthly",
     "yearly": "Yearly",
     "save_badge": "Save 33%",
@@ -97,7 +111,7 @@
     "pro_period_monthly": "/month",
     "pro_period_yearly": "/year",
     "pro_desc": "Preserve, transform, sync, and securely share reusable content.",
-    "feature_history": "Unlimited clipboard history",
+    "feature_history": "Rich clipboard history",
     "feature_clip_types": "Text, image, and file clips",
     "feature_search": "Fast local search and filters",
     "feature_ocr": "OCR text extraction",
@@ -135,7 +149,7 @@
     "faq_refund_q": "Is there a refund policy?",
     "faq_refund_a": "We offer a 14-day refund for annual plans. Monthly plans are non-refundable but cancel anytime.",
     "faq_trial_q": "Is there a free trial?",
-    "faq_trial_a": "ClipsX Free is free forever. Rich Office clip preservation has a limited trial; Pro adds full access, encrypted cloud services, and hosted AI actions."
+    "faq_trial_a": "The implemented local product is free. No supporter benefits or trial are available yet."
   },
   "BlogPage": {
     "title": "ClipsX blog",
@@ -184,7 +198,7 @@
     "q4": "Does ClipsX capture passwords?",
     "a4": "ClipsX respects password manager exclusions on macOS and has an optional blocklist for specific apps. By default it captures all clipboard changes.",
     "q5": "Can I use ClipsX without a paid plan?",
-    "a5": "Yes. ClipsX Free includes the full local clipboard experience: history, search, semantic and image search, OCR, converters, snippets, and previews. Pro adds rich Office preservation, hosted AI actions, encrypted sync, and secure sharing.",
+    "a5": "Yes. The complete implemented local desktop product is free. Optional hosted services may be defined separately in the future.",
     "q6": "What is the refund policy?",
     "a6": "Annual plans have a 14-day refund window. Monthly plans cancel at end of period with no refund."
   },
@@ -208,6 +222,7 @@
     "last_updated": "Last updated: June 2025"
   },
   "SignInPage": {
+    "continue_with_github": "Continue with GitHub",
     "title": "Sign in to ClipsX",
     "subtitle": "Access your account and billing.",
     "email_label": "Email address",
@@ -221,6 +236,10 @@
     "oauth_error": "We couldn't sign you in. Please try again."
   },
   "SignUpPage": {
+    "continue_with_google": "Continue with Google",
+    "continue_with_github": "Continue with GitHub",
+    "oauth_error": "That provider could not start. Please try again.",
+    "or": "or use email",
     "title": "Create your account",
     "subtitle": "Free to start — no credit card required.",
     "email_label": "Email address",
@@ -233,13 +252,24 @@
     "privacy_link": "Privacy Policy"
   },
   "AccountPage": {
+    "delete_title": "Delete account",
+    "delete_body": "Permanently close your ClipsX account and remove hosted account data. Local desktop clips remain on your devices. Organizations must be transferred first; active subscriptions will be canceled.",
+    "delete_label": "Type DELETE to confirm",
+    "delete_action": "Delete account",
+    "delete_cancel": "Cancel",
+    "delete_confirm": "Permanently delete",
+    "delete_reauth": "Sign out and sign in again before deleting your account.",
+    "delete_org": "Transfer or delete organizations you own first.",
+    "delete_subscription": "Your subscription must finish canceling before closure.",
+    "delete_pending": "Your subscription was canceled. Retry after billing confirmation arrives.",
+    "delete_error": "The account could not be closed. Your account remains active.",
     "title": "Account",
     "email_label": "Email",
     "plan_label": "Current plan",
     "plan_free": "Free",
     "plan_pro": "Pro",
     "manage_billing": "Manage billing",
-    "upgrade": "Upgrade to Pro",
+    "upgrade": "View future plans",
     "sign_out": "Sign out"
   },
   "SettingsPage": {

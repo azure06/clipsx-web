@@ -11,7 +11,7 @@ if (!currency || !Number.isSafeInteger(monthlyAmount) || monthlyAmount < 0 || !N
 
 const stripe = new Stripe(secretKey, { apiVersion: '2026-06-24.dahlia' });
 const planCode = 'pro';
-const productDescription = 'Fast, private clipboard history with encrypted cloud sync, semantic search, and secure sharing.';
+const productDescription = 'Optional future supporter services for the free, programmable ClipsX desktop clipboard.';
 const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clipsx.app'}/pricing`;
 
 const products = await stripe.products.list({ active: true, limit: 100 });

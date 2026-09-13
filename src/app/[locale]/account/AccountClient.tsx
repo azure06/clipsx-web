@@ -46,6 +46,10 @@ export function AccountClient({ user }: AccountClientProps) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [workspaceId, setWorkspaceId] = useState<string>('personal');
   const [activating, setActivating] = useState(searchParams.get('checkout') === 'success');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/billing/workspaces')
@@ -97,6 +101,15 @@ export function AccountClient({ user }: AccountClientProps) {
     await supabase.auth.signOut();
     router.push('/');
     router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true); setDeleteError(null);
+    const response = await fetch('/api/account', { method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({confirmation:deleteConfirmation,cancelSubscriptions:true}) });
+    const result = await response.json().catch(() => ({})) as {code?:string;closed?:boolean;message?:string;blockers?:Array<{message:string}>};
+    if (response.ok && result.closed) { await createClient().auth.signOut({scope:'global'}); router.push('/'); router.refresh(); return; }
+    const messages:Record<string,string>={REAUTHENTICATION_REQUIRED:t('delete_reauth'),ORGANIZATION_OWNER:t('delete_org'),ACTIVE_SUBSCRIPTION:t('delete_subscription'),CLOSURE_PENDING:t('delete_pending')};
+    setDeleteError(result.blockers?.[0]?.message ?? messages[result.code??''] ?? result.message ?? t('delete_error')); setDeleteLoading(false);
   }
 
   const plan = summary?.planCode ?? 'free';
@@ -163,6 +176,7 @@ export function AccountClient({ user }: AccountClientProps) {
       <Button variant="ghost" size="sm" loading={signOutLoading} onClick={handleSignOut} className="text-red-400 hover:text-red-300 w-full">
         {t('sign_out')}
       </Button>
+      <Card className="border-red-500/20 p-6"><h2 className="font-heading font-bold text-gray-900 dark:text-white">{t('delete_title')}</h2><p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-400">{t('delete_body')}</p>{deleteOpen?<div className="mt-5 space-y-3"><label className="block text-sm font-medium">{t('delete_label')}<input className="input-vault mt-2" value={deleteConfirmation} onChange={event=>setDeleteConfirmation(event.target.value)} autoComplete="off"/></label>{deleteError&&<p className="text-sm text-red-600" role="alert">{deleteError}</p>}<div className="flex gap-2"><Button variant="ghost" onClick={()=>setDeleteOpen(false)}>{t('delete_cancel')}</Button><Button loading={deleteLoading} disabled={deleteConfirmation!=='DELETE'} onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-500">{t('delete_confirm')}</Button></div></div>:<Button variant="outline" size="sm" onClick={()=>setDeleteOpen(true)} className="mt-5 text-red-600">{t('delete_action')}</Button>}</Card>
     </div>
   );
 }

@@ -23,10 +23,10 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: {
-    default: `${siteConfig.name} — Clipboard manager with semantic search`,
+    default: `${siteConfig.name} — The free, programmable clipboard`,
     template: `%s | ${siteConfig.name}`,
   },
-  description: siteConfig.tagline,
+  description: siteConfig.description,
   metadataBase: new URL(siteConfig.url),
   openGraph: {
     type: 'website',
@@ -37,6 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     creator: siteConfig.twitterHandle,
   },
+  robots: { index: true, follow: true },
 };
 
 export function generateStaticParams() {

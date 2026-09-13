@@ -9,6 +9,8 @@ import { useRouter, Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { GoogleIcon, GitHubIcon } from '@/components/auth/ProviderIcon';
+import { asSupabaseProvider, safeNextPath, type ClipsXOauthProvider } from '@/lib/auth/oauth';
 
 const schema = z.object({
   email: z.string().email(),
@@ -21,7 +23,7 @@ export default function SignInPage() {
   const locale = useLocale();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
-  const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<ClipsXOauthProvider | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
@@ -38,22 +40,22 @@ export default function SignInPage() {
     router.refresh();
   }
 
-  async function handleGoogleSignIn() {
+  async function handleOAuth(provider: ClipsXOauthProvider) {
     setError(null);
-    setOauthLoading(true);
+    setOauthLoading(provider);
 
     const redirectTo = new URL('/auth/callback', window.location.origin);
-    redirectTo.searchParams.set('next', `/${locale}/account`);
+    redirectTo.searchParams.set('next', safeNextPath(new URLSearchParams(window.location.search).get('next'), locale));
 
     const supabase = createClient();
     const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: asSupabaseProvider(provider),
       options: { redirectTo: redirectTo.toString() },
     });
 
     if (oauthError || !data.url) {
       setError(t('oauth_error'));
-      setOauthLoading(false);
+      setOauthLoading(null);
       return;
     }
 
@@ -73,12 +75,14 @@ export default function SignInPage() {
             type="button"
             variant="secondary"
             size="lg"
-            loading={oauthLoading}
-            onClick={handleGoogleSignIn}
+            loading={oauthLoading === 'google'}
+            disabled={oauthLoading !== null}
+            onClick={() => handleOAuth('google')}
             className="w-full"
           >
-            {t('continue_with_google')}
+            <GoogleIcon />{t('continue_with_google')}
           </Button>
+          <Button type="button" variant="secondary" size="lg" loading={oauthLoading === 'github'} disabled={oauthLoading !== null} onClick={() => handleOAuth('github')} className="w-full"><GitHubIcon />{t('continue_with_github')}</Button>
 
           <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
             <span className="h-px flex-1 bg-gray-200 dark:bg-gray-800" />

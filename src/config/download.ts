@@ -1,33 +1,36 @@
+import { siteConfig } from './site';
+
+export type ReleasePlatform = 'macos' | 'windows' | 'linux';
+export type ReleaseStatus = 'available' | 'coming-soon';
+
 export interface DownloadTarget {
-  platform: 'macos' | 'windows' | 'linux';
-  titleKey: string;
-  reqKey: string;
-  url: string;
-  ext: string;
+  id: string;
+  platform: ReleasePlatform;
+  architecture: string;
+  format: string;
+  status: ReleaseStatus;
+  signed: boolean;
+  notarized: boolean;
+  url: string | null;
 }
 
-const VERSION = '0.1.0';
+export const releaseVersion = '0.1.0';
+const asset = (name: string) => `${siteConfig.releases}/download/v${releaseVersion}/${name}`;
 
 export const downloadTargets: DownloadTarget[] = [
   {
-    platform: 'macos',
-    titleKey: 'macos_title',
-    reqKey: 'macos_req',
-    url: `https://github.com/clipsx/clipsx/releases/download/v${VERSION}/ClipsX_${VERSION}_universal.dmg`,
-    ext: '.dmg',
+    id: 'windows-x64', platform: 'windows', architecture: 'x64', format: '.exe',
+    status: 'coming-soon', signed: false, notarized: false, url: null,
   },
   {
-    platform: 'windows',
-    titleKey: 'windows_title',
-    reqKey: 'windows_req',
-    url: `https://github.com/clipsx/clipsx/releases/download/v${VERSION}/ClipsX_${VERSION}_x64-setup.exe`,
-    ext: '.exe',
+    id: 'linux-appimage-x64', platform: 'linux', architecture: 'x64', format: 'AppImage',
+    status: 'coming-soon', signed: false, notarized: false, url: null,
   },
   {
-    platform: 'linux',
-    titleKey: 'linux_title',
-    reqKey: 'linux_req',
-    url: `https://github.com/clipsx/clipsx/releases/download/v${VERSION}/ClipsX_${VERSION}_amd64.AppImage`,
-    ext: '.AppImage',
+    id: 'linux-deb-x64', platform: 'linux', architecture: 'x64', format: '.deb',
+    status: 'coming-soon', signed: false, notarized: false, url: null,
   },
+  { id: 'macos-universal', platform: 'macos', architecture: 'Apple silicon + Intel', format: '.dmg', status: 'coming-soon', signed: false, notarized: false, url: null },
 ];
+
+export function releaseAssetUrl(fileName: string) { return asset(fileName); }

@@ -1,5 +1,11 @@
 # Stripe billing architecture
 
+> **Launch state:** ClipsX is Free-first. Pro is an undefined future supporter
+> plan, the website does not offer purchase, and Checkout returns
+> `BILLING_NOT_AVAILABLE` unless `CLIPSX_ENABLE_PAID_CHECKOUT=true` is deliberately
+> set server-side. Keep it disabled in production. Projection and Portal support
+> remain for legacy/test subscriptions and account offboarding.
+
 ## Authority model
 
 Stripe is authoritative for Products, Prices, Customers, Subscriptions, and
