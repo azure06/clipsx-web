@@ -1,10 +1,12 @@
 @import "tailwindcss";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/noto-sans-jp";
 
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme {
-  --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
-  --font-heading: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Noto Sans JP Variable", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  --font-heading: "Space Grotesk Variable", "Noto Sans JP Variable", system-ui, sans-serif;
 }
 
 @layer base {

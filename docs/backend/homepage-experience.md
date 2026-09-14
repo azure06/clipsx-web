@@ -7,6 +7,16 @@ enable uncertified artifacts or change account, billing, or sync behavior.
 
 ## Design source
 
+Space Grotesk headings and Noto Sans JP body text match the font families on
+`main`. Fontsource variable-font packages bundle them as local static assets;
+Google Fonts is not contacted during builds or by visitors.
+
+The illustrated "Good things shouldn't get lost" cards, extension illustrations,
+and existing gradients are retained. Section gaps are expanded, with a slim
+factual strip below the demo and two wide supporting cards before the privacy
+section. These describe existing local history, optional Ollama, pins/favorites,
+and content previews without latency or format-count claims.
+
 The homepage uses the desktop repository's design vocabulary, inspected in:
 
 - `../clipsx/src/features/app/AppLayout.tsx`: translucent slate surfaces,
@@ -39,7 +49,9 @@ the footer on every viewport, alongside the local-data promise.
 
 ## Locale routing
 
-`middleware.ts` (project root) runs `next-intl`'s `createMiddleware(routing)`
+`src/proxy.ts` runs `next-intl`'s `createMiddleware(routing)` and refreshes the
+Supabase session for matched page requests. This uses Next 16's `proxy.ts`
+convention; there is no legacy root `middleware.ts` file.
 so a request to the bare domain root (or any other un-prefixed path) is
 redirected to the matching locale-prefixed route (e.g. `/` → `/en` or `/ja`
 based on `Accept-Language`). Before this middleware existed, bare `/` served
@@ -55,6 +67,11 @@ contents, invoke Ollama, install extensions, access accounts, or send sample
 searches to a backend. The illustrated Mermaid result is a fixed example.
 
 Implemented interactions:
+
+- The demo has a maximum width of 960px and a fixed 330px list/detail area.
+  Examples, search results, and empty states share the same frame height;
+  overflowing history and preview content scroll internally. List subtitles
+  are visible. Phone list/detail views use the same height.
 
 - Search sample content; filter all, favorite, or pinned samples.
 - Select a clip and inspect its content. At phone widths, details replace the

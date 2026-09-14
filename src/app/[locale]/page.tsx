@@ -5,6 +5,7 @@ import {
   Code2,
   FileStack,
   Laptop,
+  Pin,
   Search,
   ShieldCheck,
   Sparkles,
@@ -187,6 +188,15 @@ export default async function HomePage({
           <HomePreview locale={locale} />
         </div>
       </section>
+      <section className="cx-shell cx-at-a-glance" aria-label={locale === "ja" ? "ClipsX の特徴" : "ClipsX at a glance"}>
+        {([
+          [Laptop, locale === "ja" ? "履歴は端末に保存" : "History stays on your device"],
+          [ShieldCheck, locale === "ja" ? "基本機能は登録不要" : "No account for core features"],
+          [Sparkles, locale === "ja" ? "Ollama は必要に応じて" : "Ollama when you want it"],
+        ] as const).map(([Icon, label]) => (
+          <div key={label}><Icon size={19} /><span>{label}</span></div>
+        ))}
+      </section>
       <section className="cx-shell cx-workflow">
         <p className="cx-kicker">
           <span className="cx-kicker-index" aria-hidden="true">01</span>
@@ -306,6 +316,25 @@ export default async function HomePage({
             {c.developerLink}
             <ArrowRight size={17} />
           </Link>
+        </div>
+      </section>
+      <section className="cx-shell cx-everyday">
+        <h2>{locale === "ja" ? "毎日のコピーを、もっと快適に。" : "Small details. Smoother days."}</h2>
+        <div className="cx-everyday-grid">
+          <article>
+            <Pin size={22} />
+            <div>
+              <h3>{locale === "ja" ? "よく使うものを、すぐ手元に。" : "Keep your regulars within reach."}</h3>
+              <p>{locale === "ja" ? "クリップをピン留めしたり、お気に入りに追加。繰り返し使うものを、履歴から探し直す手間を減らせます。" : "Pin clips or mark them as favorites, so the things you use again and again are easier to find."}</p>
+            </div>
+          </article>
+          <article>
+            <Code2 size={22} />
+            <div>
+              <h3>{locale === "ja" ? "貼り付ける前に、ひと目で確認。" : "Know what you’re about to paste."}</h3>
+              <p>{locale === "ja" ? "クリップを選んで内容をプレビュー。必要な内容を確認してから、次の作業へ。" : "Select a clip to preview its contents. Check the text or link you need before taking it into your next task."}</p>
+            </div>
+          </article>
         </div>
       </section>
       <section className="cx-shell cx-local">
