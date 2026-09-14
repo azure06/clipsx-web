@@ -18,7 +18,7 @@
 .cx-home h1,
 .cx-home h2,
 .cx-home h3 {
-  font-family: var(--font-heading), var(--font-noto), sans-serif;
+  font-family: var(--font-heading), var(--font-sans), sans-serif;
 }
 .cx-home h2 {
   font-size: clamp(30px, 3.6vw, 47px);
@@ -205,7 +205,7 @@
   max-width: 560px;
 }
 .cx-stage-caption > span:first-child {
-  font-family: var(--font-heading), var(--font-noto), sans-serif;
+  font-family: var(--font-heading), var(--font-sans), sans-serif;
   font-size: clamp(18px, 2vw, 22px);
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -314,7 +314,7 @@
     0 0 55px -20px #8b5cf640;
   overflow: hidden;
   backdrop-filter: blur(24px);
-  font-family: var(--font-noto), sans-serif;
+  font-family: var(--font-sans);
 }
 .cx-app-title {
   height: 37px;

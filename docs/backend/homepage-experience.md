@@ -32,7 +32,10 @@ its own separate cyan `--vault-accent` design tokens and is unaffected.
 The web canvas composites the native app's translucent surfaces over a slate
 background. Navigation switches to its collapsible menu below the
 desktop-link breakpoint, so tablet visitors retain access to all primary
-destinations.
+destinations. The header contains primary navigation, account access, and a
+GitHub-mark repository link; its star count is fetched after hydration and
+falls back to the icon if GitHub is unavailable. Language selection lives in
+the footer on every viewport, alongside the local-data promise.
 
 ## Locale routing
 

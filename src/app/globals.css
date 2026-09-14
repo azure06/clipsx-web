@@ -3,8 +3,8 @@
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme {
-  --font-sans: var(--font-noto), var(--font-heading), system-ui, sans-serif;
-  --font-heading: var(--font-heading), system-ui, sans-serif;
+  --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  --font-heading: "Space Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
 }
 
 @layer base {

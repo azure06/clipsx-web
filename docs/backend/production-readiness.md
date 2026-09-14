@@ -57,6 +57,7 @@ promise that future product/protocol changes will never require schema updates.
 | Retained JWTs could outlive account closure. | Vault read policies require a live session and unclosed principal. | A valid token alone is insufficient after session revocation. Same-JWT before/after closure test passes. |
 | A closing shared member still knew the old collection key. | Fence new encrypted writes until an owner-signed removal rotation completes. | The server cannot generate an E2EE rotation itself. SQL tests verify the fence and its release. |
 | Lint and release checks were incomplete. | Fix JSX escaping and media-query subscription; add baseline, concurrency, restore and migration-history checks to CI. | Build/lint checks and repeatable database evidence should gate release rather than depend on manual inspection. |
+| Production builds depended on fetching Google Fonts through `next/font/google`. | Use local system font stacks for the website's sans and heading families. | `npm run build` remains reproducible in network-restricted environments; no runtime or build-time Google Fonts request is required. |
 | The hosted platform exposed its RLS event-trigger function as a public RPC. | Revoke function execution from public Data API roles in a forward migration and assert both roles remain denied. | Event-trigger execution does not require browser roles to call the privileged backing function. Hosted security advisors must report no externally facing warning. |
 
 Correction to an intermediate investigation: item ciphertext is already detached

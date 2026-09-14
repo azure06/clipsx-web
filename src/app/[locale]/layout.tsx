@@ -1,25 +1,12 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
-import { Space_Grotesk, Noto_Sans_JP } from 'next/font/google';
 import { routing } from '@/i18n/routing';
 import { siteConfig } from '@/config/site';
 import { getUser } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import '../globals.css';
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-heading',
-  display: 'swap',
-});
-
-const notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  variable: '--font-noto',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: {
@@ -60,7 +47,6 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${notoSansJP.variable}`}
     >
       <body className="min-h-screen bg-white text-gray-900 antialiased font-sans transition-colors dark:bg-gray-950 dark:text-gray-100">
         <NextIntlClientProvider messages={messages}>
