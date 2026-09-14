@@ -88,7 +88,7 @@ export default function ContactPage() {
             <p className="text-sm text-red-400">{t('error')}</p>
           )}
 
-          <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+          <Button type="submit" variant="brand" size="lg" loading={isSubmitting} className="w-full">
             {t('submit')}
           </Button>
         </form>

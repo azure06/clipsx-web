@@ -19,10 +19,30 @@ The homepage uses the desktop repository's design vocabulary, inspected in:
   distinct blue, sky, violet, fuchsia, and amber content indicators.
 - `../clipsx/tailwind.config.js`: short fade/slide transitions.
 
+This violet/navy accent is now the site-wide marketing accent (shared
+Header/Footer, pricing/product/faq/docs/blog, and the signin/signup/contact
+forms), not homepage-exclusive — it replaced the marketing site's previous
+cyan accent. The homepage's own `body:has(.cx-home)` override of the shared
+Header/Footer therefore no longer needs to recolor hue (the default is
+already violet); it exists only to force a permanently-dark header/footer on
+this route, because the hero is intentionally dark regardless of the
+visitor's OS light/dark preference. The authenticated vault dashboard keeps
+its own separate cyan `--vault-accent` design tokens and is unaffected.
+
 The web canvas composites the native app's translucent surfaces over a slate
-background. Homepage CSS is scoped, including shared header/footer appearance.
-Navigation switches to its collapsible menu below the desktop-link breakpoint,
-so tablet visitors retain access to all primary destinations.
+background. Navigation switches to its collapsible menu below the
+desktop-link breakpoint, so tablet visitors retain access to all primary
+destinations.
+
+## Locale routing
+
+`middleware.ts` (project root) runs `next-intl`'s `createMiddleware(routing)`
+so a request to the bare domain root (or any other un-prefixed path) is
+redirected to the matching locale-prefixed route (e.g. `/` → `/en` or `/ja`
+based on `Accept-Language`). Before this middleware existed, bare `/` served
+the unrelated, unstyled default Next.js starter page instead of the real
+site — `src/app/page.tsx` has been removed since it is unreachable once the
+middleware is in place.
 
 ## Interactive sample
 

@@ -22,10 +22,10 @@ const copy = {
     title: "Copy something.",
     accent: "Do more with it.",
     intro:
-      "The desktop clipboard for everything worth keeping. Find that link, bring back an idea, and turn what you copy into what you need next.",
+      "The desktop clipboard for everything worth keeping — find that link, bring back an idea, and turn it into what's next.",
     download: "Get ClipsX",
     tour: "Take a closer look",
-    note: "Local storage. No account needed.",
+    noteItems: ["Free", "Local storage", "No account needed"],
     preview: "A little less searching. A lot more doing.",
     previewNote: "Interactive preview · Sample content",
     workflow: "PICK UP WHERE YOU LEFT OFF",
@@ -44,7 +44,7 @@ const copy = {
         "Preview content, choose the format you need, or use an extension to turn a clip into something useful.",
       ],
     ],
-    extensionsLabel: "SMALL TOOLS. NEW POSSIBILITIES.",
+    extensionsLabel: "SMALL EXTENSIONS. BIG LEVERAGE.",
     extensions: "Your clipboard,\nwith a few superpowers.",
     extensionsBody:
       "A diagram hiding in some text. A token that needs a closer look. Extensions give the things you copy a more useful next step.",
@@ -77,7 +77,7 @@ const copy = {
       "残しておきたいもののための、デスクトップクリップボード。あのリンクも、ふと思いついたアイデアも。コピーしたものを見つけて、次の作業につなげよう。",
     download: "ClipsX を入手",
     tour: "使い方を見る",
-    note: "端末に保存。アカウントは不要。",
+    noteItems: ["無料", "端末に保存", "アカウント不要"],
     preview: "探す時間を減らして、やりたいことに集中。",
     previewNote: "操作できるプレビュー · サンプルデータ",
     workflow: "続きは、ここから。",
@@ -152,15 +152,9 @@ export default async function HomePage({
   return (
     <div className="cx-home">
       <section className="cx-hero">
-        <div className="cx-orbit-art" aria-hidden="true">
-          <span>text</span>
-          <span>{"{ }"}</span>
-          <span>↗</span>
-          <span>⌘ C</span>
-        </div>
         <div className="cx-shell cx-hero-copy">
           <p className="cx-kicker">
-            <span />
+            <span className="cx-kicker-dot" />
             {c.eyebrow}
           </p>
           <h1>
@@ -179,10 +173,11 @@ export default async function HomePage({
               <ArrowDown size={16} />
             </a>
           </div>
-          <p className="cx-hero-note">
-            <Laptop size={14} />
-            {c.note}
-          </p>
+          <div className="cx-hero-badges">
+            {c.noteItems.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
         </div>
         <div className="cx-shell cx-product-stage" id="closer-look">
           <div className="cx-stage-caption">
@@ -193,13 +188,17 @@ export default async function HomePage({
         </div>
       </section>
       <section className="cx-shell cx-workflow">
-        <p className="cx-kicker">{c.workflow}</p>
+        <p className="cx-kicker">
+          <span className="cx-kicker-index" aria-hidden="true">01</span>
+          {c.workflow}
+        </p>
         <h2>{c.heading}</h2>
         <div className="cx-benefits">
           {c.steps.map(([title, body], i) => {
             const Icon = icons[i];
             return (
               <article key={title} className={`cx-benefit-${i}`}>
+                <span className="cx-benefit-index" aria-hidden="true">{`0${i + 1}`}</span>
                 <div className="cx-feature-icon">
                   <Icon size={23} strokeWidth={1.6} />
                 </div>
@@ -249,7 +248,10 @@ export default async function HomePage({
       <section className="cx-shell cx-extensions">
         <div className="cx-extension-main">
           <div className="cx-extension-copy">
-            <p className="cx-kicker">{c.extensionsLabel}</p>
+            <p className="cx-kicker">
+              <span className="cx-kicker-index" aria-hidden="true">02</span>
+              {c.extensionsLabel}
+            </p>
             <h2>{c.extensions}</h2>
             <p>{c.extensionsBody}</p>
             <Link href="/extensions" className="cx-text-link">
@@ -308,7 +310,10 @@ export default async function HomePage({
       </section>
       <section className="cx-shell cx-local">
         <div>
-          <p className="cx-kicker">{c.localLabel}</p>
+          <p className="cx-kicker">
+            <span className="cx-kicker-index" aria-hidden="true">03</span>
+            {c.localLabel}
+          </p>
           <h2>{c.local}</h2>
           <p className="cx-local-body">{c.localBody}</p>
           <Link href="/docs/privacy" className="cx-text-link">
@@ -336,10 +341,6 @@ export default async function HomePage({
       </section>
       <section className="cx-closing">
         <div className="cx-shell">
-          <div className="cx-key-art" aria-hidden="true">
-            <span>⌘</span>
-            <span>C</span>
-          </div>
           <h2>{c.end}</h2>
           <p>{c.endBody}</p>
           <div className="cx-actions">

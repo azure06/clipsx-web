@@ -5,6 +5,7 @@
   --blue: #3b82f6;
   --violet: #8b5cf6;
   --fuchsia: #d946ef;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color: var(--ink);
   overflow: hidden;
   background:
@@ -15,17 +16,19 @@
     ),
     linear-gradient(#fff, #f8fafc 34%, #fff 70%);
 }
-.dark .ex-page {
-  --ink: #f8fafc;
-  --muted: #94a3b8;
-  --line: rgba(255, 255, 255, 0.1);
-  background:
-    radial-gradient(
-      circle at 82% 7%,
-      rgba(139, 92, 246, 0.16),
-      transparent 27rem
-    ),
-    linear-gradient(#080d1b, #0b1120 42%, #080d1b);
+@media (prefers-color-scheme: dark) {
+  .ex-page {
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --line: rgba(255, 255, 255, 0.1);
+    background:
+      radial-gradient(
+        circle at 82% 7%,
+        rgba(139, 92, 246, 0.16),
+        transparent 27rem
+      ),
+      linear-gradient(#080d1b, #0b1120 42%, #080d1b);
+  }
 }
 .ex-shell {
   width: min(100% - 2rem, 80rem);
@@ -41,8 +44,10 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.dark .ex-kicker {
-  color: #a78bfa;
+@media (prefers-color-scheme: dark) {
+  .ex-kicker {
+    color: #a78bfa;
+  }
 }
 .ex-hero {
   display: grid;
@@ -103,8 +108,10 @@
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink);
 }
-.dark .ex-button-secondary {
-  background: rgba(255, 255, 255, 0.045);
+@media (prefers-color-scheme: dark) {
+  .ex-button-secondary {
+    background: rgba(255, 255, 255, 0.045);
+  }
 }
 .ex-hero-demo {
   min-width: 0;
@@ -461,18 +468,40 @@
   background: #fff;
   color: #8b5cf6;
 }
-.dark .ex-way-arrow {
-  background: #0b1120;
+@media (prefers-color-scheme: dark) {
+  .ex-way-arrow {
+    background: #0b1120;
+  }
 }
 .ex-catalog {
   padding-block: 7.5rem;
-  background: #09101f;
+}
+.ex-catalog > .ex-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  padding: clamp(2.5rem, 5vw, 5rem);
+  background:
+    radial-gradient(ellipse 60% 60% at 100% 0%, rgba(217, 70, 239, 0.22), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 0% 100%, rgba(59, 130, 246, 0.16), transparent 55%),
+    #09101f;
   color: #f8fafc;
+}
+.ex-catalog > .ex-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(#8b5cf6 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.13;
+  mask-image: radial-gradient(ellipse 55% 50% at 50% 10%, black, transparent);
 }
 .ex-catalog .ex-kicker {
   color: #a78bfa;
 }
 .ex-catalog-head {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 0.75fr;
   gap: 6rem;
@@ -633,8 +662,10 @@
   background: rgba(255, 255, 255, 0.75);
   box-shadow: 0 24px 55px -38px rgba(76, 29, 149, 0.5);
 }
-.dark .ex-permission-window {
-  background: rgba(8, 13, 27, 0.74);
+@media (prefers-color-scheme: dark) {
+  .ex-permission-window {
+    background: rgba(8, 13, 27, 0.74);
+  }
 }
 .ex-permission-head {
   display: grid;
@@ -757,8 +788,10 @@
 .ex-route-user {
   background: #f8fafc;
 }
-.dark .ex-route-user {
-  background: rgba(255, 255, 255, 0.035);
+@media (prefers-color-scheme: dark) {
+  .ex-route-user {
+    background: rgba(255, 255, 255, 0.035);
+  }
 }
 .ex-route-user .ex-route-icon {
   background: #3b82f615;
@@ -774,9 +807,11 @@
   font-size: 0.73rem;
   font-weight: 800;
 }
-.dark .ex-route-user > div > span,
-.dark .ex-route-links a {
-  color: #a78bfa;
+@media (prefers-color-scheme: dark) {
+  .ex-route-user > div > span,
+  .ex-route-links a {
+    color: #a78bfa;
+  }
 }
 .ex-route-dev {
   background: linear-gradient(135deg, #4f46e5, #7c3aed 55%, #a21caf);

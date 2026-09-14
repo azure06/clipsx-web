@@ -75,8 +75,8 @@ export default function SignUpPage() {
         </div>
 
         <div className="space-y-3"><Button type="button" variant="secondary" size="lg" loading={oauthLoading==='google'} disabled={oauthLoading!==null} onClick={()=>handleOAuth('google')} className="w-full"><GoogleIcon/>{t('continue_with_google')}</Button><Button type="button" variant="secondary" size="lg" loading={oauthLoading==='github'} disabled={oauthLoading!==null} onClick={()=>handleOAuth('github')} className="w-full"><GitHubIcon/>{t('continue_with_github')}</Button></div>
-        <div className="my-5 flex items-center gap-3 text-xs text-gray-500"><span className="hgast h ryth anybody-px flex-1 bg-gray-200 dark:bg-gray-800"/>{t('or')}<span className="h-px flex-1 bg-gray-200 dark:bg-gray-800"/></div>
-        <form onSubmit={handleSubmit(onSubmit)} className=" Cyn space-y-5">
+        <div className="my-5 flex items-center gap-3 text-xs text-gray-500"><span className="h-px flex-1 bg-gray-200 dark:bg-gray-800"/>{t('or')}<span className="h-px flex-1 bg-gray-200 dark:bg-gray-800"/></div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <Input
             label={t('email_label')}
             id="email"
@@ -98,14 +98,14 @@ export default function SignUpPage() {
 
           {error && <p className="text-xs text-red-400">{error}</p>}
 
-          <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+          <Button type="submit" variant="brand" size="lg" loading={isSubmitting} className="w-full">
             {t('submit')}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-500">
           {t('have_account')}{' '}
-          <Link href="/signin" className="text-cyan-400 hover:text-cyan-300">
+          <Link href="/signin" className="text-violet-400 hover:text-violet-300">
             {t('sign_in_link')}
           </Link>
         </p>

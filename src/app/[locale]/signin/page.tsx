@@ -111,7 +111,7 @@ export default function SignInPage() {
             {...register('password')}
           />
 
-          <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+          <Button type="submit" variant="brand" size="lg" loading={isSubmitting} className="w-full">
             {t('submit')}
           </Button>
         </form>
@@ -120,7 +120,7 @@ export default function SignInPage() {
 
         <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-500">
           {t('no_account')}{' '}
-          <Link href="/signup" className="text-cyan-400 hover:text-cyan-300">
+          <Link href="/signup" className="text-violet-400 hover:text-violet-300">
             {t('sign_up_link')}
           </Link>
         </p>

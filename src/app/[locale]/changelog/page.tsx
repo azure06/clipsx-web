@@ -29,15 +29,15 @@ export default function ChangelogPage({
         <div className="space-y-12">
           {changelog.map((entry) => (
             <div key={entry.version} className="relative pl-8 border-l border-gray-200 dark:border-white/8">
-              <div className="absolute -left-2 top-0 h-4 w-4 rounded-full bg-cyan-500" />
+              <div className="absolute -left-2 top-0 h-4 w-4 rounded-full bg-violet-500" />
               <div className="flex flex-wrap items-center gap-3 mb-4">
-                <Badge variant="cyan">v{entry.version}</Badge>
+                <Badge variant="violet">v{entry.version}</Badge>
                 <span className="text-xs text-gray-500 dark:text-gray-600">{entry.date}</span>
               </div>
               <ul className="space-y-2">
                 {entry.items.map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <span className="text-cyan-500 mt-1.5">•</span>
+                    <span className="text-violet-500 mt-1.5">•</span>
                     {item}
                   </li>
                 ))}
