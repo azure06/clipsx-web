@@ -80,6 +80,8 @@ envelopes, commitments and attribution have separate retention requirements.
   `public.rls_auto_enable`, and neither role can read the approval catalog.
 - 79 unit tests pass; type-check and production build pass.
 - Repository lint passes with 20 existing warnings and no errors.
+- CI uses immutable Node-24 action revisions, avoiding deprecated action runtimes
+  and mutable action tags.
 - Migration guard test accepts a forward migration and rejects a rewritten
   released baseline.
 
