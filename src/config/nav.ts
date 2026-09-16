@@ -1,29 +1,72 @@
+export type NavIcon =
+  | 'product'
+  | 'recall'
+  | 'search'
+  | 'extensions'
+  | 'developers'
+  | 'docs'
+  | 'github'
+  | 'changelog';
+
 export interface NavItem {
   labelKey: string;
+  descriptionKey?: string;
   href: string;
+  icon?: NavIcon;
+  external?: boolean;
+  featured?: boolean;
 }
 
-export const mainNav: NavItem[] = [
-  { labelKey: 'Nav.product', href: '/product' },
-  { labelKey: 'Nav.extensions', href: '/extensions' },
-  { labelKey: 'Nav.developers', href: '/developers' },
+export interface NavMenu {
+  id: 'product' | 'developers';
+  labelKey: string;
+  eyebrowKey: string;
+  items: NavItem[];
+}
+
+export const mainNavMenus: NavMenu[] = [
+  {
+    id: 'product',
+    labelKey: 'Nav.product',
+    eyebrowKey: 'Nav.productMenuEyebrow',
+    items: [
+      { labelKey: 'Nav.productOverview', descriptionKey: 'Nav.productOverviewDescription', href: '/product', icon: 'product' },
+      { labelKey: 'Nav.recall', descriptionKey: 'Nav.recallDescription', href: '/recall', icon: 'recall', featured: true },
+      { labelKey: 'Nav.meaningSearch', descriptionKey: 'Nav.meaningSearchDescription', href: '/docs/meaning-search', icon: 'search' },
+      { labelKey: 'Nav.extensions', descriptionKey: 'Nav.extensionsDescription', href: '/extensions', icon: 'extensions' },
+    ],
+  },
+  {
+    id: 'developers',
+    labelKey: 'Nav.developers',
+    eyebrowKey: 'Nav.developersMenuEyebrow',
+    items: [
+      { labelKey: 'Nav.developerOverview', descriptionKey: 'Nav.developerOverviewDescription', href: '/developers', icon: 'developers' },
+      { labelKey: 'Nav.extensionDocs', descriptionKey: 'Nav.extensionDocsDescription', href: '/docs/developers', icon: 'docs' },
+      { labelKey: 'Nav.githubLabel', descriptionKey: 'Nav.githubDescription', href: 'https://github.com/azure06/clipsx', icon: 'github', external: true },
+      { labelKey: 'Nav.changelog', descriptionKey: 'Nav.changelogDescription', href: '/changelog', icon: 'changelog' },
+    ],
+  },
+];
+
+export const mainNavLinks: NavItem[] = [
   { labelKey: 'Nav.docs', href: '/docs' },
-  { labelKey: 'Nav.blog', href: '/blog' },
   { labelKey: 'Nav.pricing', href: '/pricing' },
 ];
 
 export const footerNav = {
   product: [
     { labelKey: 'Footer.productLink', href: '/product' },
+    { labelKey: 'Footer.recall', href: '/recall' },
     { labelKey: 'Footer.extensions', href: '/extensions' },
     { labelKey: 'Footer.pricing', href: '/pricing' },
     { labelKey: 'Footer.download', href: '/download' },
-    { labelKey: 'Footer.changelog', href: '/changelog' },
-    { labelKey: 'Footer.blog', href: '/blog' },
   ],
   company: [
     { labelKey: 'Footer.developers', href: '/developers' },
     { labelKey: 'Footer.docs', href: '/docs' },
+    { labelKey: 'Footer.changelog', href: '/changelog' },
+    { labelKey: 'Footer.blog', href: '/blog' },
     { labelKey: 'Footer.contact', href: '/contact' },
     { labelKey: 'Footer.faq', href: '/faq' },
   ],

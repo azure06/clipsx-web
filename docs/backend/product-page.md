@@ -5,6 +5,10 @@ interactive clipboard introduction. Product has no simulated desktop or mock
 clipboard controls. It retains visual explanations and an interactive
 representation graph, alongside the functional section menu.
 
+Recall has its own focused route at `/[locale]/recall`; Product remains the
+broader clipboard-system reference and does not duplicate Recall's evidence
+walkthrough.
+
 ## Structure
 
 The route is a Server Component, using English/Japanese content in
