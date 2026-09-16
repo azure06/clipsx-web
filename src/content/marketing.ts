@@ -1,18 +1,8 @@
 import type { Locale } from '@/i18n/config';
 
 export type Localized = Record<Locale, string>;
-export type ContentCard = { title: Localized; body: Localized };
 export const pick = (value: Localized, locale: Locale) => value[locale];
 export const l = (en: string, ja: string): Localized => ({ en, ja });
-
-export const productCards: ContentCard[] = [
-  { title:l('Keep the useful formats','有用な形式を保持'), body:l('Capture text, images, files, links, tables, rich content, and supported native representations together.','テキスト、画像、ファイル、リンク、表、リッチコンテンツ、対応するネイティブ形式をまとめて保存します。') },
-  { title:l('Search exact or by meaning','完全一致と意味で検索'), body:l('Fast full-text search is always available. Optional Meaning Search uses local embeddings when you choose to configure it.','高速な全文検索を常に利用できます。任意の意味検索は、設定した場合のみローカル埋め込みを使用します。') },
-  { title:l('Make images searchable','画像も検索可能に'), body:l('Platform OCR extracts useful text into rebuildable local artifacts without changing the original capture.','プラットフォームの OCR が原本を変更せず、再生成可能なローカルデータとして文字を抽出します。') },
-  { title:l('Organize without friction','自然に整理'), body:l('Pin, tag, annotate, filter, and recall clips while keeping the keyboard at the center of the workflow.','ピン、タグ、メモ、フィルターを使い、キーボード中心でクリップを再発見できます。') },
-  { title:l('Paste the representation you need','必要な形式で貼り付け'), body:l('ClipsX preserves supported representations and lets you deliberately copy, paste, export, or share the right one.','対応する表現を保持し、必要な形式を明示的にコピー、貼り付け、書き出し、共有できます。') },
-  { title:l('Stay local by default','ローカルが既定'), body:l('Clipboard history, files, OCR, indexes, embeddings, local model settings, and secrets stay on this device.','履歴、ファイル、OCR、インデックス、埋め込み、ローカルモデル設定、秘密情報は端末内に残ります。') },
-];
 
 export const docs = [
   { slug:'getting-started', title:l('Getting started','はじめに'), summary:l('Install ClipsX, open history, and understand the first-run choices.','ClipsX の導入、履歴画面、初回設定を説明します。') },
