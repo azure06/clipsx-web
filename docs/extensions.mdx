@@ -1,0 +1,30 @@
+---
+title: "Extensions"
+description: "Understand ClipsX extension packages, permission review, updates, and quarantine."
+keywords: ["ClipsX extensions", "WASM", "permissions", "signed packages"]
+---
+
+Extensions can detect, render, transform, or act on compatible clipboard
+representations. They run as bounded WebAssembly packages, while ClipsX retains
+control of permission consent, limits, rendering, accessibility, and quarantine.
+
+<Warning>
+  The first-party packages and signed registry are prepared but not yet
+  published. No optional package is installed by default.
+</Warning>
+
+## Permission boundary
+
+- Extensions do not receive ambient access to clipboard history, the file
+  system, or the network.
+- Network destinations and external navigation must be declared and granted for
+  the exact package release.
+- Review permissions after installation and whenever an update changes the
+  package checksum.
+- Credentials and grants never sync automatically.
+- Repeated failures can quarantine a package without changing the original clip.
+
+Prepared first-party packages include Mermaid, JWT Inspector, Base64, Data
+Tools, and Ask AI. Their source is available in the
+[ClipsX extensions repository](https://github.com/azure06/clipsx-extensions).
+

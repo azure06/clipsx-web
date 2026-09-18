@@ -1,0 +1,43 @@
+---
+title: "Local AI with Ollama"
+description: "Connect a loopback Ollama service for optional Meaning Search and Recall features."
+keywords: ["Ollama", "Meaning Search", "Recall", "local AI"]
+---
+
+ClipsX can use an Ollama service running on your device. It does not install
+Ollama, download models automatically, or silently send clipboard content to a
+hosted model provider.
+
+<Steps>
+  <Step title="Install and start Ollama">
+    Follow the [official Ollama installation instructions](https://ollama.com/download),
+    then start its local service. The default endpoint is
+    `http://localhost:11434`.
+  </Step>
+  <Step title="Connect ClipsX">
+    In ClipsX, open **Intelligence**, choose **Models**, enter the loopback
+    endpoint, and select **Connect**. ClipsX lists models after the endpoint
+    responds successfully.
+  </Step>
+  <Step title="Enable Meaning Search">
+    Select an installed model that Ollama reports as supporting text embeddings.
+    Indexing runs in the background, while exact text search remains available.
+  </Step>
+  <Step title="Enable Recall when needed">
+    Under **Local Text Generation**, choose a model that reports generation
+    support. This can be different from the embedding model.
+  </Step>
+</Steps>
+
+## Recall safety model
+
+Recall answers questions from a visible, bounded selection of history. Inspect
+its numbered citations before relying on an answer. Detected secret clips are
+excluded unless you override that protection, and generated answers can be
+wrong.
+
+<Note>
+  Prompts and answers do not become canonical clip metadata. Temporary Recall
+  conversations expire after inactivity.
+</Note>
+

@@ -1,0 +1,42 @@
+---
+title: "Troubleshooting"
+description: "Resolve common ClipsX release, search, Ollama, extension, and sync issues."
+keywords: ["ClipsX troubleshooting", "Ollama connection", "sync issues", "extensions"]
+---
+
+<AccordionGroup>
+  <Accordion title="No installer is available">
+    This is currently expected. Every configured Windows, Linux, and macOS target
+    is marked **Coming soon**. Wait until the
+    [download page](https://clipsx.app/en/download) marks a certified target as
+    available.
+  </Accordion>
+  <Accordion title="Ollama does not connect">
+    Confirm that Ollama is running on your device and that ClipsX is configured
+    with a loopback endpoint such as `http://localhost:11434`. Refresh the
+    connection after the service responds.
+  </Accordion>
+  <Accordion title="A model does not appear">
+    Install a model that Ollama reports as supporting the capability you need:
+    embeddings for Meaning Search or generation for Recall. Then refresh the
+    model list.
+  </Accordion>
+  <Accordion title="Meaning Search is rebuilding">
+    Exact text search remains available while the derived semantic index builds.
+    Clearing or rebuilding this index does not delete canonical clips.
+  </Accordion>
+  <Accordion title="An extension is quarantined">
+    Review its failure information and permissions before enabling it again.
+    Quarantine does not mutate the original clip.
+  </Accordion>
+  <Accordion title="Settings did not sync">
+    Confirm that you are signed in, online, and using an enrolled device. Only
+    supported configuration records roam; clipboard content and other local data
+    never appear through settings sync.
+  </Accordion>
+</AccordionGroup>
+
+If the issue persists, report it in the
+[ClipsX issue tracker](https://github.com/azure06/clipsx/issues) with the platform,
+app version, and non-sensitive diagnostic details.
+

@@ -1,0 +1,37 @@
+---
+title: "Account and settings sync"
+description: "Learn which ClipsX settings can roam between signed-in devices and which data remains local."
+keywords: ["ClipsX account", "settings sync", "devices", "local data"]
+---
+
+Configuration sync is opt-in. It can move a bounded set of supported settings
+and reviewed intent between signed-in devices. It is independent of clipboard
+history and is not end-to-end encrypted; the service can read synchronized
+configuration.
+
+## What can sync
+
+- Supported profile preferences, including theme, language, default output
+  format, and selected search preferences
+- Renderer preferences
+- Reviewed extension enablement intent and approved portable boolean or numeric
+  settings
+- Portable app shortcuts
+
+## What stays local
+
+Clipboard content, notes, tags, files, archives, credentials, permission grants,
+provider endpoints and models, capture settings, diagnostics, indexes, jobs, and
+derived data do not sync.
+
+<Info>
+  Signing out pauses sync and preserves local data. Extension restoration still
+  uses the signed registry and requires fresh local capability consent.
+</Info>
+
+## First connection
+
+When the cloud profile is empty, ClipsX can initialize it from the device. When
+cloud settings already exist, **Use cloud settings** is the default. Replacing
+the cloud profile with the current device requires explicit confirmation.
+

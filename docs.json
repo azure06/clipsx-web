@@ -1,0 +1,84 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "luma",
+  "name": "ClipsX",
+  "description": "User documentation for the ClipsX programmable desktop clipboard.",
+  "colors": {
+    "primary": "#7C3AED",
+    "light": "#A78BFA",
+    "dark": "#5B21B6"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Start here",
+        "icon": "rocket",
+        "pages": [
+          "docs/index",
+          "docs/getting-started",
+          "docs/platform-support"
+        ]
+      },
+      {
+        "group": "Use ClipsX",
+        "icon": "clipboard",
+        "pages": [
+          "docs/core-workflows",
+          "docs/local-ai",
+          "docs/extensions",
+          "docs/sync"
+        ]
+      },
+      {
+        "group": "Safety and support",
+        "icon": "shield-check",
+        "pages": [
+          "docs/privacy",
+          "docs/troubleshooting"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Website",
+        "href": "https://clipsx.app"
+      },
+      {
+        "type": "github",
+        "href": "https://github.com/azure06/clipsx"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Check downloads",
+      "href": "https://clipsx.app/en/download"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/azure06/clipsx",
+      "website": "https://clipsx.app"
+    }
+  },
+  "search": {
+    "prompt": "Search ClipsX documentation"
+  },
+  "contextual": {
+    "options": ["copy", "chatgpt", "claude"],
+    "display": "toc"
+  },
+  "seo": {
+    "metatags": {
+      "og:locale": "en_US"
+    },
+    "indexing": "navigable"
+  }
+}

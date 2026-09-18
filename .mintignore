@@ -1,0 +1,5 @@
+# Internal planning and operations material is maintained in the repository but
+# is not part of the public, user-facing Mintlify site.
+docs/backend/
+docs/plan.md
+

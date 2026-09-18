@@ -1,0 +1,40 @@
+---
+title: "Privacy and data ownership"
+description: "Understand the local data boundary, optional account services, and deletion responsibilities in ClipsX."
+keywords: ["ClipsX privacy", "local-first", "data ownership", "account deletion"]
+---
+
+## Device-local clipboard data
+
+Clipboard content, managed files, OCR, full-text and semantic indexes, provider
+endpoints and models, credentials, permission grants, diagnostics, and derived
+data remain on your device. ClipsX does not silently upload them.
+
+## Optional account data
+
+If you create an account, Supabase processes authentication identity, email,
+sessions, and hosted records required for supported settings sync. Current sync
+does not include clipboard content, notes, tags, files, or secrets.
+
+Google and GitHub process data only when you choose their sign-in options.
+Stripe processes billing information only for legacy subscriptions or if a paid
+plan is enabled in the future; ClipsX does not store card details. Ollama runs
+separately on your device.
+
+## Delete your data
+
+You can close your account from Account settings. Active subscriptions must be
+canceled and owned organizations transferred first. Account closure revokes
+hosted sessions and removes or disables hosted account data according to
+integrity and security requirements.
+
+<Warning>
+  Closing an account does not remove data stored by the desktop app. Delete
+  local desktop data separately on every device.
+</Warning>
+
+<Note>
+  The public privacy policy is currently a launch draft and requires final legal
+  review and operator identity before production use.
+</Note>
+
