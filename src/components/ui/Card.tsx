@@ -12,8 +12,8 @@ export function Card({ children, className, frosted = false }: CardProps) {
       className={cn(
         'rounded-2xl border',
         frosted
-          ? 'bg-black/3 border-gray-200/70 backdrop-blur-md dark:bg-white/5 dark:border-white/10'
-          : 'bg-white border-gray-200 dark:bg-gray-900/60 dark:border-gray-800',
+          ? 'border-violet-300/15 bg-white/5 backdrop-blur-md'
+          : 'border-(--ui-border) bg-(--ui-surface)',
         className
       )}
     >

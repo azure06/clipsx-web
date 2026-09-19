@@ -100,7 +100,7 @@ export default function BillingSection() {
         <div>
           <Badge variant={plan === "free" ? "default" : "cyan"}>{t(`plan_${plan}` as never)}</Badge>
           {activating && plan === "free" && (
-            <p className="mt-2 text-xs text-cyan-700 dark:text-cyan-300">Activating Pro…</p>
+            <p className="mt-2 text-xs text-violet-300">Activating Pro…</p>
           )}
           {summary?.entitlementStatus === "read_only" && (
             <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">Read-only access</p>

@@ -151,7 +151,7 @@ export default function DevicesSection({ session }: SectionProps) {
             <label className="flex cursor-pointer items-start gap-3 text-sm">
               <input
                 type="checkbox"
-                className="mt-0.5 h-4 w-4 cursor-pointer rounded checked:accent-cyan-600"
+                className="mt-0.5 h-4 w-4 cursor-pointer rounded checked:accent-violet-500"
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />

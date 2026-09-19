@@ -1,9 +1,9 @@
 .page {
-  --ink: #172033;
-  --muted: #566479;
-  --line: #e1e6ef;
-  --violet: #6d28d9;
-  --surface: #f7f8fc;
+  --ink: var(--ui-text);
+  --muted: var(--ui-text-muted);
+  --line: var(--ui-border);
+  --violet: var(--ui-violet);
+  --surface: var(--ui-surface);
   max-width: 1240px;
   margin: auto;
   padding: 0 32px 88px;
@@ -905,20 +905,11 @@
     gap: 14px;
   }
 }
-@media (prefers-color-scheme: dark) {
-  .page {
-    --ink: #edf0f8;
-    --muted: #a6b2c6;
-    --line: #263044;
-    --violet: #c4b5fd;
-    --surface: #111827;
-  }
-  .primary {
-    background: #7c3aed;
-  }
-  .primary:hover {
-    background: #8b5cf6;
-  }
+.primary {
+  background: var(--ui-violet-strong);
+}
+.primary:hover {
+  background: var(--ui-violet);
 }
 @media (prefers-reduced-motion: reduce) {
   :global(html):has(.page) {

@@ -1567,7 +1567,7 @@ function PassphraseStrength({ passphrase }: { passphrase: string }) {
   const len = passphrase.length;
   const strength = len < 12 ? 0 : len < 16 ? 1 : len < 24 ? 2 : 3;
   const labels = ["Too short", "Fair", "Good", "Strong"];
-  const colors = ["bg-red-500", "bg-amber-400", "bg-cyan-400", "bg-emerald-500"];
+  const colors = ["bg-red-500", "bg-amber-400", "bg-blue-400", "bg-emerald-500"];
   return (
     <div className="mt-2 flex items-center gap-2">
       <div className="flex flex-1 gap-1">
@@ -1643,7 +1643,7 @@ function CreateVaultScreen({
               type="checkbox"
               checked={phraseConfirmed}
               onChange={(e) => setPhraseConfirmed(e.target.checked)}
-              className="h-4 w-4 rounded border border-(--vault-border) checked:accent-cyan-600 cursor-pointer"
+              className="h-4 w-4 rounded border border-(--vault-border) checked:accent-violet-500 cursor-pointer"
             />
             I have written down my recovery phrase in a safe place.
           </label>

@@ -1,9 +1,9 @@
 .ex-page {
-  --ink: #0f172a;
-  --muted: #64748b;
-  --line: rgba(100, 116, 139, 0.2);
-  --blue: #3b82f6;
-  --violet: #8b5cf6;
+  --ink: var(--ui-text);
+  --muted: var(--ui-text-muted);
+  --line: var(--ui-border);
+  --blue: var(--ui-blue);
+  --violet: var(--ui-violet-strong);
   --fuchsia: #d946ef;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color: var(--ink);
@@ -14,13 +14,13 @@
       rgba(139, 92, 246, 0.1),
       transparent 24rem
     ),
-    linear-gradient(#fff, #f8fafc 34%, #fff 70%);
+    linear-gradient(#080d1b, #0b1120 42%, #080d1b);
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-page {
-    --ink: #f8fafc;
-    --muted: #94a3b8;
-    --line: rgba(255, 255, 255, 0.1);
+    --ink: var(--ui-text);
+    --muted: var(--ui-text-muted);
+    --line: var(--ui-border);
     background:
       radial-gradient(
         circle at 82% 7%,
@@ -44,7 +44,7 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-kicker {
     color: #a78bfa;
   }
@@ -108,7 +108,7 @@
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink);
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-button-secondary {
     background: rgba(255, 255, 255, 0.045);
   }
@@ -468,7 +468,7 @@
   background: #fff;
   color: #8b5cf6;
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-way-arrow {
     background: #0b1120;
   }
@@ -662,7 +662,7 @@
   background: rgba(255, 255, 255, 0.75);
   box-shadow: 0 24px 55px -38px rgba(76, 29, 149, 0.5);
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-permission-window {
     background: rgba(8, 13, 27, 0.74);
   }
@@ -788,7 +788,7 @@
 .ex-route-user {
   background: #f8fafc;
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-route-user {
     background: rgba(255, 255, 255, 0.035);
   }
@@ -807,7 +807,7 @@
   font-size: 0.73rem;
   font-weight: 800;
 }
-@media (prefers-color-scheme: dark) {
+@media screen {
   .ex-route-user > div > span,
   .ex-route-links a {
     color: #a78bfa;

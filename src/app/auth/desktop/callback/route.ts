@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         position: absolute;
         inset: 0 0 auto;
         height: 4px;
-        background: linear-gradient(90deg, #22d3ee, #3b82f6);
+        background: linear-gradient(90deg, #60a5fa, #a78bfa);
       }
 
       .brand {
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
         width: 7px;
         height: 7px;
         border-radius: 50%;
-        background: #06b6d4;
+        background: #8b5cf6;
         box-shadow: 0 0 0 4px rgba(6, 182, 212, .12);
         content: "";
       }
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
         margin: 0 auto 22px;
         place-items: center;
         border-radius: 22px;
-        color: #0891b2;
+        color: #a78bfa;
         background: linear-gradient(145deg, rgba(207, 250, 254, .96), rgba(219, 234, 254, .96));
       }
 
@@ -202,18 +202,18 @@ export async function GET(request: NextRequest) {
 
       .fallback:hover { color: #075985; text-decoration: underline; text-underline-offset: 3px; }
 
-      @media (prefers-color-scheme: dark) {
-        :root { background: #07111f; color: #e5eef7; }
-        body { background: radial-gradient(circle at 12% 12%, rgba(8, 145, 178, .16), transparent 30rem), radial-gradient(circle at 88% 88%, rgba(37, 99, 235, .16), transparent 28rem), #07111f; }
+      @media screen {
+        :root { background: #080d1b; color: #f8fafc; }
+        body { background: radial-gradient(circle at 12% 12%, rgba(96, 165, 250, .14), transparent 30rem), radial-gradient(circle at 88% 88%, rgba(139, 92, 246, .16), transparent 28rem), #080d1b; }
         body::before { opacity: .22; background-image: linear-gradient(rgba(148, 163, 184, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, .08) 1px, transparent 1px); }
         .card { border-color: rgba(148, 163, 184, .18); background: rgba(15, 29, 48, .82); box-shadow: 0 24px 70px rgba(0, 0, 0, .34); }
         .brand, h1 { color: #f5faff; }
-        .status { color: #67e8f9; background: rgba(6, 182, 212, .1); }
+        .status { color: #a78bfa; background: rgba(167, 139, 250, .1); }
         .status-error { color: #fcd34d; background: rgba(245, 158, 11, .1); }
-        .icon { color: #67e8f9; background: linear-gradient(145deg, rgba(8, 145, 178, .2), rgba(37, 99, 235, .2)); }
+        .icon { color: #a78bfa; background: linear-gradient(145deg, rgba(96, 165, 250, .16), rgba(139, 92, 246, .2)); }
         p { color: #9bb0c5; }
-        .fallback { border-color: rgba(148, 163, 184, .16); color: #67e8f9; }
-        .fallback:hover { color: #a5f3fc; }
+        .fallback { border-color: rgba(167, 139, 250, .18); color: #a78bfa; }
+        .fallback:hover { color: #c4b5fd; }
       }
 
       @media (max-width: 480px) {

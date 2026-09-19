@@ -1037,7 +1037,7 @@ function EnvPreview({ item, clipboardClearMs }: { item: VaultItemHead; clipboard
                   type="checkbox"
                   checked={showMerged}
                   onChange={(e) => setShowMerged(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded checked:accent-cyan-600"
+                  className="h-3.5 w-3.5 rounded checked:accent-violet-500"
                 />
                 Show merged with base
               </label>

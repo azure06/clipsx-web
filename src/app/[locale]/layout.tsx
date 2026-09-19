@@ -46,9 +46,10 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
+      className="dark"
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-white text-gray-900 antialiased font-sans transition-colors dark:bg-gray-950 dark:text-gray-100">
+      <body className="min-h-screen bg-(--ui-canvas) text-(--ui-text) antialiased font-sans">
         <NextIntlClientProvider messages={messages}>
           <Header user={user} />
           <main className="pt-16">{children}</main>

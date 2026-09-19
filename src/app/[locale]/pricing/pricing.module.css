@@ -1,9 +1,9 @@
 .page {
-  --ink: #172033;
-  --muted: #58677c;
-  --line: #e1e6ef;
-  --surface: #f7f8fc;
-  --accent: #6d28d9;
+  --ink: var(--ui-text);
+  --muted: var(--ui-text-muted);
+  --line: var(--ui-border);
+  --surface: var(--ui-surface);
+  --accent: var(--ui-violet);
   max-width: 1180px;
   margin: auto;
   padding: 0 32px 80px;
@@ -65,7 +65,7 @@
   border-color: #3b3353;
 }
 .paidPlan {
-  background: var(--surface);
+  background: var(--ui-surface);
 }
 .planTop {
   display: flex;
@@ -611,20 +611,11 @@
     flex: 1;
   }
 }
-@media (prefers-color-scheme: dark) {
-  .page {
-    --ink: #edf0f8;
-    --muted: #a6b2c6;
-    --line: #283247;
-    --surface: #111827;
-    --accent: #c4b5fd;
-  }
-  .primary {
-    background: #7c3aed;
-  }
-  .primary:hover {
-    background: #8b5cf6;
-  }
+.primary {
+  background: var(--ui-violet-strong);
+}
+.primary:hover {
+  background: var(--ui-violet);
 }
 @media (prefers-reduced-motion: reduce) {
   :global(html):has(.page) {

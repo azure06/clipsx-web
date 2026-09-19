@@ -23,8 +23,7 @@ function MermaidDiagram({ chart }: { chart: string }) {
       node.replaceChildren(); setError(false);
       try {
         const mermaid = (await import("mermaid")).default;
-        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+        mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "dark" });
         const { svg } = await mermaid.render(`vault-mermaid-${id}`, chart);
         if (!cancelled) node.innerHTML = svg;
       } catch {
