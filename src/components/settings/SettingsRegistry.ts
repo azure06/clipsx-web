@@ -12,11 +12,12 @@ export type SettingsSectionDef = {
   id: string;
   label: string;
   icon: LucideIcon;
-  group: "account" | "billing" | "vault";
+  group: "profile" | "account" | "billing" | "vault";
   getComponent: () => Promise<{ default: ComponentType<SectionProps> }>;
 };
 
 export const SECTION_IDS = [
+  "profile",
   "account",
   "billing",
   "vault",
@@ -32,4 +33,4 @@ export function isSectionId(value: string | null): value is SectionId {
   return SECTION_IDS.includes(value as SectionId);
 }
 
-export const DEFAULT_SECTION: SectionId = "account";
+export const DEFAULT_SECTION: SectionId = "profile";

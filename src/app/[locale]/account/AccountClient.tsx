@@ -7,8 +7,10 @@ import { useRouter } from '@/i18n/routing';
 import type { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
+import { SettingsAction } from '@/components/settings/SettingsAction';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SettingsLayout, isSectionId, DEFAULT_SECTION, type SectionId } from '@/components/settings/SettingsLayout';
+import { KeyRound, Link2, MonitorSmartphone } from 'lucide-react';
 
 interface AccountClientProps {
   user: User;
@@ -59,7 +61,7 @@ export function AccountClient({ user }: AccountClientProps) {
       onSectionChange={handleSectionChange}
       variant="page"
     >
-      {activeSection === DEFAULT_SECTION ? (
+      {activeSection === 'account' ? (
         <div className="space-y-6">
           <SettingsSection title={t('email_label')}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -68,6 +70,38 @@ export function AccountClient({ user }: AccountClientProps) {
                 {t('sign_out')}
               </Button>
             </div>
+          </SettingsSection>
+
+          <SettingsSection title="Password" icon={KeyRound}>
+            <SettingsAction
+              label="Change password"
+              comingSoon
+              reason="Password changes are not implemented yet."
+            >
+              <Button variant="secondary" size="sm" disabled>Change password</Button>
+            </SettingsAction>
+          </SettingsSection>
+
+          <SettingsSection title="Sign-in methods" icon={Link2}>
+            <SettingsAction
+              label="Connected accounts"
+              description="Manage Google, GitHub, and other ways to sign in."
+              comingSoon
+              reason="Connected account management is not implemented yet."
+            >
+              <Button variant="secondary" size="sm" disabled>Manage connections</Button>
+            </SettingsAction>
+          </SettingsSection>
+
+          <SettingsSection title="Active sessions" icon={MonitorSmartphone}>
+            <SettingsAction
+              label="Signed-in devices"
+              description="Review browsers and devices that can access your account."
+              comingSoon
+              reason="Session management is not implemented yet."
+            >
+              <Button variant="secondary" size="sm" disabled>Manage sessions</Button>
+            </SettingsAction>
           </SettingsSection>
 
           <SettingsSection title={t('delete_title')} description={t('delete_body')} danger>

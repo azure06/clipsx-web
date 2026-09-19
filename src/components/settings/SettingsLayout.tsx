@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useId, type ReactNode } from "react";
 import {
-  User, CreditCard, ShieldCheck, LifeBuoy, Settings2, Monitor, FolderKey,
+  CircleUserRound, User, CreditCard, ShieldCheck, LifeBuoy, Settings2, Monitor, FolderKey,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SECTION, SECTION_IDS, isSectionId, type SectionId } from "./SettingsRegistry";
@@ -12,8 +12,9 @@ const SECTION_DEFS: {
   id: SectionId;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
-  group: "account" | "billing" | "vault";
+  group: "profile" | "account" | "billing" | "vault";
 }[] = [
+  { id: "profile",    label: "Profile",    icon: CircleUserRound, group: "profile" },
   { id: "account",    label: "Account",    icon: User,        group: "account" },
   { id: "billing",    label: "Billing",    icon: CreditCard, group: "billing" },
   { id: "vault",      label: "Vault",      icon: Settings2,   group: "vault"   },
@@ -24,6 +25,7 @@ const SECTION_DEFS: {
 ];
 
 const SECTION_COMPONENTS: Record<SectionId, React.LazyExoticComponent<React.ComponentType<SectionProps>>> = {
+  profile:    lazy(() => import("./sections/ProfileSection")),
   account:    lazy(() => import("./sections/AccountSection")),
   billing:    lazy(() => import("./sections/BillingSection")),
   security:   lazy(() => import("./sections/SecuritySection")),
@@ -58,6 +60,7 @@ export function SettingsLayout({
   const ActiveComponent = SECTION_COMPONENTS[safe];
   const activeDef = SECTION_DEFS.find((d) => d.id === safe)!;
 
+  const profileSections = SECTION_DEFS.filter((d) => d.group === "profile");
   const accountSections = SECTION_DEFS.filter((d) => d.group === "account");
   const billingSections = SECTION_DEFS.filter((d) => d.group === "billing");
   const vaultSections = SECTION_DEFS.filter((d) => d.group === "vault");
@@ -73,6 +76,17 @@ export function SettingsLayout({
         )}
       >
         <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          Profile
+        </p>
+        {profileSections.map((def) => (
+          <SidebarItem
+            key={def.id}
+            def={def}
+            active={safe === def.id}
+            onClick={() => onSectionChange(def.id)}
+          />
+        ))}
+        <p className="mb-1 mt-4 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
           Account
         </p>
         {accountSections.map((def) => (

@@ -5,12 +5,16 @@ section navigation sits beside the content on desktop and becomes a horizontal
 picker on smaller screens. The settings shell is intentionally unboxed; cards
 are reserved for individual settings groups so controls retain usable width and
 the hierarchy does not become a card nested inside another card.
-The desktop navigation separates Account, Billing, and Vault into three groups.
+The desktop navigation separates Profile, Account, Billing, and Vault into four
+groups. Profile is the default section. Profile photo, display name, username,
+language, and time-zone controls are visible but disabled as planned work.
 The page adds 24px of top spacing on mobile and 32px on larger screens after
 the shared layout's header offset, with 24px between the title and settings.
 
 On `/account`, the Account section contains the signed-in email, sign-out
-action, and the working account-deletion confirmation. Plan and billing controls
+action, and the working account-deletion confirmation. Password changes,
+connected sign-in methods, and active-session management are visible but
+disabled as planned work. Plan and billing controls
 live in their own shared `Billing` section. The workspace whose plan is displayed
 is chosen with the shared Radix-backed settings select control, which renders a
 consistent custom menu instead of the platform-native dropdown. A successful
