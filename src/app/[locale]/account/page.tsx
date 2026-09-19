@@ -19,9 +19,9 @@ export default async function AccountPage({
   const t = await getTranslations('AccountPage');
 
   return (
-    <div className="py-24 px-4 sm:px-6">
-      <div className="mx-auto max-w-xl">
-        <h1 className="font-heading text-3xl font-black text-gray-900 mb-10 dark:text-white">{t('title')}</h1>
+    <div className="px-4 pt-6 pb-16 sm:px-6 sm:pt-8 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <h1 className="mb-6 font-heading text-3xl font-black text-gray-900 dark:text-white">{t('title')}</h1>
         <Suspense>
           <AccountClient user={user} />
         </Suspense>

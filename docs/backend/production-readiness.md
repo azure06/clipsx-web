@@ -15,7 +15,16 @@ gates. Hosted advisors then exposed a platform-installed `public.rls_auto_enable
 function as an executable Data API RPC. A forward migration revokes execution
 from `PUBLIC`, `anon`, and `authenticated`; the platform event trigger continues
 to invoke its backing function internally. Existing application data was not
-reset and no dependency was added.
+reset, and no database migration was required for the web dependency refresh.
+
+The web dependency baseline was refreshed within existing major versions on
+2026-09-20. Next.js 16.3.5, React 19.3.0, the matching Next ESLint config,
+Supabase 2.116.0/CLI 2.117.0, and the compatible application and tooling
+updates are verified on the repository's Node.js 22+ runtime target. Major
+upgrades for cborg, Mermaid, ESLint, TypeScript, and Vitest remain deferred
+until their separate migration requirements are reviewed. Stripe client and
+account-operation scripts use the `2026-08-26.dahlia` API version required by
+Stripe 22.6.2.
 
 ## SQL completion status
 
@@ -78,8 +87,8 @@ envelopes, commitments and attribution have separate retention requirements.
 - The hosted database records all eight baseline migrations plus the forward
   hardening migration; `anon` and `authenticated` cannot execute
   `public.rls_auto_enable`, and neither role can read the approval catalog.
-- 79 unit tests pass; type-check and production build pass.
-- Repository lint passes with 20 existing warnings and no errors.
+- 91 unit tests pass; type-check and production build pass.
+- Repository lint passes with 18 existing warnings and no errors.
 - CI uses immutable Node-24 action revisions, avoiding deprecated action runtimes
   and mutable action tags.
 - Migration guard test accepts a forward migration and rejects a rewritten

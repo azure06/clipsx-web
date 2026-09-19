@@ -1,5 +1,26 @@
 # Authentication and account closure
 
+The authenticated account settings page uses a wide, responsive workspace. Its
+section navigation sits beside the content on desktop and becomes a horizontal
+picker on smaller screens. The settings shell is intentionally unboxed; cards
+are reserved for individual settings groups so controls retain usable width and
+the hierarchy does not become a card nested inside another card.
+The page adds 24px of top spacing on mobile and 32px on larger screens after
+the shared layout's header offset, with 24px between the title and settings.
+
+On `/account`, the Account section contains the signed-in email, sign-out
+action, and the working account-deletion confirmation. Plan and billing controls
+live in their own shared `Billing` section. The workspace whose plan is displayed
+is chosen with the shared Radix-backed settings select control, which renders a
+consistent custom menu instead of the platform-native dropdown. A successful
+checkout opens this section while entitlement activation is polled.
+These groups share the same content column, card padding, and section spacing.
+The page supplies its account content to the shared settings shell
+instead of rendering its placeholder Account section plus a duplicate billing
+card. Account actions appear only in the Account section, not below other
+settings sections. Checkout activation polling and closure requirements remain
+unchanged. Other settings-shell consumers retain their existing section content.
+
 ## Providers and redirects
 
 The website supports email/password, Google, and GitHub through Supabase Auth.

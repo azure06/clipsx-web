@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { ExtensionWorkbench } from "@/components/marketing/ExtensionWorkbench";
-import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
+import { documentationConfig } from "@/config/site";
 import "./extensions.css";
 
 const content = {
@@ -252,13 +252,15 @@ export default async function ExtensionsPage({
               {c.explore}
               <ArrowRight size={16} />
             </a>
-            <Link
-              href="/docs/developers"
+            <a
+              href={documentationConfig.root}
+              target="_blank"
+              rel="noreferrer"
               className="ex-button ex-button-secondary"
             >
               {c.build}
               <Code2 size={16} />
-            </Link>
+            </a>
           </div>
         </div>
         <div className="ex-hero-demo">
@@ -383,7 +385,7 @@ export default async function ExtensionsPage({
         </div>
       </section>
       <section className="ex-routes ex-shell">
-        <Link href="/docs/extensions" className="ex-route ex-route-user">
+        <a href={documentationConfig.extensions} target="_blank" rel="noreferrer" className="ex-route ex-route-user">
           <span className="ex-route-icon">
             <Eye size={20} />
           </span>
@@ -395,7 +397,7 @@ export default async function ExtensionsPage({
               <ArrowRight size={15} />
             </span>
           </div>
-        </Link>
+        </a>
         <div className="ex-route ex-route-dev">
           <span className="ex-route-icon">
             <Code2 size={20} />
@@ -412,10 +414,10 @@ export default async function ExtensionsPage({
               ))}
             </div>
             <div className="ex-route-links">
-              <Link href="/docs/developers">
+              <a href={documentationConfig.root} target="_blank" rel="noreferrer">
                 {c.devLink}
                 <ArrowRight size={15} />
-              </Link>
+              </a>
               <a
                 href="https://github.com/azure06/clipsx-extensions"
                 target="_blank"

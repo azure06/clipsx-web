@@ -14,6 +14,7 @@ import { setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { HomePreview } from "@/components/marketing/HomePreview";
+import { documentationConfig } from "@/config/site";
 import type { Locale } from "@/i18n/config";
 import "./home.css";
 
@@ -345,10 +346,10 @@ export default async function HomePage({
           </p>
           <h2>{c.local}</h2>
           <p className="cx-local-body">{c.localBody}</p>
-          <Link href="/docs/privacy" className="cx-text-link">
+          <a href={documentationConfig.privacy} target="_blank" rel="noreferrer" className="cx-text-link">
             {c.localLink}
             <ArrowRight size={17} />
-          </Link>
+          </a>
         </div>
         <div className="cx-local-panel">
           <div className="cx-local-heading">
@@ -377,10 +378,10 @@ export default async function HomePage({
               {c.download}
               <ArrowRight size={18} />
             </Link>
-            <Link href="/docs/getting-started" className="cx-text-link">
+            <a href={documentationConfig.gettingStarted} target="_blank" rel="noreferrer" className="cx-text-link">
               {c.docs}
               <ArrowRight size={16} />
-            </Link>
+            </a>
           </div>
         </div>
       </section>

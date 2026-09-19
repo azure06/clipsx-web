@@ -37,8 +37,12 @@ Ollama setup. Ordinary text search needs neither. Clipboard history stays local;
 optional account sync includes supported settings and extension choices, not
 history. Extension permissions and processing depend on the chosen package.
 
-Localized links point to /download, /extensions, /docs/getting-started,
-/docs/privacy and /docs/sync. Download remains the source of truth for builds.
+Localized links point to /download and /extensions, while the public
+documentation links point to the English Mintlify pages at
+`https://infiniti-82a6b77b.mintlify.site/docs/getting-started`,
+`https://infiniti-82a6b77b.mintlify.site/docs/privacy`, and
+`https://infiniti-82a6b77b.mintlify.site/docs/sync`. Download remains the
+source of truth for builds.
 No clipboard, OCR, network model processing or transformations run on Product.
 
 ## Verification

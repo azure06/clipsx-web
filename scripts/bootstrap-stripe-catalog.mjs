@@ -9,7 +9,7 @@ if (!currency || !Number.isSafeInteger(monthlyAmount) || monthlyAmount < 0 || !N
   throw new Error('STRIPE_PRO_CURRENCY, STRIPE_PRO_MONTHLY_AMOUNT_CENTS, and STRIPE_PRO_YEARLY_AMOUNT_CENTS are required');
 }
 
-const stripe = new Stripe(secretKey, { apiVersion: '2026-06-24.dahlia' });
+const stripe = new Stripe(secretKey, { apiVersion: '2026-08-26.dahlia' });
 const planCode = 'pro';
 const productDescription = 'Optional future supporter services for the free, programmable ClipsX desktop clipboard.';
 const productUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://clipsx.app'}/pricing`;

@@ -10,3 +10,14 @@ export const siteConfig = {
   releases: 'https://github.com/azure06/clipsx/releases',
   issues: 'https://github.com/azure06/clipsx/issues',
 } as const;
+
+const documentationRoot = 'https://infiniti-82a6b77b.mintlify.site/docs';
+
+export const documentationConfig = {
+  root: documentationRoot,
+  gettingStarted: `${documentationRoot}/getting-started`,
+  localAi: `${documentationRoot}/local-ai`,
+  extensions: `${documentationRoot}/extensions`,
+  sync: `${documentationRoot}/sync`,
+  privacy: `${documentationRoot}/privacy`,
+} as const;

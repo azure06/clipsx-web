@@ -6,6 +6,12 @@ The Developers menu contains the developer overview, extension documentation,
 the source repository, and Changelog. Docs and Pricing remain direct links;
 Blog, FAQ, and Contact remain available from the footer. Download is the header's
 primary action and continues to resolve release availability on `/download`.
+Public documentation links now send readers to the English Mintlify site at
+`https://infiniti-82a6b77b.mintlify.site/docs`. Feature-specific
+links use the closest published Mintlify page, including `/docs/local-ai`,
+`/docs/extensions`, `/docs/privacy`, and `/docs/sync`. The legacy localized
+documentation routes remain in the application for existing inbound URLs, but
+the public navigation no longer promotes them.
 
 Desktop menus open on explicit activation, close on outside interaction or
 Escape, expose menu semantics, and support Arrow Up, Arrow Down, Home, and End.
@@ -31,13 +37,15 @@ The copy follows the desktop implementation:
 
 ## Meaning Search guide and feature-page presentation
 
-`/[locale]/docs/meaning-search` keeps its existing URL and metadata and renders
+`/[locale]/docs/meaning-search` keeps its existing URL and metadata for inbound
+compatibility and renders
 the server component `MeaningSearchGuide`. It provides a query/result illustration,
 in-page navigation, a three-step retrieval explanation, eligible text sources,
 Ollama setup steps, local-processing boundaries, and native expandable questions
 covering unavailable providers, relevance, similarity percentages, and index recovery.
 The illustration is static sample content, not a working search or a model call.
-Links connect it to `/docs/ollama`, `/docs/privacy`, `/recall`, and `/download`.
+Its documentation links now connect to the Mintlify local-AI and privacy pages;
+product links continue to connect to `/recall` and `/download`.
 
 Recall and Meaning Search share the scoped `recall.module.css` visual system:
 responsive editorial columns, dark example surfaces, visible violet focus rings,
@@ -58,10 +66,8 @@ replacement index. Capacity targets and benchmark timings are not product claims
 
 ## Documentation and changelog
 
-The existing localized Docs route now includes separate Recall and expanded
-Ollama guides. The Ollama guide distinguishes embedding models used for Meaning
-Search from generation models used for Recall, treats discovered capabilities
-as authoritative, and links to official Ollama installation and model pages.
+The existing localized Docs route remains available for inbound compatibility.
+The public UI now directs readers to the English Mintlify documentation site.
 
 The Changelog intentionally shows an empty release ledger until a build is
 certified and published through GitHub Releases. The deleted legacy entry was a

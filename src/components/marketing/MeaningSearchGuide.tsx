@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
+import { documentationConfig } from "@/config/site";
 import styles from "@/app/[locale]/recall/recall.module.css";
 
 const content = {
@@ -214,10 +215,10 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
   const ids = ["how-it-works", "searchable-content", "setup", "questions"];
   return (
     <div className={styles.page} lang={locale}>
-      <Link href="/docs" className={styles.back}>
+      <a href={documentationConfig.root} target="_blank" rel="noreferrer" className={styles.back}>
         <ArrowLeft size={14} />
         {c.back}
-      </Link>
+      </a>
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>
@@ -227,10 +228,10 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
           <h1>{c.title}</h1>
           <p className={styles.lede}>{c.intro}</p>
           <div className={styles.actions}>
-            <Link href="/docs/ollama" className={styles.primary}>
+            <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.primary}>
               {c.setup}
               <ArrowRight size={16} />
-            </Link>
+            </a>
             <a href="#how-it-works" className={styles.secondary}>
               {c.explore}
             </a>
@@ -313,10 +314,10 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
           <p className={styles.eyebrow}>{c.nav[2]}</p>
           <h2>{c.start}</h2>
           <p>{c.startIntro}</p>
-          <Link href="/docs/ollama" className={styles.textLink}>
+          <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.textLink}>
             {c.setup}
             <BookOpen size={16} />
-          </Link>
+          </a>
         </div>
         <ol className={styles.steps}>
           {c.checklist.map(([title, body], i) => (
@@ -335,10 +336,10 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
         <div>
           <h2>{c.local}</h2>
           <p>{c.localBody}</p>
-          <Link href="/docs/privacy" className={styles.textLink}>
+          <a href={documentationConfig.privacy} target="_blank" rel="noreferrer" className={styles.textLink}>
             {c.privacy}
             <ArrowRight size={14} />
-          </Link>
+          </a>
         </div>
       </aside>
       <section id={ids[3]} className={styles.guideSection}>

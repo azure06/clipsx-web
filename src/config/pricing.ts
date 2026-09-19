@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import { documentationConfig } from "@/config/site";
 
 type Copy = Record<Locale, string>;
 const t = (en: string, ja: string): Copy => ({ en, ja });
@@ -113,7 +114,7 @@ export const pricingFeatureGroups: PricingFeatureGroup[] = [
           "Optional Ollama embedding model and a local index.",
           "任意の Ollama 埋め込みモデルとローカルインデックスが必要です。",
         ),
-        href: "/docs/meaning-search",
+        href: documentationConfig.localAi,
       },
       {
         name: t("Recall", "Recall"),
@@ -230,7 +231,7 @@ export const pricingFeatureGroups: PricingFeatureGroup[] = [
           "Account and opt-in required. Clipboard content and local models do not sync.",
           "アカウントと有効化が必要です。クリップ内容やローカルモデルは同期しません。",
         ),
-        href: "/docs/sync",
+        href: documentationConfig.sync,
       },
     ],
   },

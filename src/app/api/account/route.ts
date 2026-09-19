@@ -34,7 +34,7 @@ export async function DELETE(request:Request){
     if(body.cancelSubscriptions!==true)return NextResponse.json(check,{status:409});
     const secret=process.env.STRIPE_SECRET_KEY;if(!secret)return NextResponse.json({code:'CLOSURE_FAILED'},{status:503});
     const admin=createAdminClient();const {data:accounts}=await admin.schema('private').from('billing_accounts').select('id').eq('owner_user_id',principal.user.id);const ids=(accounts??[]).map(row=>row.id);
-    if(ids.length){const {data:subscriptions}=await admin.schema('private').from('billing_subscriptions').select('stripe_subscription_id,status').in('billing_account_id',ids).not('status','in','("canceled","incomplete_expired")');const stripe=new Stripe(secret,{apiVersion:'2026-06-24.dahlia'});await Promise.all((subscriptions??[]).map(subscription=>stripe.subscriptions.cancel(subscription.stripe_subscription_id)));}
+    if(ids.length){const {data:subscriptions}=await admin.schema('private').from('billing_subscriptions').select('stripe_subscription_id,status').in('billing_account_id',ids).not('status','in','("canceled","incomplete_expired")');const stripe=new Stripe(secret,{apiVersion:'2026-08-26.dahlia'});await Promise.all((subscriptions??[]).map(subscription=>stripe.subscriptions.cancel(subscription.stripe_subscription_id)));}
     return NextResponse.json({code:'CLOSURE_PENDING',message:'Subscriptions were canceled. Retry after billing confirmation is received.'},{status:202});
   }
   const admin=createAdminClient();const {data,error}=await admin.schema('private').rpc('close_account',{p_account_id:principal.user.id});

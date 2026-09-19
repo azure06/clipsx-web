@@ -1,8 +1,8 @@
 "use client";
 
-import { lazy, Suspense, useId } from "react";
+import { lazy, Suspense, useId, type ReactNode } from "react";
 import {
-  User, ShieldCheck, LifeBuoy, Settings2, Monitor, FolderKey, ChevronLeft,
+  User, CreditCard, ShieldCheck, LifeBuoy, Settings2, Monitor, FolderKey,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SECTION, SECTION_IDS, isSectionId, type SectionId } from "./SettingsRegistry";
@@ -15,15 +15,17 @@ const SECTION_DEFS: {
   group: "account" | "vault";
 }[] = [
   { id: "account",    label: "Account",    icon: User,        group: "account" },
+  { id: "billing",    label: "Billing",    icon: CreditCard, group: "account" },
+  { id: "vault",      label: "Vault",      icon: Settings2,   group: "vault"   },
   { id: "security",   label: "Security",   icon: ShieldCheck, group: "vault"   },
   { id: "recovery",   label: "Recovery",   icon: LifeBuoy,    group: "vault"   },
-  { id: "vault",      label: "Vault",      icon: Settings2,   group: "vault"   },
   { id: "devices",    label: "Devices",    icon: Monitor,     group: "vault"   },
   { id: "collection", label: "Collection", icon: FolderKey,   group: "vault"   },
 ];
 
 const SECTION_COMPONENTS: Record<SectionId, React.LazyExoticComponent<React.ComponentType<SectionProps>>> = {
   account:    lazy(() => import("./sections/AccountSection")),
+  billing:    lazy(() => import("./sections/BillingSection")),
   security:   lazy(() => import("./sections/SecuritySection")),
   recovery:   lazy(() => import("./sections/RecoverySection")),
   vault:      lazy(() => import("./sections/VaultSection")),
@@ -37,6 +39,8 @@ interface SettingsLayoutProps {
   session?: SectionProps["session"];
   collection?: SectionProps["collection"];
   titleId?: string;
+  variant?: "contained" | "page";
+  children?: ReactNode;
 }
 
 export function SettingsLayout({
@@ -45,6 +49,8 @@ export function SettingsLayout({
   session,
   collection,
   titleId,
+  variant = "contained",
+  children,
 }: SettingsLayoutProps) {
   const fallbackId = useId();
   const labelId = titleId ?? fallbackId;
@@ -56,11 +62,14 @@ export function SettingsLayout({
   const vaultSections = SECTION_DEFS.filter((d) => d.group === "vault");
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <div className="flex h-full min-w-0 flex-col lg:flex-row">
       {/* Sidebar — desktop */}
       <nav
         aria-label="Settings sections"
-        className="hidden w-56 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-(--vault-border) p-3 lg:flex"
+        className={cn(
+          "hidden w-56 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-(--vault-border) lg:flex",
+          variant === "page" ? "py-2 pr-6" : "p-3",
+        )}
       >
         <p className="mb-1 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
           Account
@@ -110,7 +119,12 @@ export function SettingsLayout({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+      <div
+        className={cn(
+          "min-w-0 flex-1 overflow-y-auto",
+          variant === "page" ? "py-5 lg:py-2 lg:pl-10" : "p-5 lg:p-8",
+        )}
+      >
         <h2
           id={labelId}
           className="mb-5 flex items-center gap-2 font-heading text-lg font-bold lg:mb-6 lg:text-xl"
@@ -121,7 +135,7 @@ export function SettingsLayout({
           {activeDef.label}
         </h2>
         <Suspense fallback={<SectionSkeleton />}>
-          <ActiveComponent session={session} collection={collection} />
+          {children ?? <ActiveComponent session={session} collection={collection} />}
         </Suspense>
       </div>
     </div>

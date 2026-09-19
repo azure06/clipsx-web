@@ -1,3 +1,5 @@
+import { documentationConfig } from './site';
+
 export type NavIcon =
   | 'product'
   | 'recall'
@@ -32,7 +34,7 @@ export const mainNavMenus: NavMenu[] = [
     items: [
       { labelKey: 'Nav.productOverview', descriptionKey: 'Nav.productOverviewDescription', href: '/product', icon: 'product' },
       { labelKey: 'Nav.recall', descriptionKey: 'Nav.recallDescription', href: '/recall', icon: 'recall', featured: true },
-      { labelKey: 'Nav.meaningSearch', descriptionKey: 'Nav.meaningSearchDescription', href: '/docs/meaning-search', icon: 'search' },
+      { labelKey: 'Nav.meaningSearch', descriptionKey: 'Nav.meaningSearchDescription', href: documentationConfig.localAi, icon: 'search', external: true },
       { labelKey: 'Nav.extensions', descriptionKey: 'Nav.extensionsDescription', href: '/extensions', icon: 'extensions' },
     ],
   },
@@ -42,7 +44,7 @@ export const mainNavMenus: NavMenu[] = [
     eyebrowKey: 'Nav.developersMenuEyebrow',
     items: [
       { labelKey: 'Nav.developerOverview', descriptionKey: 'Nav.developerOverviewDescription', href: '/developers', icon: 'developers' },
-      { labelKey: 'Nav.extensionDocs', descriptionKey: 'Nav.extensionDocsDescription', href: '/docs/developers', icon: 'docs' },
+      { labelKey: 'Nav.extensionDocs', descriptionKey: 'Nav.extensionDocsDescription', href: documentationConfig.root, icon: 'docs', external: true },
       { labelKey: 'Nav.githubLabel', descriptionKey: 'Nav.githubDescription', href: 'https://github.com/azure06/clipsx', icon: 'github', external: true },
       { labelKey: 'Nav.changelog', descriptionKey: 'Nav.changelogDescription', href: '/changelog', icon: 'changelog' },
     ],
@@ -50,7 +52,7 @@ export const mainNavMenus: NavMenu[] = [
 ];
 
 export const mainNavLinks: NavItem[] = [
-  { labelKey: 'Nav.docs', href: '/docs' },
+  { labelKey: 'Nav.docs', href: documentationConfig.root, external: true },
   { labelKey: 'Nav.pricing', href: '/pricing' },
 ];
 
@@ -64,7 +66,7 @@ export const footerNav = {
   ],
   company: [
     { labelKey: 'Footer.developers', href: '/developers' },
-    { labelKey: 'Footer.docs', href: '/docs' },
+    { labelKey: 'Footer.docs', href: documentationConfig.root },
     { labelKey: 'Footer.changelog', href: '/changelog' },
     { labelKey: 'Footer.blog', href: '/blog' },
     { labelKey: 'Footer.contact', href: '/contact' },

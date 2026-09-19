@@ -18,6 +18,7 @@ export type SettingsSectionDef = {
 
 export const SECTION_IDS = [
   "account",
+  "billing",
   "security",
   "recovery",
   "vault",

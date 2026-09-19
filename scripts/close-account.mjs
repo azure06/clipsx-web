@@ -26,7 +26,7 @@ if (customerError) throw new Error(`Customer lookup failed (${customerError.code
 for (const customer of customers) {
   const key = customer.livemode ? process.env.STRIPE_SECRET_KEY : process.env.STRIPE_TEST_SECRET_KEY ?? process.env.STRIPE_SECRET_KEY;
   if (!key || key.includes('_live_') !== customer.livemode) throw new Error('A matching Stripe key is required for every customer mode.');
-  const stripe = new Stripe(key, { apiVersion: '2026-06-24.dahlia' });
+  const stripe = new Stripe(key, { apiVersion: '2026-08-26.dahlia' });
   for await (const subscription of stripe.subscriptions.list({ customer: customer.stripe_customer_id, status: 'all', limit: 100 })) {
     if (!['canceled', 'incomplete_expired'].includes(subscription.status)) await stripe.subscriptions.cancel(subscription.id);
   }

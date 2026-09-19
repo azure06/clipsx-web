@@ -13,6 +13,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { RecallEvidenceStory } from "@/components/marketing/RecallEvidenceStory";
+import { documentationConfig } from "@/config/site";
 import styles from "./recall.module.css";
 
 const copy = {
@@ -179,10 +180,10 @@ export default async function RecallPage({
               {c.try}
               <ArrowRight size={16} />
             </a>
-            <Link href="/docs/ollama" className={styles.secondary}>
+            <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.secondary}>
               {c.setup}
               <BookOpen size={16} />
-            </Link>
+            </a>
           </div>
           <div className={styles.proof}>
             {c.proof.map((item) => (
@@ -260,10 +261,10 @@ export default async function RecallPage({
           {locale === "ja" ? "プライバシー" : "Privacy & control"}
           <ArrowRight size={12} />
         </a>
-        <Link href="/docs/ollama">
+        <a href={documentationConfig.localAi} target="_blank" rel="noreferrer">
           {c.setup}
           <ArrowRight size={12} />
-        </Link>
+        </a>
       </nav>
       <section id="search-modes" className={styles.compare}>
         <div className={styles.sectionIntro}>
@@ -279,13 +280,15 @@ export default async function RecallPage({
                 <div>
                   <Icon size={18} />
                   {index === 1 ? (
-                    <Link
-                      href="/docs/meaning-search"
+                    <a
+                      href={documentationConfig.localAi}
+                      target="_blank"
+                      rel="noreferrer"
                       className={styles.modeLink}
                     >
                       {tool[0]}
                       <ArrowRight size={14} />
-                    </Link>
+                    </a>
                   ) : (
                     <strong>{tool[0]}</strong>
                   )}
@@ -335,10 +338,10 @@ export default async function RecallPage({
             {c.close[2]}
             <ArrowRight size={16} />
           </Link>
-          <Link href="/docs/ollama" className={styles.darkSecondary}>
+          <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.darkSecondary}>
             {c.close[3]}
             <BookOpen size={16} />
-          </Link>
+          </a>
         </div>
       </section>
     </div>
