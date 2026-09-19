@@ -12,16 +12,16 @@ export type SettingsSectionDef = {
   id: string;
   label: string;
   icon: LucideIcon;
-  group: "account" | "vault";
+  group: "account" | "billing" | "vault";
   getComponent: () => Promise<{ default: ComponentType<SectionProps> }>;
 };
 
 export const SECTION_IDS = [
   "account",
   "billing",
+  "vault",
   "security",
   "recovery",
-  "vault",
   "devices",
   "collection",
 ] as const;

@@ -5,6 +5,7 @@ section navigation sits beside the content on desktop and becomes a horizontal
 picker on smaller screens. The settings shell is intentionally unboxed; cards
 are reserved for individual settings groups so controls retain usable width and
 the hierarchy does not become a card nested inside another card.
+The desktop navigation separates Account, Billing, and Vault into three groups.
 The page adds 24px of top spacing on mobile and 32px on larger screens after
 the shared layout's header offset, with 24px between the title and settings.
 

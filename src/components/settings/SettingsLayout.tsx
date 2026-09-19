@@ -12,10 +12,10 @@ const SECTION_DEFS: {
   id: SectionId;
   label: string;
   icon: React.ComponentType<{ size?: number }>;
-  group: "account" | "vault";
+  group: "account" | "billing" | "vault";
 }[] = [
   { id: "account",    label: "Account",    icon: User,        group: "account" },
-  { id: "billing",    label: "Billing",    icon: CreditCard, group: "account" },
+  { id: "billing",    label: "Billing",    icon: CreditCard, group: "billing" },
   { id: "vault",      label: "Vault",      icon: Settings2,   group: "vault"   },
   { id: "security",   label: "Security",   icon: ShieldCheck, group: "vault"   },
   { id: "recovery",   label: "Recovery",   icon: LifeBuoy,    group: "vault"   },
@@ -59,6 +59,7 @@ export function SettingsLayout({
   const activeDef = SECTION_DEFS.find((d) => d.id === safe)!;
 
   const accountSections = SECTION_DEFS.filter((d) => d.group === "account");
+  const billingSections = SECTION_DEFS.filter((d) => d.group === "billing");
   const vaultSections = SECTION_DEFS.filter((d) => d.group === "vault");
 
   return (
@@ -75,6 +76,17 @@ export function SettingsLayout({
           Account
         </p>
         {accountSections.map((def) => (
+          <SidebarItem
+            key={def.id}
+            def={def}
+            active={safe === def.id}
+            onClick={() => onSectionChange(def.id)}
+          />
+        ))}
+        <p className="mb-1 mt-4 px-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+          Billing
+        </p>
+        {billingSections.map((def) => (
           <SidebarItem
             key={def.id}
             def={def}
