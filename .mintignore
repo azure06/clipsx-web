@@ -2,4 +2,6 @@
 # is not part of the public, user-facing Mintlify site.
 docs/backend/
 docs/plan.md
+AGENTS.md
+src/
 

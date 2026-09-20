@@ -44,7 +44,7 @@ export const mainNavMenus: NavMenu[] = [
     eyebrowKey: 'Nav.developersMenuEyebrow',
     items: [
       { labelKey: 'Nav.developerOverview', descriptionKey: 'Nav.developerOverviewDescription', href: '/developers', icon: 'developers' },
-      { labelKey: 'Nav.extensionDocs', descriptionKey: 'Nav.extensionDocsDescription', href: documentationConfig.root, icon: 'docs', external: true },
+      { labelKey: 'Nav.extensionDocs', descriptionKey: 'Nav.extensionDocsDescription', href: documentationConfig.developerExtensions, icon: 'docs', external: true },
       { labelKey: 'Nav.githubLabel', descriptionKey: 'Nav.githubDescription', href: 'https://github.com/azure06/clipsx', icon: 'github', external: true },
       { labelKey: 'Nav.changelog', descriptionKey: 'Nav.changelogDescription', href: '/changelog', icon: 'changelog' },
     ],
@@ -66,7 +66,7 @@ export const footerNav = {
   ],
   company: [
     { labelKey: 'Footer.developers', href: '/developers' },
-    { labelKey: 'Footer.docs', href: documentationConfig.root },
+    { labelKey: 'Footer.docs', href: documentationConfig.root, external: true },
     { labelKey: 'Footer.changelog', href: '/changelog' },
     { labelKey: 'Footer.blog', href: '/blog' },
     { labelKey: 'Footer.contact', href: '/contact' },

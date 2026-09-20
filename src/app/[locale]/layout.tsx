@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     creator: siteConfig.twitterHandle,
   },
   robots: { index: true, follow: true },
+  icons: { icon: '/icon.svg' },
 };
 
 export function generateStaticParams() {

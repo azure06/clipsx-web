@@ -1,0 +1,35 @@
+---
+title: "Build extensions"
+description: "Build bounded ClipsX extension packages using the public extension contract, package CLI, and conformance tests."
+keywords: ["ClipsX extension API", "WASM", "extension package", "conformance"]
+---
+
+ClipsX extensions are bounded WebAssembly packages. The desktop host owns
+capability consent, invocation limits, rendering, accessibility, and
+quarantine; an extension declares only the capabilities it needs.
+
+<Steps>
+  <Step title="Read the extension contract">
+    Start with the [Extension API v2](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V2.md)
+    to understand manifests, contributions, capability boundaries, and lifecycle rules.
+  </Step>
+  <Step title="Build a minimal package">
+    Add one contribution at a time and request only the permissions needed for
+    that behavior. Do not depend on an undocumented hosted API.
+  </Step>
+  <Step title="Validate before publishing">
+    Use the package CLI and conformance suite supplied with the desktop project
+    before distributing a package.
+  </Step>
+</Steps>
+
+## Safety boundary
+
+- Extensions have no ambient clipboard, file-system, or network access.
+- Network destinations and external navigation require declaration and local consent.
+- A changed package checksum requires another permission review.
+- Credentials and grants do not synchronize between devices.
+
+<Card title="Browse extension source" icon="github" href="https://github.com/azure06/clipsx-extensions">
+  Review first-party package examples and their manifests.
+</Card>

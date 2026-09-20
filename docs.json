@@ -3,10 +3,16 @@
   "theme": "luma",
   "name": "ClipsX",
   "description": "User documentation for the ClipsX programmable desktop clipboard.",
+  "logo": {
+    "light": "/images/clipsx.svg",
+    "dark": "/images/clipsx-light.svg",
+    "href": "https://clipsx.app"
+  },
+  "favicon": "/images/clipsx.svg",
   "colors": {
     "primary": "#7C3AED",
     "light": "#A78BFA",
-    "dark": "#5B21B6"
+    "dark": "#7C3AED"
   },
   "icons": {
     "library": "lucide"
@@ -20,27 +26,34 @@
         "group": "Start here",
         "icon": "rocket",
         "pages": [
-          "docs/index",
-          "docs/getting-started",
-          "docs/platform-support"
+          "index",
+          "getting-started",
+          "platform-support"
         ]
       },
       {
         "group": "Use ClipsX",
         "icon": "clipboard",
         "pages": [
-          "docs/core-workflows",
-          "docs/local-ai",
-          "docs/extensions",
-          "docs/sync"
+          "core-workflows",
+          "local-ai",
+          "extensions",
+          "sync"
         ]
       },
       {
         "group": "Safety and support",
         "icon": "shield-check",
         "pages": [
-          "docs/privacy",
-          "docs/troubleshooting"
+          "privacy",
+          "troubleshooting"
+        ]
+      },
+      {
+        "group": "Build extensions",
+        "icon": "code-xml",
+        "pages": [
+          "developer-extensions"
         ]
       }
     ]
@@ -77,8 +90,24 @@
   },
   "seo": {
     "metatags": {
+      "canonical": "https://docs.clipsx.app",
       "og:locale": "en_US"
     },
     "indexing": "navigable"
-  }
+  },
+  "redirects": [
+    { "source": "/docs", "destination": "/", "permanent": true },
+    { "source": "/docs/index", "destination": "/", "permanent": true },
+    { "source": "/docs/getting-started", "destination": "/getting-started", "permanent": true },
+    { "source": "/docs/platform-support", "destination": "/platform-support", "permanent": true },
+    { "source": "/docs/core-workflows", "destination": "/core-workflows", "permanent": true },
+    { "source": "/docs/local-ai", "destination": "/local-ai", "permanent": true },
+    { "source": "/docs/meaning-search", "destination": "/local-ai", "permanent": true },
+    { "source": "/docs/ollama", "destination": "/local-ai", "permanent": true },
+    { "source": "/docs/extensions", "destination": "/extensions", "permanent": true },
+    { "source": "/docs/developers", "destination": "/developer-extensions", "permanent": true },
+    { "source": "/docs/sync", "destination": "/sync", "permanent": true },
+    { "source": "/docs/privacy", "destination": "/privacy", "permanent": true },
+    { "source": "/docs/troubleshooting", "destination": "/troubleshooting", "permanent": true }
+  ]
 }

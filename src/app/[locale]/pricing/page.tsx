@@ -324,7 +324,10 @@ export default async function Pricing({
                     <tr key={feature.name.en} role="row">
                       <th scope="row" role="rowheader">
                         {feature.href ? (
-                          <Link href={feature.href}>
+                          feature.external ? <a href={feature.href} target="_blank" rel="noreferrer">
+                            {feature.name[locale]}
+                            <ArrowRight size={13} />
+                          </a> : <Link href={feature.href}>
                             {feature.name[locale]}
                             <ArrowRight size={13} />
                           </Link>

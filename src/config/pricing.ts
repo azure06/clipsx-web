@@ -13,6 +13,7 @@ export interface PricingFeatureGroup {
     description: Copy;
     requirement: Copy;
     href?: string;
+    external?: boolean;
   }>;
 }
 

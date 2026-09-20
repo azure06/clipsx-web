@@ -253,7 +253,7 @@ export default async function ExtensionsPage({
               <ArrowRight size={16} />
             </a>
             <a
-              href={documentationConfig.root}
+              href={documentationConfig.developerExtensions}
               target="_blank"
               rel="noreferrer"
               className="ex-button ex-button-secondary"
@@ -414,7 +414,7 @@ export default async function ExtensionsPage({
               ))}
             </div>
             <div className="ex-route-links">
-              <a href={documentationConfig.root} target="_blank" rel="noreferrer">
+              <a href={documentationConfig.developerExtensions} target="_blank" rel="noreferrer">
                 {c.devLink}
                 <ArrowRight size={15} />
               </a>
