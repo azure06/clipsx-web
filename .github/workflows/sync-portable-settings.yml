@@ -1,4 +1,5 @@
 name: Apply portable setting approvals
+run-name: Apply portable setting approvals (${{ github.event.client_payload.dispatch_id || format('manual-{0}', github.run_id) }})
 
 on:
   repository_dispatch:
@@ -22,6 +23,7 @@ concurrency:
 jobs:
   apply:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: production
     env:
       REGISTRY_SHA: ${{ github.event.client_payload.registry_sha || inputs.registry_sha }}
@@ -37,6 +39,27 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 24
+      - name: Validate production database configuration
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_DB_URL" ]]; then
+            echo "::error::SUPABASE_DB_URL is not configured in the protected production environment."
+            exit 1
+          fi
+          case "$SUPABASE_DB_URL" in
+            postgres://*|postgresql://*) ;;
+            *)
+              echo "::error::SUPABASE_DB_URL must be a PostgreSQL connection URI."
+              exit 1
+              ;;
+          esac
+          if [[ "$SUPABASE_DB_URL" == *'[YOUR-PASSWORD]'* ]]; then
+            echo "::error::SUPABASE_DB_URL still contains the password placeholder."
+            exit 1
+          fi
       - name: Verify signature and prepare the exact replacement
         run: node scripts/sync-portable-settings.mjs --registry signed-registry --index-sha256 "$INDEX_SHA256" --catalog-output portable-settings.json --sql-output portable-settings.sql
       - name: Reject a stale queued publication
@@ -49,6 +72,7 @@ jobs:
           test "$current_hash" = "$INDEX_SHA256"
       - name: Reconcile the private Supabase catalog transactionally
         env:
+          PGCONNECT_TIMEOUT: 15
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         shell: bash
         run: |

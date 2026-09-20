@@ -67,11 +67,16 @@ user-editable metadata. Registry schema v4 is its source of truth. A merge of a
 signed registry publication dispatches the exact commit and index digest here;
 the protected workflow independently verifies the pinned Ed25519 trust key,
 rejects stale revisions, selects every package's latest stable unrevoked release,
-and replaces the catalog in one database transaction. Supabase keeps this
-projection because sync RPCs must reject forged package/setting IDs without
-trusting a client-supplied manifest. Do not approve settings merely because they
-are labeled non-secret. Client runtime validation still requires the installed
-signed manifest. No settings are approved implicitly or via user JWTs.
+and replaces the catalog in one database transaction. The publishing registry
+workflow waits for the uniquely correlated downstream run and propagates its
+result. `SUPABASE_DB_URL` is a one-time secret in this repository's protected
+`production` environment; GitHub-hosted runners should use Supabase's Session
+pooler URI on port 5432 unless direct IPv4 connectivity is configured. Supabase
+keeps this projection because sync RPCs must reject forged package/setting IDs
+without trusting a client-supplied manifest. Do not approve settings merely
+because they are labeled non-secret. Client runtime validation still requires
+the installed signed manifest. No settings are approved implicitly or via user
+JWTs.
 
 ## Database and API behavior
 
