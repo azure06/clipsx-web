@@ -1264,50 +1264,6 @@
   margin-top: 17px;
 }
 
-/* Homepage hero is always-dark regardless of OS light/dark preference, so the
-   shared chrome is forced dark here too (color already matches site-wide). */
-body:has(.cx-home) > header {
-  background: rgb(8 13 27 / 0.92);
-  border-color: #ffffff14;
-  color: #e5dfed;
-}
-body:has(.cx-home) > header > div:nth-child(2) {
-  background: #0f172a;
-  border-color: #ffffff14;
-}
-body:has(.cx-home) > header .nav-link,
-body:has(.cx-home) > header .icon-button {
-  color: #cbd5e1;
-}
-body:has(.cx-home) > header .nav-link:hover,
-body:has(.cx-home) > header .icon-button:hover {
-  color: #eee7f7;
-  background: #ffffff0d;
-}
-body:has(.cx-home) > header .button-primary {
-  background: linear-gradient(105deg, #3b82f6, #8b5cf6);
-  border: 1px solid #a78bfa66;
-  border-radius: 8px;
-  font-weight: 500;
-  transform: none;
-}
-body:has(.cx-home) > header .button-primary:hover {
-  background: #7c3aed;
-}
-body:has(.cx-home) > footer {
-  background: #080d1b;
-  border-color: #ffffff14;
-  color: #e6e0ed;
-}
-body:has(.cx-home) > footer p,
-body:has(.cx-home) > footer li a,
-body:has(.cx-home) > footer a[target] {
-  color: #94a3b8;
-}
-body:has(.cx-home) > footer a:hover {
-  color: #d7c4ee;
-}
-
 /* ---------- Responsive ---------- */
 @media (max-width: 1050px) {
   .cx-home .cx-workflow {
@@ -1690,6 +1646,80 @@ html[lang="ja"] .cx-home h2 {
   line-break: strict;
   text-wrap: pretty;
 }
+
+/* The interactive product stage carries the same daylight palette as the page.
+   Code-like content remains dark by design, but app chrome and explanatory
+   surfaces follow the selected theme. */
+html:not(.dark) .cx-home {
+  --cx-ink: #182238;
+  --cx-muted: #5d6b82;
+  --cx-accent: #6d28d9;
+  --cx-line: rgb(91 78 147 / 0.18);
+  --cx-panel: #ffffff;
+  background: #f6f8fc;
+}
+html:not(.dark) .cx-hero {
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 8%, rgb(167 139 250 / 0.28), transparent 70%),
+    radial-gradient(ellipse at 80% 65%, rgb(196 181 253 / 0.22), transparent 50%),
+    radial-gradient(ellipse at 15% 80%, rgb(147 197 253 / 0.23), transparent 45%), #f6f8fc;
+}
+html:not(.dark) .cx-intro,
+html:not(.dark) .cx-stage-caption > span:last-child { color: var(--cx-muted); }
+html:not(.dark) .cx-text-link:hover { color: #6d28d9; }
+html:not(.dark) .cx-hero-badges > span { color: #475569; border-color: rgb(91 78 147 / .18); background: rgb(255 255 255 / .72); }
+html:not(.dark) .cx-hero-badges > span:first-child { color: #5b21b6; border-color: rgb(109 40 217 / .28); background: rgb(109 40 217 / .08); }
+html:not(.dark) .cx-home .cx-product-stage::before { background: linear-gradient(90deg, transparent, rgb(91 78 147 / .24), transparent); }
+html:not(.dark) .cx-at-a-glance > div { color: var(--cx-ink); }
+html:not(.dark) .cx-benefits article,
+html:not(.dark) .cx-everyday article,
+html:not(.dark) .cx-local-panel {
+  border-color: var(--cx-line);
+  background-color: var(--cx-panel);
+  box-shadow: 0 18px 48px -38px var(--ui-shadow);
+}
+html:not(.dark) .cx-benefits article:hover { border-color: rgb(109 40 217 / .32); background-color: #fff; }
+html:not(.dark) .cx-capture-art > span { color: #1d4ed8; background: rgb(37 99 235 / .08); }
+html:not(.dark) .cx-capture-art > span:nth-child(2),
+html:not(.dark) .cx-search-art { color: #5b21b6; background: rgb(109 40 217 / .08); }
+html:not(.dark) .cx-capture-art > span:nth-child(3),
+html:not(.dark) .cx-format-art { color: #a21caf; }
+html:not(.dark) .cx-capture-art > span:nth-child(4) { color: #047857; }
+html:not(.dark) .cx-demo-controls { color: #526178; }
+html:not(.dark) .cx-tour-play { color: #5b21b6; }
+html:not(.dark) .cx-theme-toggle {
+  color: #526178;
+  border-color: rgb(91 78 147 / .22);
+  background: rgb(255 255 255 / .82);
+}
+html:not(.dark) .cx-theme-toggle > button:hover { color: #182238; background: #edf1f8; }
+html:not(.dark) .cx-theme-toggle > button[aria-pressed="true"] {
+  color: #4c1d95;
+  border-color: rgb(109 40 217 / .32);
+  background: rgb(109 40 217 / .1);
+}
+html:not(.dark) .cx-tour-steps > button {
+  color: var(--cx-ink);
+  border-color: rgb(91 78 147 / .18);
+  background: rgb(255 255 255 / .72);
+}
+html:not(.dark) .cx-tour-steps > button[aria-pressed="true"] {
+  border-color: rgb(109 40 217 / .34);
+  background: linear-gradient(115deg, rgb(37 99 235 / .08), rgb(109 40 217 / .09));
+}
+html:not(.dark) .cx-tour-steps strong { color: #182238; }
+html:not(.dark) .cx-tour-steps small { color: #526178; }
+html:not(.dark) .cx-demo-note { color: #5d6b82; }
+html:not(.dark) .cx-closing {
+  color: var(--cx-ink);
+  border-color: var(--cx-line);
+  background:
+    radial-gradient(ellipse 55% 70% at 100% 0%, rgb(167 139 250 / .22), transparent 60%),
+    radial-gradient(ellipse 45% 60% at 0% 100%, rgb(147 197 253 / .2), transparent 55%),
+    #edf1f8;
+}
+html:not(.dark) .cx-closing > div > p { color: var(--cx-muted); }
+html:not(.dark) .cx-closing .cx-text-link { color: #4c1d95; }
 @media (max-width: 600px) {
   html[lang="ja"] .cx-home h1 {
     font-size: clamp(28px, 8.3vw, 46px);

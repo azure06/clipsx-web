@@ -69,3 +69,13 @@
 @media(max-width:1000px){.captureVisual{gap:20px;padding:24px}.captureSource strong{font-size:24px}.graphNode{padding:12px}.graphNode strong{font-size:12px}}
 @media(max-width:600px){.captureVisual,.boundaries{grid-template-columns:1fr}.formats{grid-template-columns:1fr}.captureVisual{gap:24px}.graphCanvas{height:auto;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}.graphCanvas>svg{display:none}.graphNode{position:static;transform:none;width:auto;min-height:128px;padding:14px}.graphNode[data-node="0"],.graphNode[data-node="5"]{grid-column:1/-1}.graphNode[data-node="0"]{border-left:3px solid #a78bfa}.graphNode[data-node="5"]{border-left:3px solid #60a5fa}.graphInspector{grid-template-columns:1fr;min-height:0;padding:22px}.graphTop{padding-inline:16px}}
 @media(prefers-reduced-motion:reduce){.graphCanvas path{animation:none}}
+
+:global(html:not(.dark)) .captureVisual{border-color:rgb(91 78 147 / .25);color:#182238;background:radial-gradient(ellipse at 0 0,rgb(196 181 253 / .5),transparent 65%),#fff}
+:global(html:not(.dark)) .captureSource>svg,:global(html:not(.dark)) .captureForms svg,:global(html:not(.dark)) .graphNode svg{color:#6d28d9}
+:global(html:not(.dark)) .captureSource>span,:global(html:not(.dark)) .captureForms code{color:#2563eb}
+:global(html:not(.dark)) .captureSource p,:global(html:not(.dark)) .graphTop,:global(html:not(.dark)) .graphNode small,:global(html:not(.dark)) .graphInspector p,:global(html:not(.dark)) .graphInspector dd,:global(html:not(.dark)) .graphNote{color:#5d6b82}
+:global(html:not(.dark)) .captureForms>div,:global(html:not(.dark)) .graphNode{border-color:rgb(91 78 147 / .2);background:#fff;box-shadow:0 12px 24px rgb(30 41 59 / .08)}
+:global(html:not(.dark)) .graph{border-color:rgb(91 78 147 / .25);background:#f8faff;color:#182238}
+:global(html:not(.dark)) .graphTop,:global(html:not(.dark)) .graphInspector,:global(html:not(.dark)) .graphNote{border-color:rgb(91 78 147 / .18);background:#fff}
+:global(html:not(.dark)) .graphTop button,:global(html:not(.dark)) .graphInspector .eyebrow,:global(html:not(.dark)) .graphInspector dt{color:#6d28d9}
+:global(html:not(.dark)) .graphNode[aria-pressed=true]{border-color:#7c3aed;background:#f3efff;box-shadow:0 0 0 4px rgb(124 58 237 / .1),0 12px 30px rgb(30 41 59 / .1)}

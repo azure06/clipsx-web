@@ -12,10 +12,10 @@ const buttonVariants = cva(
         brand:
           'bg-violet-500 text-white hover:bg-violet-400 shadow-lg shadow-violet-500/20',
         secondary:
-          'border border-violet-300/20 bg-white/5 text-white hover:border-violet-300/40 hover:bg-violet-400/10 backdrop-blur-sm',
+          'border border-(--ui-border-strong) bg-(--ui-surface-raised) text-(--ui-text) hover:border-violet-400 hover:bg-(--ui-accent-subtle) backdrop-blur-sm',
         outline:
-          'border border-violet-400/40 text-violet-300 hover:border-violet-300 hover:bg-violet-400/10 hover:text-violet-200',
-        ghost: 'text-slate-400 hover:bg-white/5 hover:text-white',
+          'border border-violet-400/50 text-(--ui-violet-strong) hover:border-violet-400 hover:bg-(--ui-accent-subtle)',
+        ghost: 'text-(--ui-text-muted) hover:bg-(--ui-muted) hover:text-(--ui-text)',
         danger: 'bg-red-600 text-white hover:bg-red-500',
       },
       size: {

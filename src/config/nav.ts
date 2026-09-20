@@ -34,7 +34,7 @@ export const mainNavMenus: NavMenu[] = [
     items: [
       { labelKey: 'Nav.productOverview', descriptionKey: 'Nav.productOverviewDescription', href: '/product', icon: 'product' },
       { labelKey: 'Nav.recall', descriptionKey: 'Nav.recallDescription', href: '/recall', icon: 'recall', featured: true },
-      { labelKey: 'Nav.meaningSearch', descriptionKey: 'Nav.meaningSearchDescription', href: documentationConfig.localAi, icon: 'search', external: true },
+      { labelKey: 'Nav.meaningSearch', descriptionKey: 'Nav.meaningSearchDescription', href: '/meaning-search', icon: 'search' },
       { labelKey: 'Nav.extensions', descriptionKey: 'Nav.extensionsDescription', href: '/extensions', icon: 'extensions' },
     ],
   },
@@ -60,6 +60,7 @@ export const footerNav = {
   product: [
     { labelKey: 'Footer.productLink', href: '/product' },
     { labelKey: 'Footer.recall', href: '/recall' },
+    { labelKey: 'Footer.meaningSearch', href: '/meaning-search' },
     { labelKey: 'Footer.extensions', href: '/extensions' },
     { labelKey: 'Footer.pricing', href: '/pricing' },
     { labelKey: 'Footer.download', href: '/download' },

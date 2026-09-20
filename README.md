@@ -21,6 +21,16 @@ npm run dev
 Run `npm run test:unit`, `npm run typecheck`, `npm run lint`, and `npm run build`
 before deployment.
 
+## Theme conventions
+
+The site follows the visitor's system theme by default. The header control lets
+them persist a light, dark, or system preference locally in their browser.
+Use the semantic `--ui-*` / `--vault-*` tokens for shared surfaces, text,
+borders, overlays, and focus states; reserve `dark:` utilities for deliberate
+component-specific differences. New pages must be readable in both themes.
+The palette, contrast rules, brand-mark usage, and review checklist are recorded
+in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
+
 ## Product state
 
 - Marketing, documentation, auth, and account pages support English and Japanese.

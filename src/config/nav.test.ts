@@ -11,6 +11,8 @@ describe('public navigation', () => {
   it('groups product and developer destinations without broken internal paths', () => {
     expect(mainNavMenus.map((menu) => menu.id)).toEqual(['product', 'developers']);
     expect(mainNavMenus[0].items.map((item) => item.href)).toContain('/recall');
+    expect(mainNavMenus[0].items.map((item) => item.href)).toContain('/meaning-search');
+    expect(mainNavMenus[0].items.find((item) => item.href === '/meaning-search')?.external).not.toBe(true);
     expect(mainNavMenus[1].items.find((item) => item.external)?.href).toMatch(/^https:\/\//);
   });
 

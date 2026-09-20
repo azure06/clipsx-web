@@ -40,9 +40,16 @@
     "signOutError": "サインアウトできませんでした。もう一度お試しください。",
     "account": "アカウント"
   },
+  "Theme": {
+    "label": "カラーテーマ",
+    "light": "ライトテーマを使用",
+    "dark": "ダークテーマを使用",
+    "system": "システムテーマを使用"
+  },
   "Footer": {
     "productLink": "製品",
     "recall": "Recall",
+    "meaningSearch": "意味検索",
     "extensions": "拡張機能",
     "developers": "開発者向け",
     "docs": "ドキュメント",

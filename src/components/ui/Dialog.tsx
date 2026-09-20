@@ -39,7 +39,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-(--ui-overlay) backdrop-blur-sm" />
       <div
         role="dialog"
         aria-modal="true"
@@ -51,7 +51,7 @@ export function Dialog({ open, onClose, children, className }: DialogProps) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-lg p-1 text-gray-400 transition-colors hover:bg-(--vault-muted) hover:text-gray-600 dark:hover:text-gray-200"
+          className="absolute right-4 top-4 rounded-lg p-1 text-(--ui-text-muted) transition-colors hover:bg-(--vault-muted) hover:text-(--ui-text)"
           aria-label="Close"
         >
           <X size={18} />
@@ -68,7 +68,7 @@ export function DialogTitle({ children, className }: { children: ReactNode; clas
 }
 
 export function DialogDescription({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cn("mt-1.5 text-sm text-gray-600 dark:text-gray-300", className)}>{children}</p>;
+  return <p className={cn("mt-1.5 text-sm text-(--ui-text-muted)", className)}>{children}</p>;
 }
 
 export function DialogBody({ children, className }: { children: ReactNode; className?: string }) {

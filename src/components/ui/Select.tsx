@@ -32,7 +32,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
     return (
       <div className="flex min-w-0 flex-col gap-1.5">
         {label && (
-          <label htmlFor={triggerId} className="text-sm font-medium text-slate-200">
+          <label htmlFor={triggerId} className="text-sm font-medium text-(--ui-text)">
             {label}
           </label>
         )}
@@ -60,7 +60,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             <SelectPrimitive.Content
               position="popper"
               sideOffset={4}
-              className="z-50 min-w-(--radix-select-trigger-width) overflow-hidden rounded-lg border border-(--vault-border) bg-(--vault-surface) text-slate-100 shadow-xl shadow-black/30"
+              className="z-50 min-w-(--radix-select-trigger-width) overflow-hidden rounded-lg border border-(--vault-border) bg-(--vault-surface) text-(--ui-text) shadow-xl shadow-black/30"
             >
               <SelectPrimitive.ScrollUpButton className="flex h-7 items-center justify-center text-gray-500">
                 <ChevronUp size={14} />

@@ -9,6 +9,11 @@
   padding: 0 32px 88px;
   color: var(--ink);
 }
+:global(html:not(.dark)) .page .heroVisual,
+:global(html:not(.dark)) .page .chat,
+:global(html:not(.dark)) .page .evidencePanel {
+  border-color: rgb(91 78 147 / .22);
+}
 .page section[id] {
   scroll-margin-top: 100px;
 }

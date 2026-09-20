@@ -16,6 +16,11 @@
     ),
     linear-gradient(#080d1b, #0b1120 42%, #080d1b);
 }
+html:not(.dark) .ex-page {
+  background:
+    radial-gradient(circle at 82% 7%, rgb(139 92 246 / .16), transparent 24rem),
+    linear-gradient(#f8faff, #f1f4fb 42%, #f8faff);
+}
 @media screen {
   .ex-page {
     --ink: var(--ui-text);
@@ -29,6 +34,14 @@
       ),
       linear-gradient(#080d1b, #0b1120 42%, #080d1b);
   }
+}
+@media screen {
+  html:not(.dark) .ex-page {
+    background:
+      radial-gradient(circle at 82% 7%, rgb(139 92 246 / .19), transparent 27rem),
+      linear-gradient(#f8faff, #f1f4fb 42%, #f8faff);
+  }
+  html:not(.dark) .ex-kicker { color: #6d28d9; }
 }
 .ex-shell {
   width: min(100% - 2rem, 80rem);

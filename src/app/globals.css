@@ -11,6 +11,33 @@
 
 @layer base {
   :root {
+    color-scheme: light;
+    --ui-canvas: #f6f8fc;
+    --ui-surface: #ffffff;
+    --ui-surface-raised: #fbfcff;
+    --ui-muted: #edf1f8;
+    --ui-border: rgb(91 78 147 / 0.18);
+    --ui-border-strong: rgb(109 40 217 / 0.34);
+    --ui-text: #182238;
+    --ui-text-muted: #5d6b82;
+    --ui-blue: #2563eb;
+    --ui-violet: #6d28d9;
+    --ui-violet-strong: #6d28d9;
+    --ui-accent-subtle: rgb(109 40 217 / 0.1);
+    --ui-focus: #7c3aed;
+    --ui-overlay: rgb(15 23 42 / 0.42);
+    --ui-shadow: rgb(30 41 59 / 0.14);
+
+    /* Compatibility aliases for the authenticated vault and settings UI. */
+    --vault-canvas: var(--ui-canvas);
+    --vault-surface: var(--ui-surface);
+    --vault-muted: var(--ui-muted);
+    --vault-border: var(--ui-border);
+    --vault-accent: var(--ui-violet);
+    --vault-accent-subtle: var(--ui-accent-subtle);
+  }
+
+  .dark {
     color-scheme: dark;
     --ui-canvas: #080d1b;
     --ui-surface: #10182a;
@@ -25,14 +52,8 @@
     --ui-violet-strong: #8b5cf6;
     --ui-accent-subtle: rgb(167 139 250 / 0.1);
     --ui-focus: #a78bfa;
-
-    /* Compatibility aliases for the authenticated vault and settings UI. */
-    --vault-canvas: var(--ui-canvas);
-    --vault-surface: var(--ui-surface);
-    --vault-muted: var(--ui-muted);
-    --vault-border: var(--ui-border);
-    --vault-accent: var(--ui-violet);
-    --vault-accent-subtle: var(--ui-accent-subtle);
+    --ui-overlay: rgb(0 0 0 / 0.48);
+    --ui-shadow: rgb(0 0 0 / 0.18);
   }
 }
 
@@ -48,7 +69,7 @@ html {
 body {
   overflow-x: hidden;
   background:
-    radial-gradient(circle at 88% -8%, rgb(139 92 246 / 0.09), transparent 30rem),
+    radial-gradient(circle at 88% -8%, rgb(109 40 217 / 0.08), transparent 30rem),
     var(--ui-canvas);
   color: var(--ui-text);
 }
@@ -74,13 +95,13 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) {
   .menu-item:hover { background: var(--ui-accent-subtle); color: var(--ui-text); }
   .button-primary { display: inline-flex; align-items: center; justify-content: center; border-radius: .65rem; background: linear-gradient(105deg, var(--ui-blue), var(--ui-violet-strong)); font-weight: 700; color: white; transition: filter .15s, transform .15s; }
   .button-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
-  .button-secondary { display: inline-flex; align-items: center; justify-content: center; border-radius: .65rem; border: 1px solid var(--ui-border-strong); background: rgb(255 255 255 / .045); font-weight: 650; color: var(--ui-text); transition: border-color .15s, background .15s; }
+  .button-secondary { display: inline-flex; align-items: center; justify-content: center; border-radius: .65rem; border: 1px solid var(--ui-border-strong); background: var(--ui-surface-raised); font-weight: 650; color: var(--ui-text); transition: border-color .15s, background .15s; }
   .button-secondary:hover { border-color: rgb(167 139 250 / .55); background: var(--ui-accent-subtle); }
   .eyebrow { font-size: .6875rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ui-violet); }
   .marketing-shell { margin-inline: auto; width: 100%; max-width: 80rem; padding-inline: 1rem; }
   .section-pad { padding-block: 6rem; }
   .grid-paper { background-image: linear-gradient(rgb(148 163 184 / .11) 1px, transparent 1px), linear-gradient(90deg, rgb(148 163 184 / .11) 1px, transparent 1px); background-size: 48px 48px; }
-  .marketing-card { border: 1px solid var(--ui-border); border-radius: 1rem; background: rgb(16 24 42 / .78); box-shadow: 0 18px 50px rgb(0 0 0 / .16); }
+  .marketing-card { border: 1px solid var(--ui-border); border-radius: 1rem; background: var(--ui-surface); box-shadow: 0 18px 50px var(--ui-shadow); }
   .prose-clipsx h2 { margin-top: 2.5rem; font-family: var(--font-heading); font-size: 1.5rem; font-weight: 750; color: var(--ui-text); }
   .prose-clipsx p, .prose-clipsx li { color: var(--ui-text-muted); line-height: 1.8; }
   .prose-clipsx ul { margin: 1rem 0; list-style: disc; padding-left: 1.25rem; }

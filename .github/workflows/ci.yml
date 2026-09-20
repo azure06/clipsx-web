@@ -45,7 +45,14 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run supabase:start
+      - name: Start local Supabase
+        id: supabase-start
+        run: npm run supabase:start
+      - name: Capture local database port diagnostics
+        if: ${{ failure() && steps.supabase-start.outcome == 'failure' }}
+        run: |
+          sudo ss -ltnp '( sport = :54322 )' || true
+          docker ps --all --format 'table {{.Names}}\t{{.Ports}}\t{{.Status}}'
       - run: npm run supabase:reset
       - run: npm run test:db
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6

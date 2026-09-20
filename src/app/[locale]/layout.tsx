@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
@@ -6,7 +7,10 @@ import { siteConfig } from '@/config/site';
 import { getUser } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import '../globals.css';
+
+const themeBootstrap = `(function(){try{var p=localStorage.getItem('clipsx-web-theme');var d=p==='dark'||(p!=='light'&&p!=='dark'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`;
 
 export const metadata: Metadata = {
   title: {
@@ -45,16 +49,25 @@ export default async function LocaleLayout({
   const user = await getUser();
 
   return (
-    <html
-      lang={locale}
-      className="dark"
-      suppressHydrationWarning
-    >
-      <body className="min-h-screen bg-(--ui-canvas) text-(--ui-text) antialiased font-sans">
+      <html
+        lang={locale}
+        suppressHydrationWarning
+      >
+        <head>
+          <Script
+            id="clipsx-theme-bootstrap"
+            strategy="beforeInteractive"
+          >
+            {themeBootstrap}
+          </Script>
+        </head>
+        <body className="min-h-screen bg-(--ui-canvas) text-(--ui-text) antialiased font-sans">
         <NextIntlClientProvider messages={messages}>
-          <Header user={user} />
-          <main className="pt-16">{children}</main>
-          <Footer />
+          <ThemeProvider>
+            <Header user={user} />
+            <main className="pt-16">{children}</main>
+            <Footer />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

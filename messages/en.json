@@ -40,11 +40,18 @@
     "signOutError": "We couldn't sign you out. Please try again.",
     "account": "Account"
   },
+  "Theme": {
+    "label": "Color theme",
+    "light": "Use light theme",
+    "dark": "Use dark theme",
+    "system": "Use system theme"
+  },
   "Footer": {
     "product": "Product",
     "features": "Features",
     "productLink": "Product",
     "recall": "Recall",
+    "meaningSearch": "Meaning Search",
     "extensions": "Extensions",
     "developers": "Developers",
     "docs": "Documentation",

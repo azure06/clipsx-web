@@ -64,6 +64,20 @@
   color: #f8fafc;
   border-color: #3b3353;
 }
+:global(html:not(.dark)) .freePlan {
+  background: radial-gradient(ellipse at 100% 0, rgb(221 214 254 / .78), transparent 65%), #ffffff;
+  color: var(--ui-text);
+  border-color: rgb(109 40 217 / .24);
+}
+:global(html:not(.dark)) .freePlan .planTop { color: #6d28d9; }
+:global(html:not(.dark)) .freePlan .badge > span { background: #6d28d9; }
+:global(html:not(.dark)) .freePlan .planBody,
+:global(html:not(.dark)) .freePlan .price > span { color: #526178; }
+:global(html:not(.dark)) .freePlan .planList { border-color: rgb(91 78 147 / .18); }
+:global(html:not(.dark)) .freePlan .planList li { color: #344a70; }
+:global(html:not(.dark)) .freePlan .planList svg { color: #6d28d9; }
+:global(html:not(.dark)) .freePlan .planLink { color: #5b21b6; }
+:global(html:not(.dark)) .freePlan .planLink:hover { color: #4c1d95; }
 .paidPlan {
   background: var(--ui-surface);
 }
