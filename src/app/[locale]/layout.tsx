@@ -8,6 +8,7 @@ import { getUser } from '@/lib/supabase/server';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { WebObservability } from '@/components/observability/WebObservability';
 import '../globals.css';
 
 const themeBootstrap = `(function(){try{var p=localStorage.getItem('clipsx-web-theme');var d=p==='dark'||(p!=='light'&&p!=='dark'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light'}catch(e){}})()`;
@@ -47,6 +48,16 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
   const user = await getUser();
+  const provider = user?.app_metadata.provider;
+  const authProvider: 'google' | 'github' | 'email' | 'unknown' =
+    provider === 'google' || provider === 'github' || provider === 'email' ? provider : 'unknown';
+  const rawName = user?.user_metadata.full_name ?? user?.user_metadata.name;
+  const telemetryIdentity = user ? {
+    id: user.id,
+    email: user.email_confirmed_at ? (user.email ?? null) : null,
+    username: typeof rawName === 'string' && rawName.trim() ? rawName.trim().slice(0, 100) : null,
+    authProvider,
+  } : null;
 
   return (
       <html
@@ -67,6 +78,7 @@ export default async function LocaleLayout({
             <Header user={user} />
             <main className="pt-16">{children}</main>
             <Footer />
+            <WebObservability identity={telemetryIdentity} />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

@@ -21,6 +21,23 @@ npm run dev
 Run `npm run test:unit`, `npm run typecheck`, `npm run lint`, and `npm run build`
 before deployment.
 
+## Observability
+
+Production failures go to the Sentry project `clipsx-web`; Vercel Web Analytics
+and Speed Insights run only on allowlisted public routes. Account, Vault, auth
+callback, API, query-bearing, and identifier-bearing routes are rejected by the
+analytics boundary. Sentry receives explicit account identity only while signed
+in: Supabase UUID, verified email, optional bounded name, and a controlled auth
+provider tag. Signed-out sessions have no persistent identity.
+
+Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` to the public project DSN and keep
+`SENTRY_AUTH_TOKEN` in Vercel secrets. Production builds derive the exact release
+`clipsx-web@<VERCEL_GIT_COMMIT_SHA>`; provide that same value as `SENTRY_RELEASE`
+and `NEXT_PUBLIC_SENTRY_RELEASE` so SDK events, source maps, commits, and deploys
+match. Local development, tests, and normal previews do not transmit. Set
+`SENTRY_ENABLED=true` and `NEXT_PUBLIC_SENTRY_ENABLED=true` only for a controlled
+preview verification.
+
 ## Theme conventions
 
 The site follows the visitor's system theme by default. The header control lets
