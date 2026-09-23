@@ -55,6 +55,7 @@ export function catalogFromRegistry(indexBytes, signatureBytes, expectedHash, tr
   }
   const rows = []
   for (const entry of latest.values()) {
+    if (entry.apiVersion !== '^3.0') fail(`${entry.packageId}: unsupported extension API`)
     if (!/^infiniti\.[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.packageId)) fail('Registry contains an invalid package ID')
     if (!Array.isArray(entry.portableSettings)) fail(`${entry.packageId}: portableSettings is missing`)
     let previousSettingId = ''

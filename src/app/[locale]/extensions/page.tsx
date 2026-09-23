@@ -119,7 +119,7 @@ const content = {
     usersLink: "Read the extension guide",
     devTitle: "Have a clipboard workflow in mind?",
     devBody:
-      "Build against Extension API v2. Start from a manifest, add only the capabilities you need, validate with the package CLI, and run the conformance suite.",
+      "Build against Extension API v3. Start from a manifest, add only the capabilities you need, validate with the package CLI, and run the conformance suite.",
     devLink: "Open developer docs",
     sourceLink: "Browse extension source",
     path: ["Manifest", "Contribution", "Validate", "Package"],
@@ -209,7 +209,7 @@ const content = {
     usersLink: "拡張機能ガイドを読む",
     devTitle: "クリップボードで実現したいことがありますか？",
     devBody:
-      "Extension API v2 に沿って構築できます。マニフェストから始め、必要な機能だけを宣言し、CLI と適合テストで検証します。",
+      "Extension API v3 に沿って構築できます。マニフェストから始め、必要な機能だけを宣言し、CLI と適合テストで検証します。",
     devLink: "開発者ドキュメント",
     sourceLink: "拡張機能のソース",
     path: ["マニフェスト", "機能を追加", "検証", "パッケージ"],

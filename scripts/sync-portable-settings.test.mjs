@@ -18,12 +18,12 @@ describe('portable setting catalog generation', () => {
     const fixture = signed({
       schemaVersion: 4,
       packages: [
-        { packageId: 'infiniti.mermaid', version: '1.0.0', sha256: 'a', portableSettings: [] },
-        { packageId: 'infiniti.mermaid', version: '1.0.1', sha256: 'b', portableSettings: [
+        { packageId: 'infiniti.mermaid', version: '1.0.0', apiVersion: '^3.0', sha256: 'a', portableSettings: [] },
+        { packageId: 'infiniti.mermaid', version: '1.0.1', apiVersion: '^3.0', sha256: 'b', portableSettings: [
           { settingId: 'fit-diagram', valueKind: 'boolean' },
           { settingId: 'show-source', valueKind: 'boolean' },
         ] },
-        { packageId: 'infiniti.jwt-inspector', version: '1.2.2', sha256: 'c', portableSettings: [
+        { packageId: 'infiniti.jwt-inspector', version: '1.2.2', apiVersion: '^3.0', sha256: 'c', portableSettings: [
           { settingId: 'show-raw', valueKind: 'boolean' },
         ] },
       ],
@@ -39,5 +39,10 @@ describe('portable setting catalog generation', () => {
   it('rejects a mismatched digest', () => {
     const fixture = signed({ schemaVersion: 4, packages: [], revocations: [] })
     expect(() => catalogFromRegistry(fixture.bytes, fixture.signatures, '0'.repeat(64), fixture.keys)).toThrow(/hash/)
+  })
+
+  it('clears approvals for an empty v3 catalog', () => {
+    const fixture = signed({ schemaVersion: 4, packages: [], revocations: [] })
+    expect(catalogFromRegistry(fixture.bytes, fixture.signatures, fixture.hash, fixture.keys)).toEqual([])
   })
 })
