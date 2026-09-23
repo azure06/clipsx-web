@@ -1,0 +1,41 @@
+---
+title: "Build a Rewrite extension"
+description: "Build a ClipsX Extension API v3 transformer with generation, presets, automation rules, durable results, and package state."
+keywords: ["ClipsX Extension API v3", "Rewrite", "durable results", "automation"]
+---
+
+This guide follows the first-party `infiniti.rewrite` package. It uses one transformer for manual and automatic work. Automatic work stores its output with the source clip and never changes the system clipboard.
+
+<Steps>
+  <Step title="Scaffold a v3 package">
+    Run the ClipsX package CLI and keep its pinned `clipsx:extension@3.0.0` WIT file. Set `schemaVersion = 3`, `contractRevision = 1`, and `apiVersion = "^3.0"` in the manifest.
+  </Step>
+  <Step title="Declare the transformer">
+    Add a `text/plain` transformer named `rewrite`. Set `resultLifetime = "source_clip"` so completed output survives restart, package updates, disablement, and uninstall while its source clip exists.
+  </Step>
+  <Step title="Request generation">
+    Declare the generation capability. Send separate system and user messages, treat the selected text as data, cap output tokens, and return only rewritten text. ClipsX chooses the provider and keeps endpoint, model, and credentials private.
+  </Step>
+  <Step title="Add presets and parameters">
+    Use the tested presets Business, Casual, Concise, Improve Writing, Translate, and Custom. Translate requires `targetLanguage`; Custom requires a nonempty `customInstruction` of at most 4 KiB. The host validates the same bounded parameter schema before manual and automatic execution.
+  </Step>
+  <Step title="Configure app rules">
+    Declare a `clip.created` activation that targets the transformer. Users opt in by selecting an observed application and preset. Useful examples are Outlook to Business, Slack to Casual, and VS Code to Custom with “concise technical” instructions. Rules use the selected platform-specific application ID; there is no wildcard rule.
+  </Step>
+  <Step title="Work with durable results">
+    Completed outputs appear in the source clip's Results section. Users explicitly choose Copy, Paste, Regenerate, Delete, or Save as new clip. Saving creates an independent canonical clip; deleting the source removes its attached results.
+  </Step>
+  <Step title="Handle cancellation and state">
+    The host cancels unfinished work when its source, permission, rule, package version, or relevant configuration changes. Package state is declared, bounded, device-local, and scoped to the package. Do not use state as generated-output storage.
+  </Step>
+  <Step title="Test the package">
+    Build the guest, run package conformance, and test manual execution, duplicate capture deduplication, provider recovery, cancellation, restart recovery, source deletion, and promotion. Verify that automatic execution never writes to the clipboard.
+  </Step>
+  <Step title="Package and publish">
+    Build an immutable archive, validate it with the package CLI, and publish its checksum and complete permission fingerprint through the registry. Never replace a released archive.
+  </Step>
+</Steps>
+
+<Info>
+Build every extension against the v3 WIT and manifest. The host runs the v3 contract only.
+</Info>

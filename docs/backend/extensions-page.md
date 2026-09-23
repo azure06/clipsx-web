@@ -1,12 +1,11 @@
 # Extensions page
 
-The public Extensions page serves two audiences without implying that the
-registry is already live:
+The public Extensions page serves two audiences:
 
 - People using ClipsX can understand what an extension changes, explore the
   prepared first-party collection, and continue to the installation and
   permission guide.
-- Developers can see the Extension API v2 lifecycle and continue to developer
+- Developers can see the Extension API v3 lifecycle and continue to developer
   documentation or the first-party extension source repository.
 
 ## Product source
@@ -16,8 +15,9 @@ The page reflects the implemented desktop architecture in `../clipsx`:
 - Contributions can detect, render, transform, or act on compatible clipboard
   representations. The host selects applicable contributions and preserves the
   canonical clip.
-- The prepared first-party catalog contains Mermaid, JWT Inspector, Base64,
-  Data Tools, and Ask AI. No optional package is installed by default.
+- The first-party source collection contains Mermaid, JWT Inspector, Base64,
+  Data Tools, Ask AI, and Rewrite. New v3 archives must be published before
+  they appear in the signed registry. No optional package is installed by default.
 - Registry releases are versioned and checksum-pinned. Installation, relevant
   updates, and external access expose their permission boundary for review.
 - Extensions have no ambient clipboard-history, filesystem, or network access.

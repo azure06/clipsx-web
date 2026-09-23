@@ -53,7 +53,8 @@
         "group": "Build extensions",
         "icon": "code-xml",
         "pages": [
-          "developer-extensions"
+          "developer-extensions",
+          "rewrite-extension"
         ]
       }
     ]

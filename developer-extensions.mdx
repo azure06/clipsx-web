@@ -10,7 +10,7 @@ quarantine; an extension declares only the capabilities it needs.
 
 <Steps>
   <Step title="Read the extension contract">
-    Start with the [Extension API v2](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V2.md)
+    Start with the [Extension API v3](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V3.md)
     to understand manifests, contributions, capability boundaries, and lifecycle rules.
   </Step>
   <Step title="Build a minimal package">
@@ -29,7 +29,13 @@ quarantine; an extension declares only the capabilities it needs.
 - Network destinations and external navigation require declaration and local consent.
 - A changed package checksum requires another permission review.
 - Credentials and grants do not synchronize between devices.
+- Automatic transformations store durable results on their source clip. They never replace the system clipboard.
+- The desktop and package tooling use the v3 contract only.
 
 <Card title="Browse extension source" icon="github" href="https://github.com/azure06/clipsx-extensions">
   Review first-party package examples and their manifests.
+</Card>
+
+<Card title="Build Rewrite" icon="wand-sparkles" href="/rewrite-extension">
+  Follow the complete durable transformation tutorial.
 </Card>
