@@ -19,7 +19,7 @@ describe('portable setting catalog generation', () => {
       schemaVersion: 4,
       packages: [
         { packageId: 'infiniti.mermaid', version: '1.0.0', apiVersion: '^3.0', sha256: 'a', portableSettings: [] },
-        { packageId: 'infiniti.mermaid', version: '1.0.1', apiVersion: '^3.0', sha256: 'b', portableSettings: [
+        { packageId: 'infiniti.mermaid', version: '2.0.0', apiVersion: '^3.2', sha256: 'b', portableSettings: [
           { settingId: 'fit-diagram', valueKind: 'boolean' },
           { settingId: 'show-source', valueKind: 'boolean' },
         ] },
