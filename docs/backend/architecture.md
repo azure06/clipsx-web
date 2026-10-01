@@ -1241,3 +1241,8 @@ Auth session row is not sufficient. Optimistic history/proof commitments use
 null-safe comparisons; missing expected hashes do not disable concurrency
 checks. Null pagination bounds and absent rotation arrays are rejected. These
 are baseline corrections, including the vault baseline, not new migrations.
+
+## Desktop download metadata
+
+The download page reads finalized GitHub release metadata at runtime. See
+[Desktop releases](desktop-releases.md) for validation, caching and rollout.
