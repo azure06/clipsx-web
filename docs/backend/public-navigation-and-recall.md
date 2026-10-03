@@ -8,8 +8,10 @@ with Blog immediately before Pricing. FAQ and Contact remain available from
 the footer. Download is the header's
 primary action and continues to resolve release availability on `/download`.
 Download remains visible beside the menu button on compact headers. Sponsor
-appears as a separate link in both header variants, footer, and homepage support
-strip. Its verified default is `https://github.com/sponsors/azure06`.
+appears as an outlined action beside Download on desktop and above Download
+inside the compact menu. It is not duplicated among the direct navigation links.
+Footer and homepage support links remain available. Its verified default is
+`https://github.com/sponsors/azure06`.
 `NEXT_PUBLIC_SPONSOR_URL` overrides that default; an empty value hides the links.
 Public documentation links send readers to `NEXT_PUBLIC_DOCS_URL`, defaulting
 to `https://docs.clipsx.app`. Feature-specific links use `/local-ai`,
