@@ -100,9 +100,12 @@ Suggested owner: site maintainer. Before the next acquisition campaign:
 4. Expand the short existing articles into useful task-focused guides from
    actual workflows. Their current depth is limited; technical metadata cannot
    substitute for useful content. Avoid unsubstantiated time-saving claims.
-5. Complete operator identity, jurisdiction, and legal review in the existing
-   Privacy/Terms launch drafts. Their visible draft status remains a trust gap;
-   this review does not invent the missing legal facts.
+5. Maintain the current-service Terms/Privacy policy and the request/retention
+   procedure in [Legal pages](legal-pages.md). Vault and Pro billing are confirmed
+   inactive; update disclosures before enabling either. Public contact is the
+   confirmed `support@clipsx.app` mailbox. No personal name or home address is
+   inferred or published. Actual provider configuration and legal applicability
+   remain operational follow-ups; publication does not claim legal certification.
 6. Make public marketing delivery resilient to auth-service outages. Preserve
    session security on account/Vault routes while preventing account-menu
    identity lookups from blocking public content. Reproduce the local retry
