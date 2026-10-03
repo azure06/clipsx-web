@@ -1,4 +1,4 @@
-import { documentationConfig } from './site';
+import { documentationConfig, siteConfig } from './site';
 
 export type NavIcon =
   | 'product'
@@ -53,7 +53,9 @@ export const mainNavMenus: NavMenu[] = [
 
 export const mainNavLinks: NavItem[] = [
   { labelKey: 'Nav.docs', href: documentationConfig.root, external: true },
+  { labelKey: 'Nav.blog', href: '/blog' },
   { labelKey: 'Nav.pricing', href: '/pricing' },
+  ...(siteConfig.sponsorUrl ? [{ labelKey: 'Nav.sponsor', href: siteConfig.sponsorUrl, external: true }] : []),
 ];
 
 export const footerNav = {
@@ -71,6 +73,7 @@ export const footerNav = {
     { labelKey: 'Footer.changelog', href: '/changelog' },
     { labelKey: 'Footer.blog', href: '/blog' },
     { labelKey: 'Footer.contact', href: '/contact' },
+    ...(siteConfig.sponsorUrl ? [{ labelKey: 'Footer.sponsor', href: siteConfig.sponsorUrl, external: true }] : []),
     { labelKey: 'Footer.faq', href: '/faq' },
   ],
   legal: [

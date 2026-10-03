@@ -15,6 +15,7 @@ import type { Locale } from "@/i18n/config";
 import { RecallEvidenceStory } from "@/components/marketing/RecallEvidenceStory";
 import { documentationConfig } from "@/config/site";
 import styles from "./recall.module.css";
+import { pageMetadata } from '@/lib/seo';
 
 const copy = {
   en: {
@@ -151,10 +152,7 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: copy[locale].metadata[0],
-    description: copy[locale].metadata[1],
-  };
+  return pageMetadata(locale, '/recall', copy[locale].metadata[0], copy[locale].metadata[1]);
 }
 
 export default async function RecallPage({

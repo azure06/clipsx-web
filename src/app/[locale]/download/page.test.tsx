@@ -9,6 +9,7 @@ vi.mock("next-intl/server", () => ({ setRequestLocale: vi.fn() }));
 vi.mock("next/server", () => ({ connection: vi.fn() }));
 vi.mock("@/lib/releases", () => ({ getPublishedRelease: vi.fn() }));
 vi.mock("@/components/marketing/Marketing", () => ({ PageIntro: () => null }));
+vi.mock('@/i18n/routing', () => ({ Link: ({ href, children, ...props }: React.ComponentProps<'a'>) => <a href={href} {...props}>{children}</a> }));
 
 describe("download page", () => {
   it("shows both Mac architectures and removes the first-release notice", async () => {
@@ -20,7 +21,9 @@ describe("download page", () => {
     );
     expect(html).toContain("Apple Silicon");
     expect(html).toContain("Intel / x64");
-    expect(html).not.toContain("Why no active downloads?");
+    expect(html).not.toContain("Downloads temporarily unavailable");
+    expect(html).toContain('Copy something');
+    expect(html).toContain('Open the setup guide');
     expect(html.match(/releases\/download\/v0.1.0\//g)).toHaveLength(5);
   });
   it("exposes no installer links when published metadata is unavailable", async () => {
@@ -28,7 +31,7 @@ describe("download page", () => {
     const html = renderToStaticMarkup(
       await Download({ params: Promise.resolve({ locale: "en" }) }),
     );
-    expect(html).toContain("Why no active downloads?");
+    expect(html).toContain("Downloads temporarily unavailable");
     expect(html).toContain("Downloads unavailable");
     expect(html).not.toContain("releases/download/");
   });

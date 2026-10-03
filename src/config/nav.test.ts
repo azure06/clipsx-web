@@ -3,8 +3,8 @@ import { footerNav, mainNavLinks, mainNavMenus } from './nav';
 import { documentationConfig } from './site';
 
 describe('public navigation', () => {
-  it('keeps Docs and Pricing as direct primary destinations', () => {
-    expect(mainNavLinks.map((item) => item.href)).toEqual([documentationConfig.root, '/pricing']);
+  it('keeps Blog directly before Pricing and retains Docs', () => {
+    expect(mainNavLinks.slice(0, 3).map((item) => item.href)).toEqual([documentationConfig.root, '/blog', '/pricing']);
     expect(mainNavLinks[0].external).toBe(true);
   });
 

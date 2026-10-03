@@ -76,7 +76,8 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <Header user={user} />
-            <main className="pt-16">{children}</main>
+            <a href="#main-content" className="focus-ring sr-only fixed left-4 top-20 z-[60] rounded-lg bg-(--ui-surface) px-4 py-3 focus:not-sr-only">{locale === 'ja' ? '本文へスキップ' : 'Skip to content'}</a>
+            <main id="main-content" tabIndex={-1} className="pt-16">{children}</main>
             <Footer />
             <WebObservability identity={telemetryIdentity} />
           </ThemeProvider>

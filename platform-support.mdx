@@ -8,10 +8,11 @@ keywords: ["Windows", "Linux", "macOS", "ClipsX download"]
 
 | Platform | Architecture | Package | Status |
 | --- | --- | --- | --- |
-| Windows | x64 | `.exe` | Coming soon |
-| Linux | x64 | AppImage | Coming soon |
-| Linux | x64 | `.deb` | Coming soon |
-| macOS | Apple silicon and Intel | `.dmg` | Coming soon |
+| Windows | x64 | Signed `.exe` | Available in v0.1.0 |
+| Linux/X11 | x64 | AppImage | Available in v0.1.0 |
+| Linux/X11 | x64 | `.deb` | Available in v0.1.0 |
+| macOS | Apple Silicon | Signed, notarized `.dmg` | Available in v0.1.0 |
+| macOS | Intel | Signed, notarized `.dmg` | Available in v0.1.0 |
 
 An artifact appears on the ClipsX download page only after its platform
 certification and publishing checks pass.
@@ -24,9 +25,8 @@ certification and publishing checks pass.
 
 ## Platform notes
 
-- The first Linux release targets X11.
-- macOS is not a primary download until signing, hardened runtime, notarization,
-  and stapling are complete.
-- Current release metadata identifies version `0.1.0`, but every configured
-  target remains unavailable.
+- Linux v0.1.0 supports X11. Wayland is outside this release's support.
+- macOS packages use Developer ID signing, notarization, and stapling.
+- [Release notes](https://github.com/azure06/clipsx/releases/tag/v0.1.0)
+  describe installation, updates, database compatibility, and recovery.
 

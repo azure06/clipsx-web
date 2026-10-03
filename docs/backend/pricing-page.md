@@ -2,8 +2,9 @@
 
 `/[locale]/pricing` is a server-rendered, localized plan overview and feature
 inventory. Its neutral heading is “Plans and features.” The current Free plan
-is shown at $0 / ¥0 with no subscription required. The paid plan is explicitly
-planned and unavailable; price, additional benefits, and launch date are unset.
+is shown at $0 / ¥0 with no subscription required. Pro is a "Coming soon"
+teaser: its feature lineup and pricing will be revealed at launch. There are
+no invented prices, benefits, quotas, dates, or purchasable entitlements.
 There is no checkout action, billing-period selector, trial, discount, or
 promised paid entitlement on this page. Acquisition links to `/download`.
 
@@ -12,7 +13,7 @@ promised paid entitlement on this page. Acquisition links to `/download`.
 `src/config/pricing.ts` owns 15 current Free features across capture/preview,
 search/Recall, organization/reuse, and settings/data. Each includes an explanation
 and setup or platform requirements. The route owns English/Japanese page copy,
-metadata, plan summaries, future-plan status, and native expandable FAQs.
+metadata, plan summaries, Pro teaser, and native expandable FAQs.
 `pricing.module.css` scopes the styling, including system light/dark themes,
 focus indicators, header-offset anchor targets, and reduced-motion scrolling.
 
@@ -40,8 +41,8 @@ Feature descriptions follow `../clipsx/docs/ARCHITECTURE.md`,
 - Extensions require compatible packages and permission approval.
 - Settings/extension-choice sync is opt-in and requires an account. It does
   not sync clipboard history, files, or local models.
-- Optional hosted services are a possible future direction, not a confirmed
-  paid feature list. No future price, quota, or launch date is promised.
+- Pro is announced as coming soon. No feature list, price, quota, or launch
+  date is promised. The teaser does not change billing or Free entitlements.
 
 ## Verification
 

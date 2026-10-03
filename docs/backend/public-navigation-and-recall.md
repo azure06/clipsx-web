@@ -1,17 +1,20 @@
 # Public navigation and Recall page
 
-The public header uses two grouped menus and two direct evaluation links. The
+The public header uses two grouped menus and three direct evaluation links. The
 Product menu contains Product overview, Recall, Meaning Search, and Extensions.
 The Developers menu contains the developer overview, extension documentation,
-the source repository, and Changelog. Docs and Pricing remain direct links;
-Blog, FAQ, and Contact remain available from the footer. Download is the header's
+the source repository, and Changelog. Docs, Blog, and Pricing are direct links,
+with Blog immediately before Pricing. FAQ and Contact remain available from
+the footer. Download is the header's
 primary action and continues to resolve release availability on `/download`.
-Public documentation links now send readers to the English Mintlify site at
-`https://infiniti-82a6b77b.mintlify.site/docs`. Feature-specific
-links use the closest published Mintlify page, including `/docs/local-ai`,
-`/docs/extensions`, `/docs/privacy`, and `/docs/sync`. The legacy localized
-documentation routes remain in the application for existing inbound URLs, but
-the public navigation no longer promotes them.
+Download remains visible beside the menu button on compact headers. Sponsor
+appears as a separate link in both header variants and footer only when
+`NEXT_PUBLIC_SPONSOR_URL` contains a verified live sponsorship destination.
+GitHub Sponsors for `azure06` was not enabled at the time of this review.
+Public documentation links send readers to `NEXT_PUBLIC_DOCS_URL`, defaulting
+to `https://docs.clipsx.app`. Feature-specific links use `/local-ai`,
+`/extensions`, `/privacy`, and `/sync`. Mintlify owns documentation routes;
+the public app links directly to that documentation host.
 
 Desktop menus open on explicit activation, close on outside interaction or
 Escape, expose menu semantics, and support Arrow Up, Arrow Down, Home, and End.
@@ -69,9 +72,10 @@ replacement index. Capacity targets and benchmark timings are not product claims
 The existing localized Docs route remains available for inbound compatibility.
 The public UI now directs readers to the English Mintlify documentation site.
 
-The Changelog intentionally shows an empty release ledger until a build is
-certified and published through GitHub Releases. The deleted legacy entry was a
-hard-coded pre-release claim and was not backed by a published GitHub Release.
+The Changelog lists the published v0.1.0 release from October 3, 2026.
+`src/content/changelog.ts` records the source URL, publication timestamp,
+localized highlights, and platform/upgrade limits. New entries require
+published release evidence; release history is editorial content.
 The Download page remains the source of truth for artifact availability.
 
 ## Verification
@@ -79,8 +83,8 @@ The Download page remains the source of truth for artifact availability.
 Run `npm run test:unit`, `npm run typecheck`, `npm run lint`, and `npm run build`.
 Verify the two desktop menus and compact accordions in English and Japanese;
 exercise keyboard traversal, Escape restoration, outside dismissal, direct Docs
-and Pricing navigation, Recall citations/reset, footer links, and the Changelog
-empty state. For both feature pages, check English and Japanese at 390, 768,
+Blog and Pricing navigation, Recall citations/reset, footer links, and the
+Changelog release entry. For both feature pages, check English and Japanese at 390, 768,
 1024, and 1440 CSS pixels in light/dark modes; verify no horizontal overflow,
 one h1 and one main landmark, working anchor targets, and readable example panes.
 Exercise all Recall questions, both citations, source buttons, and reset with

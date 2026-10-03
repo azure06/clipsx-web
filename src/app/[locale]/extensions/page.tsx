@@ -19,6 +19,7 @@ import { ExtensionWorkbench } from "@/components/marketing/ExtensionWorkbench";
 import type { Locale } from "@/i18n/config";
 import { documentationConfig } from "@/config/site";
 import "./extensions.css";
+import { pageMetadata } from '@/lib/seo';
 
 const content = {
   en: {
@@ -222,10 +223,7 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: locale === "ja" ? "拡張機能" : "Extensions",
-    description: content[locale].intro,
-  };
+  return pageMetadata(locale, '/extensions', locale === 'ja' ? '拡張機能' : 'Clipboard extensions', content[locale].intro);
 }
 
 export default async function ExtensionsPage({
@@ -238,7 +236,7 @@ export default async function ExtensionsPage({
   const c = content[locale];
   const wayIcons = [ScanSearch, Eye, Shuffle, MousePointer2];
   return (
-    <main className="ex-page">
+    <div className="ex-page">
       <section className="ex-hero ex-shell">
         <div className="ex-hero-copy">
           <p className="ex-kicker">
@@ -430,6 +428,6 @@ export default async function ExtensionsPage({
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

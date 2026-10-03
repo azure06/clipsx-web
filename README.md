@@ -57,7 +57,13 @@ in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
   Releases page after platform certification.
 - Free is the complete implemented local desktop product. Pro checkout is
   disabled unless `CLIPSX_ENABLE_PAID_CHECKOUT=true`; do not enable it while the
-  supporter plan remains undefined.
+  Pro offer has no published commercial terms. The public page is a Coming soon teaser.
+- Blog precedes Pricing in both header variants. Download remains the primary
+  action. Set `NEXT_PUBLIC_SPONSOR_URL` only after a sponsorship destination is
+  live; the separate Sponsor link stays hidden while it is unset.
+- Next.js metadata routes exclusively own `/sitemap.xml` and `/robots.txt`.
+  Public pages share localized canonical and language-alternate metadata;
+  see [`docs/backend/seo-and-acquisition.md`](docs/backend/seo-and-acquisition.md).
 - Browser vault routes remain a separately controlled preview.
 
 `clipsx-web` is private application code and has no redistribution license. The

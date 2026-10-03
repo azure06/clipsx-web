@@ -21,7 +21,10 @@ or website redeployment per desktop release.
 Deploy this reader once before publishing the first desktop release. Verify both
 localized download pages, separate Mac architecture labels, the unavailable
 first-release state and active exact asset URLs after publication. Once downloads
-exist, the first-release certification notice is hidden.
+exist, the unavailable notice is hidden. A cold upstream failure explains that
+the latest download list could not be verified; it does not claim no release
+exists. The page includes localized installation steps, descriptive installer
+link labels, setup documentation, and the editorial changelog.
 
 Focused validation:
 

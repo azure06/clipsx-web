@@ -13,17 +13,18 @@ import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { pricingFeatureGroups } from "@/config/pricing";
 import styles from "./pricing.module.css";
+import { pageMetadata } from '@/lib/seo';
 
 const copy = {
   en: {
     metadata: [
       "Pricing & features",
-      "Explore the current ClipsX Free plan, feature requirements, and the status of a future paid plan.",
+      "ClipsX Free includes the complete local desktop experience. Explore included features and preview the upcoming Pro plan.",
     ],
     eyebrow: "Pricing",
     title: "Plans and features.",
     intro:
-      "See what’s included, what needs a little setup, and where the plans stand. All current features are included in Free. A paid plan is planned but not yet available.",
+      "Start with Free: your clipboard history, local intelligence, and extensions. Pro is coming soon. Every feature available today is included in Free.",
     current: "Current plan",
     free: "Free",
     freeBody:
@@ -35,20 +36,19 @@ const copy = {
       "Meaning Search and Recall with local models",
       "Extensions and supported settings sync",
     ],
-    download: "Get ClipsX",
+    download: "Download Free",
     compare: "Explore included features",
-    planned: "Planned",
-    paid: "Paid plan",
+    planned: "Coming soon",
+    paid: "Pro",
     paidBody:
-      "An additional tier is being considered. Its scope, benefits, and pricing have not been finalized.",
-    tba: "To be announced",
-    paidNote: "Not available for purchase",
+      "The next chapter for ClipsX. A new plan for people who want to go further with their clipboard.",
+    tba: "Stay tuned",
+    paidNote: "Features and pricing revealed at launch",
     paidItems: [
-      ["Price & billing", "Not yet set"],
-      ["Additional benefits", "Not yet finalized"],
-      ["Launch date", "Not yet announced"],
+      ["Availability", "Coming soon"],
+      ["Get started today", "Free is ready"],
     ],
-    statusLink: "About the planned tier",
+    statusLink: "Preview Pro",
     inventory: "Feature details",
     inventoryTitle: "What you can use today.",
     inventoryBody:
@@ -61,10 +61,10 @@ const copy = {
     requirements: "Setup & availability",
     included: "Included",
     jump: "Browse feature groups",
-    futureLabel: "Looking ahead",
-    futureTitle: "A paid tier, when the details are ready.",
+    futureLabel: "Coming soon · Pro",
+    futureTitle: "Your next chapter with ClipsX.",
     futureBody:
-      "Optional hosted services are one possible direction. No paid-only feature list, allowance, or launch date is confirmed. This page will show the scope and pricing before a paid plan becomes available.",
+      "Pro is on the way. Discover the full feature lineup and pricing here at launch. In the meantime, download Free and make the most of everything ClipsX offers today.",
     futureFoot: "The feature list above describes the current Free plan.",
     faqTitle: "Before you get started.",
     faqs: [
@@ -81,8 +81,8 @@ const copy = {
         "Core desktop features do not require an account. Supported settings and extension-choice sync are optional and require sign-in. Your clipboard history, files, and local model settings are not part of that sync.",
       ],
       [
-        "Can I subscribe to the paid plan?",
-        "Not yet. There is no public paid-plan checkout, trial, or finalized price. The planned tier is shown here to explain its status.",
+        "When can I get Pro?",
+        "Pro is coming soon. Features, pricing, and availability will be published here at launch. You can start using Free today without a subscription.",
       ],
       [
         "Does “included” mean every feature works on every platform?",
@@ -97,12 +97,12 @@ const copy = {
   ja: {
     metadata: [
       "料金と機能",
-      "ClipsX の現在の Free プラン、機能ごとの利用条件、今後の有料プランの状況を確認できます。",
+      "ClipsX Free に含まれるローカル機能と利用条件、近日公開の Pro プランをご紹介します。",
     ],
     eyebrow: "料金",
     title: "プランと機能。",
     intro:
-      "含まれる機能、必要な設定、各プランの状況をご案内します。現在の機能はすべて Free に含まれます。有料プランは計画中で、まだ利用できません。",
+      "履歴、ローカル AI、拡張機能を Free で始めましょう。Pro は近日公開。現在利用できる機能はすべて Free に含まれます。",
     current: "現在のプラン",
     free: "Free",
     freeBody: "任意のローカル AI と拡張機能を含む、デスクトップの機能。",
@@ -113,20 +113,19 @@ const copy = {
       "ローカルモデルによる意味検索と Recall",
       "拡張機能と対応する設定の同期",
     ],
-    download: "ClipsX を入手",
+    download: "Free をダウンロード",
     compare: "含まれる機能を見る",
-    planned: "計画中",
-    paid: "有料プラン",
+    planned: "近日公開",
+    paid: "Pro",
     paidBody:
-      "追加のプランを検討しています。対象機能、特典、料金はまだ確定していません。",
-    tba: "後日発表",
-    paidNote: "現在は購入できません",
+      "ClipsX の次のステージ。クリップボードをもっと活用したい方のための新しいプラン。",
+    tba: "お楽しみに",
+    paidNote: "機能と料金は提供開始時に公開",
     paidItems: [
-      ["料金と請求周期", "未定"],
-      ["追加の特典", "未確定"],
-      ["提供開始日", "未発表"],
+      ["提供状況", "近日公開"],
+      ["今すぐ始める", "Free を利用可能"],
     ],
-    statusLink: "有料プランの状況",
+    statusLink: "Pro の予告を見る",
     inventory: "機能の詳細",
     inventoryTitle: "現在利用できる機能。",
     inventoryBody:
@@ -138,10 +137,10 @@ const copy = {
     requirements: "設定と利用条件",
     included: "含まれます",
     jump: "機能カテゴリを選ぶ",
-    futureLabel: "今後の予定",
-    futureTitle: "有料プランの詳細は、決まり次第。",
+    futureLabel: "近日公開 · Pro",
+    futureTitle: "ClipsX と、次のステージへ。",
     futureBody:
-      "任意のホスト型サービスなどを検討しています。有料限定機能、利用枠、提供開始日は未確定です。有料プランの提供前に、このページで対象機能と料金をご案内します。",
+      "Pro は近日公開。機能の詳細と料金は提供開始時にこのページでご案内します。それまでは Free をダウンロードして、現在の ClipsX の全機能をお楽しみください。",
     futureFoot: "上の機能一覧は、現在の Free プランの内容です。",
     faqTitle: "使い始める前に。",
     faqs: [
@@ -158,8 +157,8 @@ const copy = {
         "デスクトップの基本機能には不要です。対応設定と拡張機能の選択情報の同期は任意で、サインインが必要です。クリップボード履歴、ファイル、ローカルモデル設定はこの同期に含まれません。",
       ],
       [
-        "有料プランを契約できますか？",
-        "まだ契約できません。有料プランの一般向け購入、試用、確定した料金はありません。ここでは計画の状況をご案内しています。",
+        "Pro はいつ利用できますか？",
+        "Pro は近日公開です。機能、料金、提供状況は開始時にこちらでご案内します。Free は今すぐサブスクリプションなしで利用できます。",
       ],
       [
         "すべての OS で全機能を使えますか？",
@@ -179,10 +178,7 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  return {
-    title: copy[locale].metadata[0],
-    description: copy[locale].metadata[1],
-  };
+  return pageMetadata(locale, '/pricing', copy[locale].metadata[0], copy[locale].metadata[1]);
 }
 
 export default async function Pricing({

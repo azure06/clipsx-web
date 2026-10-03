@@ -14,7 +14,8 @@ import { setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { HomePreview } from "@/components/marketing/HomePreview";
-import { documentationConfig } from "@/config/site";
+import { documentationConfig, siteConfig } from "@/config/site";
+import { jsonLd, localizedUrl, pageMetadata } from '@/lib/seo';
 import type { Locale } from "@/i18n/config";
 import "./home.css";
 
@@ -25,7 +26,7 @@ const copy = {
     accent: "Do more with it.",
     intro:
       "The desktop clipboard for everything worth keeping — find that link, bring back an idea, and turn it into what's next.",
-    download: "Get ClipsX",
+    download: "Download ClipsX",
     tour: "Take a closer look",
     noteItems: ["Free", "Local storage", "No account needed"],
     preview: "A little less searching. A lot more doing.",
@@ -131,14 +132,10 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
+  const title = locale === 'ja' ? 'ClipsX — 無料クリップボードマネージャー' : 'ClipsX — Free Clipboard Manager for Windows, macOS & Linux';
   return {
-    title: {
-      absolute:
-        locale === "ja"
-          ? "ClipsX — コピーしたものを、次のひらめきに。"
-          : "ClipsX — Your clipboard, more possibilities.",
-    },
-    description: copy[locale].intro,
+    ...pageMetadata(locale, '', title, locale === 'ja' ? '履歴を保存・検索し、拡張機能で活用。Windows、macOS、Linux/X11 向けの無料アプリ。履歴は端末に保存、アカウントは不要。' : 'Save and search clipboard history, then transform it with extensions. Free for Windows, macOS, and Linux/X11. Local storage. No account required.'),
+    title: { absolute: title },
   };
 }
 
@@ -153,6 +150,7 @@ export default async function HomePage({
   const icons = [FileStack, Search, Blocks];
   return (
     <div className="cx-home">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'ClipsX', url: localizedUrl(locale, ''), applicationCategory: 'UtilitiesApplication', operatingSystem: 'Windows, macOS, Linux/X11', description: copy[locale].intro, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, downloadUrl: localizedUrl(locale, '/download'), softwareVersion: siteConfig.version }) }} />
       <section className="cx-hero">
         <div className="cx-shell cx-hero-copy">
           <p className="cx-kicker">

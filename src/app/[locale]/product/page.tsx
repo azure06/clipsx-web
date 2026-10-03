@@ -7,13 +7,14 @@ import { productContent } from "@/content/product";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { documentationConfig } from "@/config/site";
+import { pageMetadata } from '@/lib/seo';
 
 const ids = ["content", "search", "reuse", "extensions", "privacy", "questions"];
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params;
   const c = productContent[locale];
-  return { title: c.metaTitle, description: c.description, alternates: { canonical: `/${locale}/product`, languages: { en: "/en/product", ja: "/ja/product" } } };
+  return pageMetadata(locale, '/product', c.metaTitle, c.description);
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ locale: Locale }> }) {
