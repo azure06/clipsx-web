@@ -10,7 +10,7 @@ export const siteConfig = {
   repository: 'https://github.com/azure06/clipsx',
   releases: 'https://github.com/azure06/clipsx/releases',
   issues: 'https://github.com/azure06/clipsx/issues',
-  sponsorUrl: process.env.NEXT_PUBLIC_SPONSOR_URL || null,
+  sponsorUrl: (process.env.NEXT_PUBLIC_SPONSOR_URL ?? 'https://github.com/sponsors/azure06') || null,
 } as const;
 
 const documentationRoot = siteConfig.docsUrl.replace(/\/$/, '');

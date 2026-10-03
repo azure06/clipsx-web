@@ -10,10 +10,10 @@ launch; no price, paid entitlement, release date, or checkout is advertised.
 
 Download is the primary acquisition action. Blog appears immediately before
 Pricing in desktop and compact navigation. Sponsorship is a separate support
-intent, exposed in header and footer only when `NEXT_PUBLIC_SPONSOR_URL` is set
-to a verified live destination. This public build-time value requires a rebuild.
-GitHub's API returned `hasSponsorsListing: false` for `azure06` on October 3,
-2026, so a GitHub Sponsors link must remain unset until the listing is enabled.
+intent, exposed in the header, footer, and localized homepage support section.
+The verified live default is `https://github.com/sponsors/azure06` (GitHub API
+`hasSponsorsListing: true`). `NEXT_PUBLIC_SPONSOR_URL` overrides that destination;
+an explicitly empty value hides support links. Changes require a rebuild.
 Sponsorship does not purchase Pro or create a billing entitlement.
 
 ## Search implementation
@@ -69,7 +69,7 @@ supplied; conversion and ranking improvements remain hypotheses to measure.
 | Setup docs and FAQ described unavailable Mac/installers | Documentation index, getting started, platform support, troubleshooting, FAQ | Current package matrix and first-copy steps |
 | Pricing repeated unfinalized-plan language | Previous Pro card and future-tier copy | Concise Coming soon teaser with Free adoption path |
 | Several routes nested main inside the locale layout's main | Extensions and Changelog page roots | One main landmark, skip link |
-| Sponsor listing unavailable | GitHub GraphQL `hasSponsorsListing` | Conditional support link; retain Download as primary |
+| Sponsor listing enabled | GitHub GraphQL `hasSponsorsListing: true` | Verified default link and localized homepage support strip; retain Download as primary |
 | Public content depends on auth availability | Locale layout awaits `getUser`; proxy awaits session update. Local logs reported auth fetch retries and an `/en` response taking 25.5 seconds during an auth-service failure | Remaining architecture issue: separate public content delivery from account-menu/session lookup; no healthy-production latency claim follows from this local failure |
 
 Google recommends self-consistent canonical signals and reciprocal language
@@ -86,8 +86,8 @@ on their different user goals, not an observed conversion lift.
 
 Suggested owner: site maintainer. Before the next acquisition campaign:
 
-1. Enable GitHub Sponsors, then configure its live URL and verify both headers
-   and the footer. Outcome: a working voluntary support path.
+1. Keep the GitHub Sponsors profile current with the work it funds. Verify the
+   support destination when changing configuration. Sponsorship is implemented.
 2. Submit `/sitemap.xml` in Google Search Console and inspect both locales of
    Home, Download, Blog, and Pricing. Outcome: evidence of canonical selection,
    indexing, impressions, and query intent. Requires property access.
@@ -109,6 +109,15 @@ Suggested owner: site maintainer. Before the next acquisition campaign:
    production performance baseline.
 
 ## Verification
+
+The sponsorship strip follows the download section, using existing typography,
+colors, and focus styles, with a stacked layout below 800px. Its heading is
+"Built in the open. Backed by you." The body names maintenance, testing, and new
+features; the action names its destination, "Sponsor ClipsX on GitHub". It does
+not promise sponsor benefits. This is a design hypothesis, not measured lift.
+It follows [GitHub profile guidance](https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/editing-your-profile-details-for-github-sponsors)
+on explaining funded work and [NN/g link guidance](https://www.nngroup.com/articles/better-link-labels/)
+on descriptive, sincere labels.
 
 Run unit tests, typecheck, lint, and production build. Verify rendered canonical,
 hreflang, Open Graph URLs, article schema, sitemap entries, and noindex layouts.

@@ -8,9 +8,9 @@ with Blog immediately before Pricing. FAQ and Contact remain available from
 the footer. Download is the header's
 primary action and continues to resolve release availability on `/download`.
 Download remains visible beside the menu button on compact headers. Sponsor
-appears as a separate link in both header variants and footer only when
-`NEXT_PUBLIC_SPONSOR_URL` contains a verified live sponsorship destination.
-GitHub Sponsors for `azure06` was not enabled at the time of this review.
+appears as a separate link in both header variants, footer, and homepage support
+strip. Its verified default is `https://github.com/sponsors/azure06`.
+`NEXT_PUBLIC_SPONSOR_URL` overrides that default; an empty value hides the links.
 Public documentation links send readers to `NEXT_PUBLIC_DOCS_URL`, defaulting
 to `https://docs.clipsx.app`. Feature-specific links use `/local-ai`,
 `/extensions`, `/privacy`, and `/sync`. Mintlify owns documentation routes;

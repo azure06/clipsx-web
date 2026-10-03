@@ -383,6 +383,19 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+      {siteConfig.sponsorUrl && (
+        <section className="cx-shell cx-sponsor" aria-labelledby="sponsor-heading">
+          <div>
+            <p className="cx-kicker"><Code2 size={18} aria-hidden="true" />{locale === 'ja' ? 'オープンソースの、その先へ。' : 'OPEN SOURCE. SHARED POSSIBILITY.'}</p>
+            <h2 id="sponsor-heading">{locale === 'ja' ? '開かれた開発を、あなたと。' : 'Built in the open. Backed by you.'}</h2>
+            <p className="cx-sponsor-body">{locale === 'ja' ? 'ClipsX のスポンサーとして、メンテナンス、テスト、新機能の開発を支援できます。' : 'Sponsor the work behind ClipsX: maintenance, testing, and new features.'}</p>
+          </div>
+          <div className="cx-sponsor-action">
+            <a href={siteConfig.sponsorUrl} target="_blank" rel="noreferrer" className="cx-text-link focus-ring">{locale === 'ja' ? 'GitHub で ClipsX を支援' : 'Sponsor ClipsX on GitHub'}<ArrowRight size={17} aria-hidden="true" /></a>
+            <p>{locale === 'ja' ? 'オープンソースの開発を支える、任意の支援です。' : 'A contribution to open-source development.'}</p>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
