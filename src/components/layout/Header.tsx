@@ -99,8 +99,8 @@ export function Header({ user }: { user: User | null }) {
   const navigationLinks = mainNavLinks.filter((item) => item.labelKey !== 'Nav.sponsor');
   const sponsorAction = (mobile = false) => siteConfig.sponsorUrl ? (
     <a href={siteConfig.sponsorUrl} target="_blank" rel="noreferrer" onClick={closeNavigation}
-      className={`focus-ring inline-flex items-center justify-center gap-2 rounded-[.65rem] border border-violet-500/30 font-heading text-sm font-bold text-violet-700 transition hover:border-violet-500/60 hover:bg-violet-500/5 dark:border-violet-400/30 dark:text-violet-300 dark:hover:bg-violet-400/10 ${mobile ? 'mt-3 min-h-11 px-4 py-3' : 'h-10 px-3'}`}>
-      {t('Nav.sponsor')}<ArrowUpRight size={14} aria-hidden="true" />
+      className={`focus-ring inline-flex items-center justify-center gap-1 rounded-md text-[13px] font-medium text-slate-500 transition hover:text-violet-700 dark:text-slate-400 dark:hover:text-violet-300 ${mobile ? 'mt-3 min-h-11 px-3 py-3' : 'h-10 px-2'}`}>
+      {t('Nav.sponsor')}<ArrowUpRight size={12} aria-hidden="true" />
     </a>
   ) : null;
 

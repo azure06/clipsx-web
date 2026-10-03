@@ -10,8 +10,8 @@ launch; no price, paid entitlement, release date, or checkout is advertised.
 
 Download is the primary acquisition action. Blog appears immediately before
 Pricing in desktop and compact navigation. Sponsorship is a separate support
-intent, exposed as an outlined desktop header action beside the stronger Download
-button and as an outlined action in the compact menu, without a duplicate
+intent, exposed as a muted 13px desktop header link beside the stronger Download
+button and as a quiet text action in the compact menu, without a duplicate
 navigation link. Footer and localized homepage support links remain available.
 The verified live default is `https://github.com/sponsors/azure06` (GitHub API
 `hasSponsorsListing: true`). `NEXT_PUBLIC_SPONSOR_URL` overrides that destination;

@@ -8,8 +8,10 @@ with Blog immediately before Pricing. FAQ and Contact remain available from
 the footer. Download is the header's
 primary action and continues to resolve release availability on `/download`.
 Download remains visible beside the menu button on compact headers. Sponsor
-appears as an outlined action beside Download on desktop and above Download
-inside the compact menu. It is not duplicated among the direct navigation links.
+appears as a muted 13px text action beside Download on desktop and above Download
+inside the compact menu, without a border or background. Keyboard focus remains
+visible and the mobile touch target is at least 44px tall. It is not duplicated
+among the direct navigation links.
 Footer and homepage support links remain available. Its verified default is
 `https://github.com/sponsors/azure06`.
 `NEXT_PUBLIC_SPONSOR_URL` overrides that default; an empty value hides the links.
