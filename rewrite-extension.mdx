@@ -17,10 +17,10 @@ This guide follows the first-party `infiniti.rewrite` package. It uses one trans
     Declare the generation capability. Send separate system and user messages, treat the selected text as data, cap output tokens, and return only rewritten text. ClipsX chooses the provider and keeps endpoint, model, and credentials private.
   </Step>
   <Step title="Add built-in setups and parameters">
-    Declare Business, Casual, Concise, Improve Writing, Translate, and Custom as named setups on the transformer. Translate requires `targetLanguage`; Custom requires a nonempty `customInstruction` of at most 4 KiB. The host validates the same bounded parameter schema before manual and automatic execution. Users can save additional named setups on their device.
+    Declare Business, Casual, Concise, Improve Writing, Translate, and Custom as named setups on the transformer. Translate requires `target_language`; Custom requires a nonempty `custom_instruction` of at most 4 KiB. The host validates the same bounded parameter schema before manual and automatic execution. Users can save additional named setups on their device.
   </Step>
   <Step title="Configure app rules">
-    Declare a `clip.created` activation that targets the transformer. Users opt in by selecting all accepted copies or an observed application, then a completed built-in or saved setup. Useful examples are Outlook to Business, Slack to Casual, and VS Code to Custom with “concise technical” instructions. Rules use the selected platform-specific application ID; all-application rules require explicit opt-in.
+    Declare an activation with `event = "clip_created"` that targets the transformer. Users opt in by selecting all accepted copies or an observed application, then a completed built-in or saved setup. Useful examples are Outlook to Business, Slack to Casual, and VS Code to Custom with “concise technical” instructions. Rules use the selected platform-specific application ID; all-application rules require explicit opt-in.
   </Step>
   <Step title="Work with durable results">
     Each run appears as a tab alongside the clip's native views. Users can open a typed output view or compare it with the exact Original using a draggable divider. Copy, Paste, Regenerate, and Save as new clip are host-owned controls; Delete is always a host control. Saving creates an independent canonical clip; deleting the source removes its attached results.
