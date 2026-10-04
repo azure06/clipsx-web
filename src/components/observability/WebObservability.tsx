@@ -1,12 +1,12 @@
 'use client'
 
 import * as Sentry from '@sentry/nextjs'
-import { Analytics, type BeforeSendEvent } from '@vercel/analytics/next'
+import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { isPublicAnalyticsPath, sanitizeAnalyticsUrl } from '@/lib/observability/privacy'
+import { filterPublicObservabilityEvent, isPublicAnalyticsPath } from '@/lib/observability/privacy'
 
 type SafeIdentity = {
   id: string
@@ -59,11 +59,8 @@ export function WebObservability({ identity }: { identity: SafeIdentity | null }
 
   if (!isPublic) return null
   return <>
-    <Analytics beforeSend={(event: BeforeSendEvent) => {
-      const url = sanitizeAnalyticsUrl(event.url)
-      return url ? { ...event, url } : null
-    }} />
-    <SpeedInsights />
+    <Analytics beforeSend={filterPublicObservabilityEvent} />
+    <SpeedInsights beforeSend={filterPublicObservabilityEvent} />
   </>
 }
 

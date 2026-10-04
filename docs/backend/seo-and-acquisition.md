@@ -83,6 +83,14 @@ on their different user goals, not an observed conversion lift.
 
 ## Remaining decisions and measurement
 
+Web Analytics and Speed Insights share a send-time public-route filter. It accepts
+absolute HTTP(S) SDK URLs and root-relative paths, removes all query parameters
+and fragments, and rejects private, identifier-bearing or malformed paths. Public
+campaign-link visits are counted without retaining campaign values. Account,
+Vault, Auth and API events remain excluded even after client navigation from a
+public page. No custom installer-click events are emitted. Verify collection in
+the Vercel dashboard after deployment; SDK installation alone does not prove intake.
+
 Suggested owner: site maintainer. Before the next acquisition campaign:
 
 1. Keep the GitHub Sponsors profile current with the work it funds. Verify the
