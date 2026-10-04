@@ -139,7 +139,7 @@ subscription items. ClipsX v1 instead grants a plan allowance and keeps a
 general local usage ledger; a future higher tier can change the allowance
 without redesigning this model.
 
-## Baseline corrections (2026-09-12)
+## Projection and access guarantees
 
 Entitlements are keyed by billing account and Stripe mode. Signup provisions both
 free-mode rows; the application reads only the configured mode. `effective_from`
@@ -162,3 +162,69 @@ while detaching the Auth identity. Recompute cannot reactivate a closed billing
 account. `scripts/close-account.mjs` cancels customer subscriptions in Stripe,
 requires the cancellation webhooks to project, closes application data, and then
 removes the Auth identity. Test and live customers require matching Stripe keys.
+
+
+## Webhook sequence and recovery
+
+Stripe billing is separate from E2EE. The webhook endpoint is the billing
+processor for this low-volume v1. It verifies the raw signed payload, claims the
+event, retrieves the canonical Stripe object, and commits one atomic local
+projection. A `200` means that projection is committed, was already committed,
+or the event is intentionally ignored. A `500` means Stripe must retry.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor User
+  participant App as ClipsX website
+  participant Checkout as Checkout / Portal API
+  participant Stripe
+  participant Hook as /api/webhooks/stripe
+  participant Inbox as private.billing_webhook_events
+  participant Billing as private billing projection
+
+  User->>App: Choose Pro monthly or annual
+  App->>Checkout: Authenticated checkout request
+  Checkout->>Billing: Resolve billing account and stored Customer ID
+  Checkout->>Stripe: Create/reuse Customer and Checkout Session
+  Checkout-->>App: Hosted Checkout URL
+  Stripe-->>User: Hosted Checkout
+  User->>Stripe: Complete payment
+  Stripe-->>Hook: subscription / invoice event
+  Hook->>Hook: Verify raw body and signature
+  Hook->>Inbox: Atomically claim event ID with a short lease
+  alt event already processed
+    Inbox-->>Hook: duplicate
+    Hook-->>Stripe: 200
+  else new or retryable event
+    Hook->>Stripe: Retrieve canonical current object
+    Stripe-->>Hook: current object
+    Hook->>Billing: Transactional projection upsert
+    Billing->>Billing: Recalculate entitlement
+    Billing->>Inbox: Mark processed in the same transaction
+    Hook-->>Stripe: 200
+  else concurrent delivery
+    Inbox-->>Hook: processing lease is current
+    Hook-->>Stripe: 500 (Stripe retries)
+  end
+  App->>Checkout: Read safe billing summary
+  Checkout->>Billing: Read local entitlement
+  Billing-->>Checkout: plan and access status
+  Checkout-->>App: safe billing summary
+```
+
+Stripe events are not ordered and can be delivered more than once. The event
+inbox is therefore an idempotency boundary, and the processor retrieves the
+canonical Stripe object before changing the local projection. Failed events
+remain visible for support replay; Stripe delivery retry is the only automatic
+retry path. Billing tables live in `private` and are exposed only to
+`service_role`; browser clients receive a deliberately limited summary.
+
+### What happens if billing components fail?
+
+| Failure | What happens now | Recovery path |
+| --- | --- | --- |
+| Signature invalid | Webhook returns 400 and writes nothing. | Investigate endpoint secret or an invalid sender. |
+| Claim or projection fails | Webhook returns 500 and the event is marked `failed` when possible. | Stripe retries; support can replay the event locally. |
+| Duplicate/out-of-order event | Inbox deduplicates event ID; webhook retrieves canonical object and rejects stale writes. | No manual action in the normal case. |
+| Stripe API unavailable | Existing local entitlement remains in effect until its recorded deadline. | Stripe retries the webhook when the request fails. |

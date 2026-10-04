@@ -6,10 +6,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Documentation maintenance
 
-Every feature or behavior change must update the relevant documentation in the
-same change set. Keep `docs/backend/` accurate for the implemented state,
-including architecture diagrams, data-model descriptions, API/webhook behavior,
-environment configuration, operational commands, and test/recovery procedures.
-Clearly distinguish implemented behavior from planned/future work. Before
-committing, search the documentation for superseded routes, jobs, configuration,
-or flows and remove or correct stale references.
+After completing a task, review affected documentation and skills. Update the authoritative source only. Remove obsolete statements and duplication; simplify existing text before adding sections. Describe current behavior, not implementation history. Code and tests own implementation details; retain contracts and operational requirements that cannot be safely inferred. Do not claim passing checks or production availability without evidence. Avoid maintaining roadmaps or completed investigation reports.

@@ -11,7 +11,7 @@ permission grants, local provider configuration, or derived intelligence data.
 ## Local development
 
 Use Node.js 22+, a Supabase project or local Supabase CLI, and the environment
-values documented in `docs/backend/production-readiness.md`.
+values in `.env.example` and the relevant backend domain reference.
 
 ```bash
 npm install
@@ -68,4 +68,4 @@ in [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md).
 
 `clipsx-web` is private application code and has no redistribution license. The
 desktop app and first-party extensions are licensed separately under Apache 2.0.
-See [`docs/backend/`](docs/backend/) for architecture, operations, and recovery.
+See [website operations](.agents/skills/clipsx-web-operations/SKILL.md) for deployment/recovery and [`docs/backend/`](docs/backend/) for API and data contracts.

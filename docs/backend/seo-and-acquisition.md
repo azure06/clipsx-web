@@ -54,25 +54,9 @@ Japanese labels do not squeeze the platform text into a vertical column.
 When release metadata cannot be verified, the recovery link appears before
 the unavailable installer cards.
 
-## Evidence and decisions
+## Metadata requirements
 
-Review date: October 3, 2026. This review uses the Sales plugin's initial sales
-motion workflow, repository evidence, published release evidence, and primary
-search/usability guidance. No funnel analytics or Search Console data were
-supplied; conversion and ranking improvements remain hypotheses to measure.
-
-| Finding | Evidence | Implemented response |
-| --- | --- | --- |
-| Two sitemap owners caused HTTP 500 at `/sitemap.xml` and `/robots.txt` in the existing checkout | Old ignored public generator output conflicted with App Router routes; build alone passed | Remove generator and stale output; one public sitemap with page-specific locale alternates |
-| Most marketing pages omitted canonicals and localized sharing metadata | Page metadata exports; Product was the exception | Shared metadata helper on all public marketing pages |
-| Undated pages claimed a fresh modification on every sitemap generation | Previous `new Date()` for every entry | Editorial dates for articles; omit unknown dates |
-| Blog was absent from primary navigation | Previous `mainNavLinks` contained only Docs and Pricing | Blog directly before Pricing in both header variants |
-| Release history contradicted publication | [Published v0.1.0](https://github.com/azure06/clipsx/releases/tag/v0.1.0), timestamp `2026-10-03T02:39:45Z` | Localized, sourced first changelog with upgrade limits |
-| Setup docs and FAQ described unavailable Mac/installers | Documentation index, getting started, platform support, troubleshooting, FAQ | Current package matrix and first-copy steps |
-| Pricing repeated unfinalized-plan language | Previous Pro card and future-tier copy | Concise Coming soon teaser with Free adoption path |
-| Several routes nested main inside the locale layout's main | Extensions and Changelog page roots | One main landmark, skip link |
-| Sponsor listing enabled | GitHub GraphQL `hasSponsorsListing: true` | Verified default link and localized homepage support strip; retain Download as primary |
-| Public content depends on auth availability | Locale layout awaits `getUser`; proxy awaits session update. Local logs reported auth fetch retries and an `/en` response taking 25.5 seconds during an auth-service failure | Remaining architecture issue: separate public content delivery from account-menu/session lookup; no healthy-production latency claim follows from this local failure |
+Canonical URLs, language alternates and significant-modification dates must reflect the actual public pages. Keep one owner for sitemap/robots routes. Download is the primary acquisition action; Sponsor remains secondary. Conversion and ranking improvements require measurement.
 
 Google recommends self-consistent canonical signals and reciprocal language
 alternates: [canonical guidance](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls)
@@ -129,11 +113,3 @@ hreflang, Open Graph URLs, article schema, sitemap entries, and noindex layouts.
 Review Blog, Pricing, Download, and Changelog in English/Japanese and both
 themes, with the compact header, keyboard focus, and reduced motion. Confirm
 working setup/download links and no horizontal overflow at narrow widths.
-
-The implementation review passed 112 unit tests, typecheck, production build,
-and lint (zero errors; existing Vault warnings remain). Direct HTTP checks
-verified all 34 public pages' canonical/locale metadata and single main/h1,
-34 sitemap URLs, working sitemap/robots endpoints, and auth noindex metadata.
-Live release data exposed all five versioned installer links. Desktop/compact
-browser review covered both languages and light/dark presentation; the Japanese
-installer-card issue found during that review was corrected.

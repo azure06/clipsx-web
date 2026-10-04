@@ -5,7 +5,7 @@
 Configuration sync v1 is opt-in and independent of billing, organizations, and
 encrypted browser-vault enrollment. Supabase authenticates each desktop session.
 The server can read configuration; this feature is not end-to-end encrypted.
-Administrative account closure removes the settings profile and revokes sessions; see [production operations](production-readiness.md).
+Administrative account closure removes the settings profile and revokes sessions; see [production operations](../../.agents/skills/clipsx-web-operations/references/operations.md).
 
 ```mermaid
 flowchart LR

@@ -22,16 +22,12 @@ screens each row stacks its requirement below the name and inclusion status;
 explicit table roles preserve semantics after CSS layout changes. All content
 is server-rendered; anchor navigation and FAQ disclosure need no client component.
 
-The former unused plan configuration and `PricingPage` translation namespaces
-were replaced/removed: their sample paid prices, Office trials, visual search,
-hosted AI, refund terms, and paid sync claims did not describe the current offer.
-This is presentation data, not a billing entitlement policy. Stripe configuration,
-checkout gating, existing subscriptions, and account billing are unchanged.
+Pricing presentation does not grant billing entitlements; checkout gating and account billing are governed by the billing domain.
 
 ## Claim boundaries
 
-Feature descriptions follow `../clipsx/docs/ARCHITECTURE.md`,
-`SEMANTIC_SEARCH_ARCHITECTURE.md`, and `RELEASE.md`:
+Feature descriptions follow `../clipsx/docs/MODELS.md`,
+`SEMANTIC_SEARCH_ARCHITECTURE.md`, and the desktop release skill:
 
 - All listed features are part of the current Free plan, not paid trials.
 - Meaning Search requires an optional local embedding model; Recall requires

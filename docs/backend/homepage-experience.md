@@ -29,15 +29,7 @@ The homepage uses the desktop repository's design vocabulary, inspected in:
   distinct blue, sky, violet, fuchsia, and amber content indicators.
 - `../clipsx/tailwind.config.js`: short fade/slide transitions.
 
-This violet/navy accent is now the site-wide marketing accent (shared
-Header/Footer, pricing/product/faq/docs/blog, and the signin/signup/contact
-forms), not homepage-exclusive — it replaced the marketing site's previous
-cyan accent. The homepage's own `body:has(.cx-home)` override of the shared
-Header/Footer therefore no longer needs to recolor hue (the default is
-already violet); it exists only to force a permanently-dark header/footer on
-this route, because the hero is intentionally dark regardless of the
-visitor's OS light/dark preference. The authenticated vault dashboard keeps
-its own separate cyan `--vault-accent` design tokens and is unaffected.
+Marketing pages use violet/navy accents. The vault uses separate cyan `--vault-accent` tokens. The homepage forces dark header/footer surfaces regardless of the visitor’s system preference.
 
 The web canvas composites the native app's translucent surfaces over a slate
 background. Navigation switches to its collapsible menu below the
@@ -53,12 +45,7 @@ the footer on every viewport, alongside the local-data promise.
 `src/proxy.ts` runs `next-intl`'s `createMiddleware(routing)` and refreshes the
 Supabase session for matched page requests. This uses Next 16's `proxy.ts`
 convention; there is no legacy root `middleware.ts` file.
-so a request to the bare domain root (or any other un-prefixed path) is
-redirected to the matching locale-prefixed route (e.g. `/` → `/en` or `/ja`
-based on `Accept-Language`). Before this middleware existed, bare `/` served
-the unrelated, unstyled default Next.js starter page instead of the real
-site — `src/app/page.tsx` has been removed since it is unreachable once the
-middleware is in place.
+Unprefixed paths redirect to the matching locale, such as `/en` or `/ja`, according to `Accept-Language`.
 
 ## Interactive sample
 

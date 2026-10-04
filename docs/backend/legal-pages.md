@@ -56,10 +56,7 @@ compliance. Do not claim full legal finalization while applicability is unreview
 | Japan disclosure | [PPC guidance §3-8-1](https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/) | Statutory information may be available promptly on request; monitored support mailbox is the request channel |
 | Liability | [Consumer Affairs Agency](https://www.caa.go.jp/policies/policy/consumer_system/consumer_contract_act/) | Free use is not a blanket exemption from mandatory consumer protections |
 
-Production verification was attempted on October 3, 2026. The Sentry catalog
-request failed with a transport error; Vercel project inspection returned a
-connector schema error. These failures do not establish provider retention,
-regions, or availability. No production configuration was modified.
+Provider retention, processing regions and operational availability require verification against actual production configuration. Do not infer these from generic provider descriptions or local checks.
 
 ## Request and retention procedure
 
@@ -96,15 +93,3 @@ at 320px and desktop widths. Check one main/h1, section anchor destinations,
 focus visibility, canonical/alternate links, contact email, reciprocal legal
 links, and the actual desktop-license destination. Confirm no horizontal
 overflow, no outdated supporter-plan text, and no public personal details.
-
-Validation completed on October 3, 2026: typecheck, focused ESLint, all 112
-existing unit tests, and the production build passed. Both legal pages were
-checked in English and Japanese, light and dark themes, at 320px and 1440px:
-no horizontal overflow, one main/h1, valid section targets, and matching
-canonical/alternate metadata. Keyboard focus remains visible on Sponsor and
-Download; section navigation clears the fixed header. After the current-service
-wording update, typecheck, focused ESLint, all 112 tests, and production build
-passed again. All 16 language/page/theme/width combinations had no overflow,
-broken section anchors, or draft notice and showed the real effective date.
-Provider privacy destinations were checked against official pages. Operational
-follow-ups above remain recorded.

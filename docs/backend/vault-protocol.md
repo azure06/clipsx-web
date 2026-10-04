@@ -1,143 +1,8 @@
-Desktop configuration sync is documented separately in [Configuration sync](configuration-sync.md). It is account-protected configuration, independent of the encrypted browser vault and billing.
+# Vault protocol contract
 
-# Architecture and trust model
+Browser vault requires explicit `CLIPSX_VAULT_PREVIEW_ENABLED=true`; keep it disabled in production. This is the normative preview protocol, not a claim that every described ceremony is complete. Scoped external signer proofs, complete cross-device trust ceremonies, rollback/compatibility fixtures and staging rehearsal remain required before public E2EE claims. Billing and desktop configuration sync are separate.
 
-## Status and scope
-
-**Release configuration:** billing and desktop settings sync are the first-release
-candidate. Browser vault routes and UI require explicit preview opt-in through
-`CLIPSX_VAULT_PREVIEW_ENABLED=true`; production keeps it unset/false. Scoped
-external signer proofs and complete cross-device sharing ceremonies remain
-preview blockers. See [release evidence](production-readiness.md).
-
-This document is the normative design for the browser-based ClipsX encrypted
-vault. The billing backend, encrypted notes/tombstones, device and recovery
-authorization, verified collection invitations, and atomic member add/remove
-epoch rotations are implemented. Multi-device authorization-chain sync,
-rollback checkpoints, centralized teardown, delivery hardening, compatibility
-fixtures, and staging rehearsal remain release blockers before these features
-are advertised as end-to-end encrypted (E2EE). All vault key generation,
-encryption, decryption, signing, verification, invitation, recovery, and
-key-rotation operations happen inside the browser. Pseudocode and example
-algorithm families in this document are protocol requirements and review aids,
-not production-ready cryptographic code.
-
-A separate protocol-profile document freezes the v1 cryptographic suites, recovery
-enrollment, browser unlock profiles, API transport, and deferred scope where this
-document contains an earlier example or open decision. That document has not yet
-been written; this file is the current normative reference.
-
-ClipsX calls a deliberately saved clipboard item a **note** in the cryptographic
-model. A **collection** is the sharing and key-management boundary for notes.
-This preserves the product's existing encrypted-vault, saved-item, and
-collection terminology while making immutable note revisions explicit.
-Within the E2EE sections, “client” always means an authorized browser device;
-there is no native cryptographic service or server-side decryptor in this
-design.
-
-## Architecture approval view
-
-### System design
-
-**Decision:** ClipsX is a browser-managed encrypted vault. An authorized,
-uncompromised browser device is the only security boundary that handles vault
-plaintext or private keys. Hosted services authenticate, synchronize,
-transport, retain ciphertext, and project billing state; they do not decrypt
-or author vault data.
-
-This diagram is the approval view. It distinguishes the three planes that must
-remain separate: the vault data plane, the account/control plane, and the
-billing plane. The companion [data model](models.md) maps this design to
-browser-local IndexedDB records and server tables.
-
-```mermaid
-flowchart LR
-  subgraph BrowserDevice[One authorized browser device]
-    Browser[Vault application]
-    WebCrypto[Web Crypto / reviewed crypto]
-    IndexedDB[(IndexedDB local state)]
-    WebAuthn[WebAuthn authenticator + PRF]
-    Browser -->|cryptographic operations| WebCrypto
-    Browser <-->|encrypted device bundle, ciphertext, checkpoints| IndexedDB
-    Browser -->|user-verified unlock request| WebAuthn
-    WebAuthn -->|local PRF output| Browser
-  end
-  subgraph Hosted[Hosted control and ciphertext plane]
-    Auth[Supabase Auth]
-    DB[(Postgres: signed records + ciphertext)]
-  end
-  subgraph Billing[Separate billing plane]
-    Stripe[Stripe]
-    Checkout[Checkout / Portal API]
-    Webhook[Signed webhook route]
-    Projection[(Private billing projection)]
-  end
-
-  Browser -->|authenticate| Auth
-  Auth -->|JWT with session ID| Browser
-  Browser -->|JWT; public keys, signed records, ciphertext| DB
-  DB -->|ciphertext and signed records| Browser
-  Browser -->|authenticated request| Checkout
-  Checkout -->|create session / portal| Stripe
-  Stripe -->|signed events| Webhook
-  Webhook -->|atomic entitlement projection| Projection
-```
-
-Object storage, CDN ciphertext caching, and encrypted backups are logical roles
-in the full design but are not yet implemented. They are referenced in the
-deferred work section.
-
-### Trust boundaries and data placement
-
-| Boundary | Purpose | May hold or observe | Must never hold |
-| --- | --- | --- | --- |
-| **Unlocked browser runtime** | Generates and uses keys; encrypts, decrypts, signs, and verifies. | Plaintext and unlocked keys only for the active session. | A guarantee against compromised same-origin code or endpoint compromise. |
-| **Browser-local persistence** | Restores one browser device and its rollback anchors. | Encrypted device bundle, encrypted cache/drafts, public parameters, checkpoints, WebAuthn credential ID/PRF input. | Plaintext keys, notes, recovery secret, PRF output, or a hardware-backed-storage claim. |
-| **Hosted vault services** | Auth, authorization, synchronization, object retention, and recovery from operational loss. | Identity/session metadata, public keys, signed records, ciphertext, sizes, timing, access patterns, membership metadata. | Vault plaintext, plaintext keys, recovery secret, local unlock material, or decrypted attachments. |
-| **CDN and release pipeline** | Delivers the vault build. Ciphertext caching is deferred. | Build files, network metadata. | Independence from a malicious deployment: delivered JavaScript is in the vault trust boundary. |
-| **Billing plane** | Creates Checkout/Portal sessions and projects verified Stripe events. | Billing identity, Stripe events, entitlement state. | Vault content or vault keys. |
-
-Object storage, CDN, and backups are logical roles, not necessarily three
-vendors. They are separate in the diagram because blobs, cached delivery, and
-historical retention have different operational and deletion properties.
-
-### Key and data path at a glance
-
-```text
-User verifies with a passkey or enters the vault passphrase
-    -> unlocks this browser's encrypted device-key bundle in IndexedDB
-        -> device private key opens a collection epoch-key envelope
-            -> collection epoch key unwraps a note revision key
-                -> revision key decrypts one note revision in the browser
-```
-
-The server stores the envelope, wrapped revision key, and ciphertext in this
-chain, but never a plaintext vault key. Authentication obtains server access;
-vault unlock obtains local device keys. Neither implies the other.
-
-### Rationale and approval consequences
-
-| Design choice | Why | Approval consequence |
-| --- | --- | --- |
-| Browser-only cryptography | Prevents hosted services from decrypting vault content. | The vault origin, release process, CSP, dependencies, and extensions are critical security controls. A compromised unlocked browser can expose plaintext. |
-| Separate auth and vault unlock | A stolen or expired server session does not itself unlock private keys. | UI and APIs must never treat login/logout as cryptographic unlock/revocation. |
-| Per-device keys and signed authorization | Avoids trusting a server-returned public key and enables device-level removal. | New devices require possession proofs plus an authorization rooted in the recovery trust root. |
-| Collection epochs and per-revision keys | Limits future access after membership/device changes and avoids key reuse across revisions. | Revocation/removal requires an atomic epoch rotation; it protects future data only, never data already learned. |
-| Signed, hash-linked history and checkpoints | Makes tampering, rollback, and conflicting history detectable. | Availability and permanently isolated split views cannot be solved cryptographically; independent checkpoint comparison/transparency remains a product decision. |
-| Local encrypted device bundle | Avoids synchronizing device private keys. | Losing IndexedDB loses that device identity and its local rollback anchors; recovery or another authorized device is required. |
-| Recovery secret | Allows recovery without a server-side escrow key. | It is a high-value offline root; compromise can authorize devices and expose covered epochs. Losing all devices and recovery makes ciphertext unrecoverable. |
-
-### Approval gates
-
-The billing backend is implemented. The E2EE vault is a target design and must
-not be marketed as E2EE until its protocol, schema, browser controls, and test
-vectors are implemented. Attachments are also planned: before upload is
-enabled, define immutable attachment revisions, a fresh attachment key,
-authenticated metadata, wrapping under the active collection epoch, retention,
-and deletion behavior. Never reuse a note revision key for attachment bytes.
-
-The v1 decisions and deferred work are consolidated in the V1 decisions and
-deferred work section below.
+Plaintext and private-key operations take place in an authorized browser. Authentication does not unlock the vault. A note is a deliberately saved item; a collection is its sharing/key-management boundary.
 
 ## Cryptographic protocol
 
@@ -1033,71 +898,6 @@ highest migrated revision. The server cannot decrypt or migrate content.
 Migrating or deleting the legacy server envelope cannot erase the legacy key
 from devices that already obtained it.
 
-## Billing flow
-
-Stripe billing is separate from E2EE. The webhook endpoint is the billing
-processor for this low-volume v1. It verifies the raw signed payload, claims the
-event, retrieves the canonical Stripe object, and commits one atomic local
-projection. A `200` means that projection is committed, was already committed,
-or the event is intentionally ignored. A `500` means Stripe must retry.
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor User
-  participant App as ClipsX website
-  participant Checkout as Checkout / Portal API
-  participant Stripe
-  participant Hook as /api/webhooks/stripe
-  participant Inbox as private.billing_webhook_events
-  participant Billing as private billing projection
-
-  User->>App: Choose Pro monthly or annual
-  App->>Checkout: Authenticated checkout request
-  Checkout->>Billing: Resolve billing account and stored Customer ID
-  Checkout->>Stripe: Create/reuse Customer and Checkout Session
-  Checkout-->>App: Hosted Checkout URL
-  Stripe-->>User: Hosted Checkout
-  User->>Stripe: Complete payment
-  Stripe-->>Hook: subscription / invoice event
-  Hook->>Hook: Verify raw body and signature
-  Hook->>Inbox: Atomically claim event ID with a short lease
-  alt event already processed
-    Inbox-->>Hook: duplicate
-    Hook-->>Stripe: 200
-  else new or retryable event
-    Hook->>Stripe: Retrieve canonical current object
-    Stripe-->>Hook: current object
-    Hook->>Billing: Transactional projection upsert
-    Billing->>Billing: Recalculate entitlement
-    Billing->>Inbox: Mark processed in the same transaction
-    Hook-->>Stripe: 200
-  else concurrent delivery
-    Inbox-->>Hook: processing lease is current
-    Hook-->>Stripe: 500 (Stripe retries)
-  end
-  App->>Checkout: Read safe billing summary
-  Checkout->>Billing: Read local entitlement
-  Billing-->>Checkout: plan and access status
-  Checkout-->>App: safe billing summary
-```
-
-Stripe events are not ordered and can be delivered more than once. The event
-inbox is therefore an idempotency boundary, and the processor retrieves the
-canonical Stripe object before changing the local projection. Failed events
-remain visible for support replay; Stripe delivery retry is the only automatic
-retry path. Billing tables live in `private` and are exposed only to
-`service_role`; browser clients receive a deliberately limited summary.
-
-### What happens if billing components fail?
-
-| Failure | What happens now | Recovery path |
-| --- | --- | --- |
-| Signature invalid | Webhook returns 400 and writes nothing. | Investigate endpoint secret or an invalid sender. |
-| Claim or projection fails | Webhook returns 500 and the event is marked `failed` when possible. | Stripe retries; support can replay the event locally. |
-| Duplicate/out-of-order event | Inbox deduplicates event ID; webhook retrieves canonical object and rejects stale writes. | No manual action in the normal case. |
-| Stripe API unavailable | Existing local entitlement remains in effect until its recorded deadline. | Stripe retries the webhook when the request fails. |
-
 ## Failure behavior
 
 | Situation | Required behavior |
@@ -1182,7 +982,7 @@ retry path. Billing tables live in `private` and are exposed only to
   to an AEAD ciphertext so it cannot be moved to another account, collection,
   note, revision, epoch, author, or purpose without detection.
 
-## Preproduction correction status (2026-09-12)
+## Admission and key-distribution requirements
 
 The baseline enforces separate test/live billing entitlements and cumulative
 settings-sync bounds; see billing.md and configuration-sync.md. Vault metadata,
@@ -1239,10 +1039,4 @@ Vault mutations and private account-ledger reads use
 to the account, remain unexpired, and reference an unclosed principal. An existing
 Auth session row is not sufficient. Optimistic history/proof commitments use
 null-safe comparisons; missing expected hashes do not disable concurrency
-checks. Null pagination bounds and absent rotation arrays are rejected. These
-are baseline corrections, including the vault baseline, not new migrations.
-
-## Desktop download metadata
-
-The download page reads finalized GitHub release metadata at runtime. See
-[Desktop releases](desktop-releases.md) for validation, caching and rollout.
+checks. Null pagination bounds and absent rotation arrays are rejected. These are required admission checks.

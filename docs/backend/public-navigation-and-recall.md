@@ -65,7 +65,7 @@ Section anchors account for the fixed header, and reduced motion disables smooth
 anchor scrolling on these pages. No dependencies, routes, or backend behavior change.
 
 Feature claims were checked against `../clipsx/docs/SEMANTIC_SEARCH_ARCHITECTURE.md`
-and `ARCHITECTURE.md`: semantic retrieval is optional, generation is a separate
+and `MODELS.md`: semantic retrieval is optional, generation is a separate
 capability, OCR input requires completed artifacts, percentages are similarity
 scores rather than confidence, and deleting derived indexes preserves clips and
 exact search. Ordinary clip updates refresh that clip; model changes build a
