@@ -9,7 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const post = blogPosts.find(post => path === `/blog/${post.slug}`);
     return {
       url: localizedUrl(locale, path),
-      ...(post ? { lastModified: post.date } : {}),
+      ...(post ? { lastModified: post.modifiedDate ?? post.date } : {}),
       alternates: { languages: languageAlternates(path) },
     };
   }));

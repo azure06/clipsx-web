@@ -73,6 +73,11 @@ replacement index. Capacity targets and benchmark timings are not product claims
 
 ## Documentation and changelog
 
+The footer includes the localized Identity Studio link at `/identity-studio`.
+It remains a secondary brand reference rather than a header destination.
+The page retains noindex/nofollow metadata and is excluded from the sitemap.
+Footer links use the shared keyboard-focus treatment.
+
 The existing localized Docs route remains available for inbound compatibility.
 The public UI now directs readers to the English Mintlify documentation site.
 

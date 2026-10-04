@@ -22,11 +22,11 @@ describe('public search metadata', () => {
     const entries = sitemap();
     expect(entries).toHaveLength((publicRoutes.length + blogPosts.length) * 2);
     expect(new Set(entries.map(entry => entry.url)).size).toBe(entries.length);
-    expect(entries.some(entry => /\/(account|vault|signin|signup|api|auth)(\/|$)/.test(entry.url))).toBe(false);
+    expect(entries.some(entry => /\/(account|vault|signin|signup|api|auth|identity-studio)(\/|$)/.test(entry.url))).toBe(false);
     for (const entry of entries) {
       expect(entry.url.startsWith(siteConfig.url.replace(/\/$/, ''))).toBe(true);
       const post = blogPosts.find(post => entry.url.endsWith(`/blog/${post.slug}`));
-      expect(entry.lastModified).toBe(post?.date);
+      expect(entry.lastModified).toBe(post?.modifiedDate ?? post?.date);
       expect(entry.alternates?.languages?.['x-default']).toContain('/en');
     }
   });

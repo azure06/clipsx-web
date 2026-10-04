@@ -17,6 +17,8 @@ describe('public navigation', () => {
   });
 
   it('retains secondary destinations in the footer', () => {
-    expect(footerNav.company.map((item) => item.href)).toEqual(expect.arrayContaining(['/blog', '/changelog', '/faq']));
+    expect(footerNav.company.map((item) => item.href)).toEqual(expect.arrayContaining(['/blog', '/changelog', '/faq', '/identity-studio']));
+    expect(mainNavLinks.some(item => item.href === '/identity-studio')).toBe(false);
+    expect(mainNavMenus.flatMap(menu => menu.items).some(item => item.href === '/identity-studio')).toBe(false);
   });
 });

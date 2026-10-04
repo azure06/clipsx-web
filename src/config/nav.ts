@@ -72,6 +72,7 @@ export const footerNav = {
     { labelKey: 'Footer.docs', href: documentationConfig.root, external: true },
     { labelKey: 'Footer.changelog', href: '/changelog' },
     { labelKey: 'Footer.blog', href: '/blog' },
+    { labelKey: 'Footer.identityStudio', href: '/identity-studio' },
     { labelKey: 'Footer.contact', href: '/contact' },
     ...(siteConfig.sponsorUrl ? [{ labelKey: 'Footer.sponsor', href: siteConfig.sponsorUrl, external: true }] : []),
     { labelKey: 'Footer.faq', href: '/faq' },

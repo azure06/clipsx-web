@@ -27,7 +27,7 @@ URL/locale, and sharing title/description. A locale layout does not set a
 canonical that child pages could accidentally inherit.
 
 `src/app/sitemap.ts` exclusively generates `/sitemap.xml`. Only public marketing
-pages and existing blog articles appear. Blog lastmod uses its editorial date;
+pages and existing blog articles appear. Blog lastmod uses its explicit modification date, falling back to its editorial publication date;
 undated pages omit lastmod rather than claiming every build changed content.
 `src/app/robots.ts` exclusively generates `/robots.txt`. The postbuild
 next-sitemap generator, dependency, config, and obsolete ignored public output
@@ -43,9 +43,22 @@ actual editorial date, title, language, and organization attribution. Neither
 schema invents ratings or testimonials, and neither guarantees a rich result.
 JSON-LD serialization escapes `<` before inserting content in a script element.
 
-Blog cards link their titles and have descriptive article link labels. Article
-pages show publication dates, breadcrumbs, reading estimates matching the short
-articles, and a download route after reading.
+Blog content is centralized in `src/content/blog.ts`, with matching English and
+Japanese guides, stable section IDs, paragraphs, lists, resources, and image
+descriptions. Articles are ordered newest first. The index features the latest
+article and presents the remaining entries in a responsive two-column grid.
+Article pages provide a takeaway, section navigation, sources, related articles,
+and a closing Download action. Reading estimates are derived from localized
+text (220 English words or 500 Japanese characters per minute), not fixed values.
+
+Each article has a distinct optimized 1600×900 WebP conceptual illustration.
+Dimensions reserve its layout space; captions distinguish illustrations from
+product screenshots. Open Graph, Twitter, and BlogPosting metadata use the same
+article-specific image and localized description. Publication dates are the
+maintainer-selected editorial dates: September 6, September 20, and October 4,
+2026. They are not independently verified historical publication timestamps.
+Subsequent significant revisions use an explicit modification date; builds do
+not change dates automatically.
 The locale layout owns the main landmark and provides a keyboard skip link;
 feature pages and the changelog do not nest additional main landmarks.
 The compact header keeps Download visible outside the expanded menu.
@@ -81,9 +94,9 @@ Suggested owner: site maintainer. Before the next acquisition campaign:
    acquisition baseline before adding tracking. Track landing page to download
    page movement; installer clicks and first successful desktop reuse require
    separate measurement design. Visits alone do not establish activation.
-4. Expand the short existing articles into useful task-focused guides from
-   actual workflows. Their current depth is limited; technical metadata cannot
-   substitute for useful content. Avoid unsubstantiated time-saving claims.
+4. Keep the existing guides aligned with current desktop workflows and feature
+   availability. Local storage, optional services, model setup, and extension
+   permissions have distinct boundaries. Avoid unsubstantiated time-saving claims.
 5. Maintain the current-service Terms/Privacy policy and the request/retention
    procedure in [Legal pages](legal-pages.md). Vault and Pro billing are confirmed
    inactive; update disclosures before enabling either. Public contact is the
