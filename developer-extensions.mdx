@@ -1,41 +1,81 @@
 ---
 title: "Build extensions"
-description: "Build bounded ClipsX extension packages using the public extension contract, package CLI, and conformance tests."
-keywords: ["ClipsX extension API", "WASM", "extension package", "conformance"]
+description: "Choose a clipboard workflow, build a local ClipsX extension, and understand the host-managed capability boundary."
+keywords: ["ClipsX extension API", "WASM", "extension development", "local package"]
 ---
 
-ClipsX extensions are bounded WebAssembly packages. The desktop host owns
-capability consent, invocation limits, rendering, accessibility, and
-quarantine; an extension declares only the capabilities it needs.
+Add a view, transformation, detector, or action to the content people copy.
+ClipsX supplies the clipboard workspace and manages permission consent, provider
+credentials, and supported result controls. Your package declares what it needs
+and implements the workflow through the Extension API.
 
-<Steps>
-  <Step title="Read the extension contract">
-    Start with the [Extension API v3.2](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V3.md)
-    to understand manifests, contributions, capability boundaries, and lifecycle rules.
-  </Step>
-  <Step title="Build a minimal package">
-    Add one contribution at a time and request only the permissions needed for
-    that behavior. Do not depend on an undocumented hosted API.
-  </Step>
-  <Step title="Validate before publishing">
-    Use the package CLI and conformance suite supplied with the desktop project
-    before distributing a package.
-  </Step>
-</Steps>
+## Start with a working example {#start}
 
-## Safety boundary
+Follow [Build a Rewrite extension](/rewrite-extension) to build the first-party
+source, validate a `.clipsx` archive, import it locally, and try a harmless text
+transformation. This route starts from an existing package so you can inspect a
+working contract before creating your own.
 
-- Extensions have no ambient clipboard, file-system, or network access.
-- Network destinations and external navigation require declaration and local consent.
-- A changed package checksum requires another permission review.
-- Credentials and grants do not synchronize between devices.
-- Automatic transformations store durable results on their source clip. They never replace the system clipboard.
-- The desktop and package tooling use the v3.2 contract only. Every transformer run creates a clip-owned result tab.
+Rewrite needs a configured generation model. For examples without an LLM,
+inspect [Base64](https://github.com/azure06/clipsx-extensions/tree/main/extensions/base64)
+or [Mermaid Viewer](https://github.com/azure06/clipsx-extensions/tree/main/extensions/mermaid-viewer).
+Their build requirements differ; use the repository's package instructions.
 
-<Card title="Browse extension source" href="https://github.com/azure06/clipsx-extensions">
-  Review first-party package examples and their manifests.
-</Card>
+## Choose one contribution {#contributions}
 
-<Card title="Build Rewrite" href="/rewrite-extension">
-  Follow the complete durable transformation tutorial.
-</Card>
+| Contribution | Useful starting point |
+| --- | --- |
+| Detector | Recognize a supported representation and attach semantic facets. |
+| View | Show structured content or a diagram alongside its source. |
+| Transformer | Produce a durable result attached to the clip, such as rewritten text. |
+| Action | Offer an explicit operation on selected content. |
+
+Use the [Extension API](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V3.md)
+for supported contributions, manifest fields, lifecycle rules, and limits. Start
+with one contribution and only the permissions that behavior needs. The contract
+and pinned WIT must match your target desktop host; the current source uses v3.2.
+
+## What belongs to the host {#capabilities}
+
+- Consent, invocation limits, provider assignment, credentials, and quarantine.
+- Rendering boundaries, supported controls, and accessibility of host-owned UI.
+- Durable transformation jobs and results attached to their source clip.
+- Compatibility checks when importing or installing packages.
+
+Extensions have no ambient clipboard history, filesystem, shell, or network
+access. Selected input, generation, network destinations, and external navigation
+use declared capabilities and applicable local consent. A configured model is
+required only for packages that request it.
+
+Credentials and grants do not synchronize between devices. Changed package bytes
+require renewed permission review. Automatic transformations store results with
+the source clip; they do not replace the system clipboard.
+
+## Validate locally before distributing {#validation}
+
+The [Rewrite guide](/rewrite-extension#build) provides exact commands. Package
+tooling can pack, validate, inspect, and test the archive. These checks cover
+manifest compatibility, assets, limits, and component structure; they do not prove
+the quality of generated output or every runtime behavior. Test the installed
+package with sample content, cancellation, and failure cases as well.
+
+A local import is for development. Registry publishing uses immutable release
+archives, checksum and permission metadata, and a separate catalog approval and
+signing process. Signatures establish package provenance, not a guarantee of
+safety. See the [publication boundary](/rewrite-extension#distribution) before
+planning distribution.
+
+<Note>
+Desktop extensions are available. A hosted public API is not available; do not
+build against undocumented website or account endpoints.
+</Note>
+
+## Contribute in the right repository {#contribute}
+
+- [Extension source and issues](https://github.com/azure06/clipsx-extensions): package behavior, examples, and workflow proposals.
+- [Desktop source and issues](https://github.com/azure06/clipsx): host capabilities, desktop behavior, and compatibility problems.
+- [Registry source](https://github.com/azure06/clipsx-registry): catalog metadata and distribution process.
+
+Include the host version, package version, operating system, reproduction steps,
+and a harmless sample when reporting a problem. Remove private clipboard content
+and credentials from logs.

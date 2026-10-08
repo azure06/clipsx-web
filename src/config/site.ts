@@ -25,6 +25,7 @@ export const documentationConfig = {
   sync: `${documentationRoot}/sync`,
   privacy: `${documentationRoot}/privacy`,
   developerExtensions: `${documentationRoot}/developer-extensions`,
+  rewriteExtension: `${documentationRoot}/rewrite-extension`,
 } as const;
 
 const localizedDocumentationPages = new Set([

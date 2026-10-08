@@ -13,6 +13,7 @@ describe('documentation journey', () => {
     expect(getDocumentationConfig('ja').root).toBe('https://docs.clipsx.app/ja/index');
     expect(getDocumentationConfig('ja').meaningSearch).toBe('https://docs.clipsx.app/ja/meaning-search');
     expect(getDocumentationConfig('ja').developerExtensions).toBe(documentationConfig.developerExtensions);
+    expect(getDocumentationConfig('ja').rewriteExtension).toBe(documentationConfig.rewriteExtension);
     expect(localizeDocumentationUrl(documentationConfig.localAi + '#generation-models', 'ja'))
       .toBe('https://docs.clipsx.app/ja/local-ai#generation-models');
     for (const href of ['/product', 'https://ollama.com/library/gemma3', 'https://docs.clipsx.app/ja/local-ai']) {

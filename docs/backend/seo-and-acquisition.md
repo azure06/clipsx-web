@@ -20,6 +20,17 @@ Sponsorship does not purchase Pro or create a billing entitlement.
 
 ## Search implementation
 
+The developer page serves extension adoption: a concrete Rewrite example leads
+to the maintained first-build tutorial, followed by host-managed capabilities,
+local build/validation/import steps, permission limits, and contribution links.
+English and Japanese marketing pages share that structure; developer tutorials
+retain English URLs and Japanese links identify them as English. The tutorial
+owns prerequisites, copyable commands, compatibility checks, a first-result
+exercise, recovery, and the separate registry distribution boundary. It starts
+from first-party source rather than implying a scaffold is a finished package.
+Examples are illustrative; validation and signatures are not safety guarantees.
+A hosted public API is unavailable. Conversion improvement remains unmeasured.
+
 `src/lib/seo.ts` owns localized page metadata and the public-route inventory.
 Every indexable marketing page sets its own canonical URL, reciprocal English
 and Japanese alternates, English x-default, localized description, Open Graph
