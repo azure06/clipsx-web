@@ -1,0 +1,46 @@
+---
+title: "Set up Meaning Search"
+description: "Enable semantic retrieval and try a meaning-based query on local clipboard history."
+keywords: ["Meaning Search", "semantic search", "embedding", "indexing"]
+---
+
+Meaning Search helps when you remember an idea but not its wording. Use exact text search for names, codes, and identifiers. Similarity is a useful lead, not proof of relevance.
+
+## Connect and enable {#setup}
+
+1. Follow [Local AI setup](/local-ai#starting-setup) to install Ollama, download an embedding model, and connect it in **Intelligence → Models**.
+2. Choose an installed embedding-capable model under Meaning Search and select **Enable**.
+3. Check **Intelligence → Indexing** for progress. Validation and indexing take time; exact search stays available.
+4. Enable the Meaning Search source using the clipboard search source controls.
+
+Eligible text comes from search projections of supported representations and available text artifacts. This is not general image similarity or a search of every file on your computer. Eligibility depends on captured content, artifacts, and configured sources.
+
+## Try your first result {#first-result}
+
+Copy this harmless note as one clip:
+
+```text
+Team outing: meet at Kissa Mori on Thursday at 2 pm.
+There are six seats upstairs.
+```
+
+Confirm it appears in history and becomes indexed. With Meaning Search enabled, try **a cafe for our group meeting**. The clip may appear despite different wording. Check the original text before using it.
+
+Ordering depends on the model, threshold, and other clips. This exercise does not guarantee a particular rank. Compare with an exact query such as **Kissa Mori** to understand the two search modes.
+
+## If results are missing {#troubleshooting}
+
+- Check model enablement and whether the semantic source is selected.
+- Review indexed versus eligible clips, pending work, and failures in Indexing.
+- Confirm the clip has searchable text. OCR availability depends on platform and configuration.
+- Try a simpler query and review minimum similarity: stricter thresholds can omit related results.
+- Download missing models through Ollama and refresh the connection.
+- For connection errors, follow [Local AI recovery](/local-ai#recovery).
+
+## Manage the derived index {#manage-index}
+
+Use **Intelligence → Indexing** to index missing content, retry failed jobs, or rebuild. Clearing or rebuilding the semantic index preserves original clips and exact text search.
+
+Changing embedding models builds a replacement index. Wait for readiness before comparing retrieval. **Disable** stops embedding; clearing stored index data is separate. Read the app's confirmation and diagnostic before choosing an action.
+
+[Recall](/recall) adds generated answers with sources. It needs generation; embeddings alone do not write answers.

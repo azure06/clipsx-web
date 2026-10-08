@@ -2,34 +2,22 @@
 
 ## Description
 
-ClipsX is a free, programmable desktop clipboard. It keeps canonical clipboard
-content on the device, makes captured representations searchable and reusable,
-and supports optional local AI and sandboxed extensions.
+ClipsX is a free desktop clipboard. Users find copied content, inspect its representations, and make it useful with optional Meaning Search, Recall, and extensions. Original history is stored on the device; optional providers and extensions have explicit processing boundaries.
 
 ## Primary audience
 
-The primary documentation reader is an English-speaking ClipsX user who wants
-to understand the product before release, install a certified build when one is
-available, and use its local-first features safely.
-
-This audience is inferred from the current public documentation and should be
-confirmed before expanding the site beyond the initial user guide.
+English- and Japanese-speaking desktop users, including developers and people working with text or structured content. Readers may be new to local models. They need a first useful workflow and clear requirements, rather than knowledge of model APIs.
 
 ## Jobs to be done
 
-- Check whether a supported, certified build is available.
-- Learn the capture, search, preview, organize, and reuse workflow.
-- Understand exactly what stays local and what optional account sync includes.
-- Configure local Ollama features without sending clipboard content to a hosted
-  model provider.
-- Install and review extensions without weakening the host permission boundary.
-- Diagnose common availability, search, model, and sync issues.
+- Install an available build and capture, find, and reuse a first clip without an account or AI.
+- Set up an embedding model for Meaning Search.
+- Configure generation, ask Recall, and verify its sources.
+- Install a visualization or transformation extension and review its permissions.
+- Compare model candidates using their own content and device resources.
+- Understand optional account sync and recover from setup failures.
 
 ## Motivation
 
-ClipsX preserves useful clipboard representations instead of flattening them,
-while keeping clipboard content under the user's control. Optional capabilities
-are explicit: accounts are not required for the core desktop product, local AI
-is user-configured, and extensions are bounded by signed packages and reviewed
-permissions.
+Copying is easy; finding and reusing the useful content later is harder. ClipsX preserves multiple representations and supports explicit optional capabilities. The documentation owns complete setup instructions; marketing explains outcomes and the app provides contextual guide links. Model suggestions distinguish developer-reported use from unverified alternatives.
 

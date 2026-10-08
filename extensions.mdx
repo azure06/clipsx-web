@@ -1,28 +1,55 @@
 ---
-title: "Extensions"
-description: "Understand ClipsX extension packages, permission review, updates, and quarantine."
-keywords: ["ClipsX extensions", "WASM", "permissions", "signed packages"]
+title: "Use extensions"
+description: "Install extensions and try a visualization or local AI transformation."
+keywords: ["ClipsX extensions", "Mermaid", "Rewrite", "permissions"]
 ---
 
-Extensions can detect, render, transform, or act on compatible clipboard
-representations. They run as bounded WebAssembly packages, while ClipsX retains
-control of permission consent, limits, rendering, accessibility, and quarantine.
+Extensions recognize, preview, transform, or act on compatible copied content. No optional package is installed by default. Try visualization without an LLM, then add generation when needed.
 
-No optional package is installed by default. Browse the signed catalog in
-ClipsX, review a package's permissions, and install it when needed.
+## Install and review {#install}
 
-## Permission boundary
+1. Open **Extensions** in ClipsX and browse the catalog.
+2. Review package details, provenance, version, permissions, and prerequisites.
+3. Install and enable the package using its controls. Grant only access you understand.
+4. Open a compatible clip and select its available preview or transformation.
 
-- Extensions do not receive ambient access to clipboard history, the file
-  system, or the network.
-- Network destinations and external navigation must be declared and granted for
-  the exact package release.
-- Review permissions after installation and whenever an update changes the
-  package checksum.
-- Credentials and grants never sync automatically.
-- Repeated failures can quarantine a package without changing the original clip.
+Signatures and checksums establish provenance and integrity, not a guarantee of safety. Updates can change behavior and require renewed permission review.
 
-First-party packages include Rewrite, Mermaid, JWT Inspector, Base64, Data
-Tools, and Ask AI. Their source is available in the
-[ClipsX extensions repository](https://github.com/azure06/clipsx-extensions).
+## Try a Mermaid visualization {#mermaid}
+
+Install and enable first-party **Mermaid**, then copy:
+
+```text
+flowchart LR
+  Copy --> Find
+  Find --> Reuse
+```
+
+Open the captured text and choose the available Mermaid view. Inspect the diagram alongside the original. This requires no generation model. If unavailable, check enablement, content compatibility, and package diagnostics.
+
+## Try a Rewrite transformation {#rewrite}
+
+1. Enable [Local Text Generation](/local-ai#generation-models).
+2. Install first-party **Rewrite** and review its generation permission.
+3. Copy **Please send the updated meeting agenda before Thursday.**
+4. Open the clip, choose Rewrite, and select **Concise** or another available setup.
+5. Run it, inspect the result tab, and compare with **Original** before copying or pasting.
+
+Generated text can change meaning. **Save as new clip** creates an independent clip; attached results remain associated with the source. Automatic rules are optional and configured separately. Start manually.
+
+## Understand the boundary {#permissions}
+
+Bounded WebAssembly packages do not receive ambient access to all history, files, or the network. Network destinations and external navigation must be declared and granted for the exact release. Generation uses the host's configured provider.
+
+Review permissions after updates. Credentials and grants do not sync automatically. Authenticity is separate from trust in the author's behavior.
+
+## Disable or recover {#recovery}
+
+Disable unwanted packages through their controls. Repeated failure can quarantine a package: inspect diagnostics, prerequisites, and permissions before enabling it again. Original clips are preserved. Deleting a source removes its attached results.
+
+See [Local AI recovery](/local-ai#recovery) and [Troubleshooting](/troubleshooting).
+
+## Build extensions {#build}
+
+The [developer guide](/developer-extensions) and [Rewrite implementation](/rewrite-extension) cover authoring. You do not need them to use a package.
 

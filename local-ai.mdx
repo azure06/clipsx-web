@@ -1,43 +1,98 @@
 ---
 title: "Local AI with Ollama"
-description: "Connect a loopback Ollama service for optional Meaning Search and Recall features."
-keywords: ["Ollama", "Meaning Search", "Recall", "local AI"]
+description: "Choose models, connect Ollama, and verify optional local AI in ClipsX."
+keywords: ["Ollama setup", "embedding model", "BGE-M3", "Gemma"]
 ---
 
-ClipsX can use an Ollama service running on your device. It does not install
-Ollama, download models automatically, or silently send clipboard content to a
-hosted model provider.
+ClipsX works without AI. An **embedding model** finds clips by meaning; a **generation model** writes Recall answers or runs compatible AI extensions. A chat model is not automatically an embedding model. ClipsX does not install Ollama or download models for you.
+
+## Start with the developer's setup {#starting-setup}
+
+The developer reports using **`bge-m3:latest` for Meaning Search** and **`gemma3:4b` for generation**. This is a starting example, not a performance guarantee for your device.
 
 <Steps>
   <Step title="Install and start Ollama">
-    Follow the [official Ollama installation instructions](https://ollama.com/download),
-    then start its local service. The default endpoint is
-    `http://localhost:11434`.
+    Follow the [official installation instructions](https://ollama.com/download) for your OS. Start Ollama. Its default local endpoint is `http://localhost:11434`. If the service is already running, do not start a second copy.
+  </Step>
+  <Step title="Download the models">
+    Open a terminal on the same device as ClipsX:
+    ```shell
+    ollama pull bge-m3:latest
+    ollama pull gemma3:4b
+    ollama list
+    ```
+    The list should contain the downloaded names. For search only, skip Gemma. Downloads need internet access; local inference uses the installed model.
   </Step>
   <Step title="Connect ClipsX">
-    In ClipsX, open **Intelligence**, choose **Models**, enter the loopback
-    endpoint, and select **Connect**. ClipsX lists models after the endpoint
-    responds successfully.
+    Open **Intelligence → Models**, enter `http://localhost:11434`, and select **Connect**. A successful connection lists installed models and their capabilities. Refresh after downloading another model.
   </Step>
-  <Step title="Enable Meaning Search">
-    Select an installed model that Ollama reports as supporting text embeddings.
-    Indexing runs in the background, while exact text search remains available.
-  </Step>
-  <Step title="Enable Recall when needed">
-    Under **Local Text Generation**, choose a model that reports generation
-    support. This can be different from the embedding model.
+  <Step title="Enable the capabilities you want">
+    Under Meaning Search, select `bge-m3:latest` and **Enable**. ClipsX validates the model and indexes eligible clips in the background. Under **Local Text Generation**, select `gemma3:4b` and **Enable** for Recall or compatible extensions. A connected service alone does not enable either capability.
   </Step>
 </Steps>
 
-## Recall safety model
+Continue with [your first Meaning Search](/meaning-search#first-result), [your first Recall answer](/recall#first-answer), or [a Rewrite transformation](/extensions#rewrite). Exact text search remains available during semantic indexing.
 
-Recall answers questions from a visible, bounded selection of history. Inspect
-its numbered citations before relying on an answer. Detected secret clips are
-excluded unless you override that protection, and generated answers can be
-wrong.
+## Choose an embedding model {#embedding-models}
 
-<Note>
-  Prompts and answers do not become canonical clip metadata. Temporary Recall
-  conversations expire after inactivity.
-</Note>
+Embedding models produce vectors for retrieval; they do not write answers. ClipsX lists embedding-capable models reported by Ollama and validates their output when enabled.
+
+| Example | Why consider it | What to check |
+| --- | --- | --- |
+| [BGE-M3](https://ollama.com/library/bge-m3) — `bge-m3:latest` | Developer's multilingual search example | About 1.2 GB download; test your languages and queries |
+| [EmbeddingGemma](https://ollama.com/library/embeddinggemma) — `embeddinggemma` | Smaller-parameter multilingual candidate | Requires Ollama 0.11.10 or later; evaluate retrieval quality |
+| [Qwen3 Embedding](https://ollama.com/library/qwen3-embedding:0.6b) — `qwen3-embedding:0.6b` | Another multilingual candidate | Current package size and index behavior |
+
+Alternatives are **candidates to evaluate**, not configurations independently benchmarked in ClipsX. Download one, refresh Models, and choose it under Meaning Search:
+
+```shell
+ollama pull embeddinggemma
+# Or choose this alternative instead:
+ollama pull qwen3-embedding:0.6b
+```
+
+Changing embedding models changes the vector space. ClipsX builds a replacement index; during rebuilding, results can use the existing active index. Wait until the replacement is ready before comparing models.
+
+## Choose a generation model {#generation-models}
+
+Generation writes text. A model's vision or tool capabilities do not add those features to ClipsX's text-generation workflow.
+
+| Example | Role in this guide |
+| --- | --- |
+| [Gemma 3 4B](https://ollama.com/library/gemma3:4b) — `gemma3:4b` | Developer's starting setup; about 3.3 GB download; Ollama 0.6 or later |
+| [Gemma 3 1B](https://ollama.com/library/gemma3:1b) — `gemma3:1b` | Smaller-parameter candidate; evaluate instruction following |
+| [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b) / [4B](https://ollama.com/library/qwen3.5:4b) — `qwen3.5:2b` / `qwen3.5:4b` | Newer generation candidates with different resource and output tradeoffs |
+| [Gemma 4 E4B](https://ollama.com/library/gemma4:e4b) — `gemma4:e4b` | Newer candidate; use current Ollama and verify capability detection |
+
+For example:
+
+```shell
+ollama pull gemma3:1b
+```
+
+Refresh Models, choose the installed name under **Local Text Generation**, and select **Enable** or **Update**. Compare a Recall question with citations and a short Rewrite task. Assess usefulness, errors, waiting time, and resources—not only whether text appears. Generation model changes do not require rebuilding the semantic index.
+
+Listings reviewed **October 8, 2026**. Tags and requirements can change. Check linked official listings for sizes, minimum Ollama versions, and model licenses. Model licenses are separate from ClipsX's Apache 2.0 license. When reporting a problem, record the exact tag and identifier shown by `ollama list`.
+
+## Understand resource costs {#resources}
+
+Review each model's license and upstream terms: [BGE-M3](https://ollama.com/library/bge-m3:latest/blobs/a406579cd136), [Gemma 3](https://ollama.com/library/gemma3:4b/blobs/dd084c7d92a3), [EmbeddingGemma](https://ollama.com/library/embeddinggemma:latest/blobs/1adbfec9dcf0), [Gemma 4](https://ollama.com/library/gemma4:e4b/blobs/7339fa418c9a), [Qwen 3.5](https://ollama.com/library/qwen3.5:2b), [Qwen3 Embedding upstream](https://github.com/QwenLM/Qwen3-Embedding). For Qwen models, follow the license or model-card links on those official pages. Sharing the Ollama API does not make model licenses identical.
+
+Download size and parameter count are not RAM or VRAM requirements. Runtime memory depends on quantization, context, and loaded models. CPU inference may be slower; larger contexts can require more memory. No fixed hardware tier or speed is promised.
+
+Use `ollama ps` during a task to inspect loaded models and CPU/GPU placement. Start with short text. If the device struggles, evaluate a smaller model, close heavy workloads, or use exact search without AI.
+
+## Keep inference local {#local-boundary}
+
+Use locally downloaded tags. A loopback endpoint alone does not prove local inference: Ollama also offers cloud-backed models. Check the selected model and Ollama settings. Avoid cloud variants for device-local processing. Models receive the text needed for each task; extensions have their own permission boundaries.
+
+## Recover or disable {#recovery}
+
+- **Cannot connect:** confirm Ollama is running and the endpoint matches. Check `ollama list` before reconnecting.
+- **No suitable model:** download one with the required capability, refresh, and choose its installed name.
+- **Indexing fails:** review **Intelligence → Indexing**, affected clips, and diagnostics before retrying.
+- **Generation fails or answers poorly:** check the installed model, try shorter input, and evaluate another model. The same API does not guarantee support or useful output.
+- **Stop AI:** use **Disable** in the relevant model section. Removing stored semantic data is a separate [index action](/meaning-search#manage-index); original clips remain.
+
+See [Troubleshooting](/troubleshooting) and [privacy boundaries](/privacy).
 

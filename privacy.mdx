@@ -1,40 +1,22 @@
 ---
 title: "Privacy and data ownership"
-description: "Understand the local data boundary, optional account services, and deletion responsibilities in ClipsX."
-keywords: ["ClipsX privacy", "local-first", "data ownership", "account deletion"]
+description: "Understand local storage, optional processing, and deletion controls."
+keywords: ["ClipsX privacy", "local data", "account deletion"]
 ---
 
-## Device-local clipboard data
+## Local clipboard data
 
-Clipboard content, managed files, OCR, full-text and semantic indexes, provider
-endpoints and models, credentials, permission grants, diagnostics, and derived
-data remain on your device. ClipsX does not silently upload them.
+Original clipboard content, managed files, OCR, search indexes, provider settings, credentials, grants, and derived data are stored on the device. Settings sync does not include clipboard history. Optional models and extensions receive content needed for their tasks; external processing depends on configuration and granted capabilities.
 
-## Optional account data
+## Optional accounts
 
-If you create an account, Supabase processes authentication identity, email,
-sessions, and hosted records required for supported settings sync. Current sync
-does not include clipboard content, notes, tags, files, or secrets.
+Supabase handles authentication, email, sessions, and supported settings-sync records. Google and GitHub process sign-in when selected. Pro billing and Vault are not advertised as available features. Settings sync is not end-to-end encrypted.
 
-Google and GitHub process data only when you choose their sign-in options.
-Stripe processes billing information only for legacy subscriptions or if a paid
-plan is enabled in the future; ClipsX does not store card details. Ollama runs
-separately on your device.
+## Deletion controls
 
-## Delete your data
+Use Account settings to close your account. Resolve existing subscriptions and owned organizations first if applicable. Closure revokes hosted access and removes or disables hosted data according to integrity and security requirements. It does not promise immediate deletion from all retained records or backups.
 
-You can close your account from Account settings. Active subscriptions must be
-canceled and owned organizations transferred first. Account closure revokes
-hosted sessions and removes or disables hosted account data according to
-integrity and security requirements.
+Account closure does not remove desktop history. Manage local data separately on each device.
 
-<Warning>
-  Closing an account does not remove data stored by the desktop app. Delete
-  local desktop data separately on every device.
-</Warning>
-
-<Note>
-  The public privacy policy is currently a launch draft and requires final legal
-  review and operator identity before production use.
-</Note>
+For the governing disclosure and contact details, read the [Privacy Policy](https://clipsx.app/en/privacy). This page is an operational guide. See [settings sync](/sync) and [local AI boundaries](/local-ai#local-boundary).
 

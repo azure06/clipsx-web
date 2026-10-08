@@ -21,40 +21,95 @@
     "default": "system"
   },
   "navigation": {
-    "groups": [
+    "languages": [
       {
-        "group": "Start here",
-        "icon": "rocket",
-        "pages": [
-          "index",
-          "getting-started",
-          "platform-support"
+        "language": "en",
+        "groups": [
+          {
+            "group": "Start here",
+            "icon": "rocket",
+            "pages": [
+              "index",
+              "getting-started",
+              "platform-support"
+            ]
+          },
+          {
+            "group": "Use ClipsX",
+            "icon": "clipboard",
+            "pages": [
+              "core-workflows",
+              "local-ai",
+              "meaning-search",
+              "recall",
+              "extensions",
+              "sync"
+            ]
+          },
+          {
+            "group": "Safety and support",
+            "icon": "shield-check",
+            "pages": [
+              "privacy",
+              "troubleshooting"
+            ]
+          },
+          {
+            "group": "Build extensions",
+            "icon": "code-xml",
+            "pages": [
+              "developer-extensions",
+              "rewrite-extension"
+            ]
+          }
         ]
       },
       {
-        "group": "Use ClipsX",
-        "icon": "clipboard",
-        "pages": [
-          "core-workflows",
-          "local-ai",
-          "extensions",
-          "sync"
-        ]
-      },
-      {
-        "group": "Safety and support",
-        "icon": "shield-check",
-        "pages": [
-          "privacy",
-          "troubleshooting"
-        ]
-      },
-      {
-        "group": "Build extensions",
-        "icon": "code-xml",
-        "pages": [
-          "developer-extensions",
-          "rewrite-extension"
+        "language": "ja",
+        "navbar": {
+          "links": [
+            {
+              "label": "ウェブサイト",
+              "href": "https://clipsx.app/ja"
+            },
+            {
+              "label": "拡張機能の開発（英語）",
+              "href": "https://docs.clipsx.app/developer-extensions"
+            }
+          ],
+          "primary": {
+            "type": "button",
+            "label": "ダウンロード",
+            "href": "https://clipsx.app/ja/download"
+          }
+        },
+        "groups": [
+          {
+            "group": "はじめに",
+            "pages": [
+              "ja/index",
+              "ja/getting-started",
+              "ja/platform-support"
+            ]
+          },
+          {
+            "group": "ClipsXを使う",
+            "pages": [
+              "ja/core-workflows",
+              "ja/local-ai",
+              "ja/meaning-search",
+              "ja/recall",
+              "ja/extensions",
+              "ja/sync"
+            ]
+          },
+          {
+            "group": "安全とサポート",
+            "pages": [
+              "ja/privacy",
+              "ja/troubleshooting"
+            ]
+          }
         ]
       }
     ]
@@ -86,29 +141,82 @@
     "prompt": "Search ClipsX documentation"
   },
   "contextual": {
-    "options": ["copy", "chatgpt", "claude"],
+    "options": [
+      "copy",
+      "chatgpt",
+      "claude"
+    ],
     "display": "toc"
   },
   "seo": {
-    "metatags": {
-      "canonical": "https://docs.clipsx.app",
-      "og:locale": "en_US"
-    },
+    "metatags": {},
     "indexing": "navigable"
   },
   "redirects": [
-    { "source": "/docs", "destination": "/", "permanent": true },
-    { "source": "/docs/index", "destination": "/", "permanent": true },
-    { "source": "/docs/getting-started", "destination": "/getting-started", "permanent": true },
-    { "source": "/docs/platform-support", "destination": "/platform-support", "permanent": true },
-    { "source": "/docs/core-workflows", "destination": "/core-workflows", "permanent": true },
-    { "source": "/docs/local-ai", "destination": "/local-ai", "permanent": true },
-    { "source": "/docs/meaning-search", "destination": "/local-ai", "permanent": true },
-    { "source": "/docs/ollama", "destination": "/local-ai", "permanent": true },
-    { "source": "/docs/extensions", "destination": "/extensions", "permanent": true },
-    { "source": "/docs/developers", "destination": "/developer-extensions", "permanent": true },
-    { "source": "/docs/sync", "destination": "/sync", "permanent": true },
-    { "source": "/docs/privacy", "destination": "/privacy", "permanent": true },
-    { "source": "/docs/troubleshooting", "destination": "/troubleshooting", "permanent": true }
+    {
+      "source": "/docs",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/docs/index",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/docs/getting-started",
+      "destination": "/getting-started",
+      "permanent": true
+    },
+    {
+      "source": "/docs/platform-support",
+      "destination": "/platform-support",
+      "permanent": true
+    },
+    {
+      "source": "/docs/core-workflows",
+      "destination": "/core-workflows",
+      "permanent": true
+    },
+    {
+      "source": "/docs/local-ai",
+      "destination": "/local-ai",
+      "permanent": true
+    },
+    {
+      "source": "/docs/meaning-search",
+      "destination": "/meaning-search",
+      "permanent": true
+    },
+    {
+      "source": "/docs/ollama",
+      "destination": "/local-ai",
+      "permanent": true
+    },
+    {
+      "source": "/docs/extensions",
+      "destination": "/extensions",
+      "permanent": true
+    },
+    {
+      "source": "/docs/developers",
+      "destination": "/developer-extensions",
+      "permanent": true
+    },
+    {
+      "source": "/docs/sync",
+      "destination": "/sync",
+      "permanent": true
+    },
+    {
+      "source": "/docs/privacy",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/docs/troubleshooting",
+      "destination": "/troubleshooting",
+      "permanent": true
+    }
   ]
 }

@@ -1,52 +1,32 @@
 ---
 title: "Getting started"
-description: "Install ClipsX and learn your first clipboard workflow in three steps."
+description: "Complete your first clipboard workflow without AI or an account."
 keywords: ["ClipsX setup", "first clip", "clipboard history"]
 ---
 
 ## Before you begin
 
-ClipsX installers are available for Windows x64, macOS Apple Silicon and Intel,
-and Linux/X11 x64. Choose the matching package on the
-[download page](https://clipsx.app/en/download).
+Choose your OS and architecture on the [download page](https://clipsx.app/en/download): Windows x64, macOS Apple Silicon or Intel, or Linux/X11 x64. Check actual available release information.
 
-<Info>
-  An account is optional for the core desktop product. Sign in only when you
-  want supported settings sync or other account services.
-</Info>
+Accounts, extensions, and Ollama are optional. Start with ordinary text search.
+
+## Capture and reuse your first clip {#first-clip}
 
 <Steps>
-  <Step title="Install for your device">
-    Open the [download page](https://clipsx.app/en/download) and choose your OS
-    and architecture. Windows uses a signed `.exe`; macOS uses a signed,
-    notarized `.dmg`; Linux uses AppImage or `.deb` on X11. Wayland is outside
-    this release's support.
-  </Step>
-  <Step title="Copy supported content">
-    Copy text or a link normally from an application on your device.
-  </Step>
-  <Step title="Open ClipsX">
-    Use the configured shortcut to open clipboard history, then search or browse
-    for the captured clip.
-  </Step>
-  <Step title="Choose a representation">
-    Preview the representations ClipsX retained, such as rich content and plain
-    text, then choose the form you want to paste or copy.
-  </Step>
+  <Step title="Install">Use the available package for your platform and its installation instructions. Linux Wayland is outside advertised support.</Step>
+  <Step title="Copy">Copy a harmless short note or link from another application.</Step>
+  <Step title="Find">Open history with the configured shortcut. Browse or search for a word from the note.</Step>
+  <Step title="Reuse">Inspect available representations and choose one to copy or paste. Formats depend on the source application.</Step>
 </Steps>
 
-You can start without an account, extensions, or local AI. Add those optional
-features when you need them. For upgrade limitations and recovery steps, read
-the [release notes](https://clipsx.app/en/changelog).
+The first workflow succeeds when your note appears and you can reuse it. Continue with [Core workflows](/core-workflows).
 
-## Where to go next
+## Add only what you need {#next-steps}
 
-<Columns cols={2}>
-  <Card title="Core workflows" icon="clipboard" href="/core-workflows">
-    Capture, search, organize, and reuse clips.
-  </Card>
-  <Card title="Privacy" icon="shield-check" href="/privacy">
-    Understand local and hosted data boundaries.
-  </Card>
+<Columns cols={3}>
+  <Card title="Meaning Search" icon="search" href="/meaning-search">Find by idea. Requires an embedding model.</Card>
+  <Card title="Recall" icon="sparkles" href="/recall">Ask questions with citations. Requires generation.</Card>
+  <Card title="Extensions" icon="blocks" href="/extensions">Visualize without AI, or transform with generation.</Card>
 </Columns>
 
+Review [privacy](/privacy), [platform support](/platform-support), and [Troubleshooting](/troubleshooting).

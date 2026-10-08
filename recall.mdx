@@ -1,0 +1,50 @@
+---
+title: "Set up Recall"
+description: "Ask questions about scoped clipboard history and check source citations."
+keywords: ["Recall", "local generation", "citations", "clipboard questions"]
+---
+
+Recall retrieves supporting clips from your selected history scope and uses a generation model to answer. It does not automatically read every file, application, or uncaptured content. Answers can be wrong.
+
+## Prepare Recall {#setup}
+
+1. Connect Ollama and enable generation under **Intelligence → Models → Local Text Generation** using [Local AI setup](/local-ai#generation-models).
+2. Optionally [enable Meaning Search](/meaning-search) for semantic retrieval. Recall uses available enabled retrieval sources; embeddings and generation have separate roles.
+3. Select the relevant history scope and filters.
+4. Type a question in search and use **Recall**, or the displayed shortcut. When generation is unavailable, the setup action opens Intelligence.
+
+## Try an answer with evidence {#first-answer}
+
+Copy these harmless notes separately:
+
+```text
+Team outing: meet at Kissa Mori on Thursday at 2 pm.
+```
+
+```text
+Kissa Mori confirmed six seats upstairs for our Thursday gathering.
+```
+
+Ask **What time is the Kissa Mori meeting, and how many seats are available?** The place name gives exact retrieval a starting point. Open the answer's numbered citations and check the source text.
+
+The goal is a supported answer, not an exact wording or retrieval order. If no evidence appears, confirm the notes are captured and included in the selected scope.
+
+## Check and narrow sources {#sources}
+
+Open citation buttons to inspect excerpts and original clips. Select sources and **Use only these clips** for a focused follow-up, or deliberately choose **Search all history** to widen scope.
+
+Detected secret clips are excluded from Recall evidence. There is no Recall override for that exclusion. Never use real secrets in setup exercises. Citations help inspection; they do not guarantee correct interpretation.
+
+## Understand incomplete results {#recovery}
+
+- **No evidence:** check scope, filters, captured text, and enabled sources. Try an exact name before a broad question.
+- **Incomplete or reduced context:** review sources and ask something narrower. Not all retrieved text necessarily fits generation context.
+- **Generation unavailable:** check Ollama, model installation, and enablement.
+- **Incorrect answer:** compare sources, refine the question, or evaluate another model. Larger models do not guarantee accuracy.
+- **Expired session:** ask again. Conversations are temporary and expire after inactivity.
+
+## Stop and reuse deliberately {#controls}
+
+Cancel an active answer when needed. Review before **Copy answer** or **Copy with sources**. Prompts and answers do not become canonical clip metadata. Disable Local Text Generation in Models to stop it.
+
+See [model resources](/local-ai#resources) and [Troubleshooting](/troubleshooting).

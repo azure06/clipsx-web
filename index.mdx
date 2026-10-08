@@ -1,45 +1,28 @@
 ---
 title: "ClipsX documentation"
-description: "Learn how ClipsX captures, finds, and transforms clipboard content while keeping you in control of your data."
-keywords: ["ClipsX", "clipboard manager", "programmable clipboard", "local-first"]
+description: "Install ClipsX and set up optional Meaning Search, Recall, and extensions."
+keywords: ["ClipsX", "clipboard", "setup", "local AI"]
 mode: "wide"
 ---
 
-ClipsX is a free, programmable desktop clipboard. It preserves useful
-representations of copied content so you can find, inspect, and reuse the form
-you need.
+ClipsX is a free desktop clipboard. Find what you copied, inspect its forms, and reuse it. The core app needs no account, extensions, or AI.
 
-<Info>
-  ClipsX v0.1.0 is available for Windows, macOS, and Linux/X11.
-  [Install ClipsX](/getting-started) and try your first clipboard workflow.
-</Info>
+<Card title="Start with your first clip" icon="rocket" href="/getting-started">
+  Install, copy a harmless note, and find it in history.
+</Card>
+
+## Choose your next task
 
 <Columns cols={2}>
-  <Card title="Understand the workflow" icon="workflow" href="/core-workflows">
-    See how capture, search, previews, and derived representations fit together.
-  </Card>
-  <Card title="Review the privacy boundary" icon="shield-check" href="/privacy">
-    Learn what stays on your device and what optional services process.
-  </Card>
-  <Card title="Set up local AI" icon="brain" href="/local-ai">
-    Connect Ollama for optional meaning search and Recall.
-  </Card>
-  <Card title="Explore extensions" icon="blocks" href="/extensions">
-    Understand signed packages, permissions, and quarantine behavior.
-  </Card>
+  <Card title="Find by meaning" icon="search" href="/meaning-search">Enable embeddings and try a semantic query.</Card>
+  <Card title="Ask Recall" icon="sparkles" href="/recall">Configure generation and check source citations.</Card>
+  <Card title="Try an extension" icon="blocks" href="/extensions">Visualize Mermaid or rewrite text.</Card>
+  <Card title="Choose local models" icon="brain" href="/local-ai">Connect Ollama and compare candidates.</Card>
 </Columns>
 
-## Product principles
+## Know the boundaries
 
-- **Local by default.** Clipboard content, files, indexes, credentials, and
-  derived intelligence remain on your device.
-- **Canonical content first.** Previews, OCR, indexes, and extension results are
-  derived so the original capture remains intact.
-- **Optional accounts.** You do not need an account for the core desktop app.
-- **Explicit capabilities.** Local models and extensions are configured and
-  approved by you.
+Original history is stored on your device. Optional models and extensions process text for enabled tasks; account services have a separate role. Read [privacy](/privacy), [settings sync](/sync), and [platform support](/platform-support).
 
-<Card title="Start using ClipsX" icon="rocket" href="/getting-started">
-  Install for your device, copy something, and find it in your history.
-</Card>
+See [Core workflows](/core-workflows) for everyday use or [Troubleshooting](/troubleshooting) for recovery.
 

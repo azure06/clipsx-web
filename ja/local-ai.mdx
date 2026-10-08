@@ -1,0 +1,97 @@
+---
+title: "OllamaでローカルAIを設定"
+description: "モデルを選び、Ollamaを接続して、ClipsXの任意のAI機能を使い始めます。"
+keywords: ["Ollama", "ローカルAI", "埋め込みモデル", "BGE-M3", "Gemma"]
+---
+
+ClipsXはAIなしでも使えます。**埋め込みモデル**は意味からクリップを検索し、**生成モデル**はRecallの回答や対応するAI拡張機能の文章を生成します。チャットモデルが埋め込みにも対応するとは限りません。Ollamaのインストールとモデルのダウンロードは利用者が行います。
+
+## 開発者の構成から始める {#starting-setup}
+
+開発者は意味検索に **`bge-m3:latest`**、生成に **`gemma3:4b`** を使っています。具体的な出発点であり、すべての端末での性能を保証するものではありません。
+
+<Steps>
+  <Step title="Ollamaをインストールして起動">
+    [公式ダウンロード](https://ollama.com/download)のOS別手順に従って起動してください。既定のローカル接続先は `http://localhost:11434` です。すでにサービスが動作している場合、二重に起動しないでください。
+  </Step>
+  <Step title="モデルをダウンロード">
+    ClipsXと同じ端末のターミナルで実行します。
+    ```shell
+    ollama pull bge-m3:latest
+    ollama pull gemma3:4b
+    ollama list
+    ```
+    一覧にモデル名があることを確認します。検索だけならGemmaは不要です。ダウンロードにはインターネットが必要ですが、ローカル推論にはインストール済みのモデルを使います。
+  </Step>
+  <Step title="ClipsXを接続">
+    **インテリジェンス → モデル**で `http://localhost:11434` を入力し、接続します。成功すると、インストール済みモデルと対応能力が表示されます。モデルを追加したら接続情報を更新してください。
+  </Step>
+  <Step title="必要な機能を有効化">
+    意味検索で `bge-m3:latest` を選び、有効にします。モデルの検証後、対象クリップをバックグラウンドで索引化します。Recallや対応拡張機能を使うには、ローカルテキスト生成で `gemma3:4b` を選んで有効にします。接続だけでは各機能は有効になりません。
+  </Step>
+</Steps>
+
+次は[意味検索の練習](/ja/meaning-search#first-result)、[Recallの練習](/ja/recall#first-answer)、[Rewriteの変換](/ja/extensions#rewrite)を試してください。意味検索の索引作成中も通常のテキスト検索は使えます。
+
+## 埋め込みモデルを選ぶ {#embedding-models}
+
+検索用のベクトルを作るモデルです。回答の文章は生成しません。ClipsXはOllamaが埋め込み対応と報告するモデルを表示し、有効化時に出力を検証します。
+
+| 例 | 検討する理由 | 確認する点 |
+| --- | --- | --- |
+| [BGE-M3](https://ollama.com/library/bge-m3) — `bge-m3:latest` | 開発者が使う多言語検索の構成 | 約1.2 GBのダウンロード。自分の言語と質問で試す |
+| [EmbeddingGemma](https://ollama.com/library/embeddinggemma) — `embeddinggemma` | パラメータ数が小さい多言語候補 | Ollama 0.11.10以降が必要。検索結果を評価 |
+| [Qwen3 Embedding](https://ollama.com/library/qwen3-embedding:0.6b) — `qwen3-embedding:0.6b` | 別の多言語検索候補 | 現在のサイズと索引の動作 |
+
+代替モデルは**評価する候補**であり、ClipsXで独立した性能比較を済ませた構成ではありません。いずれかをダウンロードし、モデル一覧を更新して選びます。
+
+```shell
+ollama pull embeddinggemma
+# 別の候補を選ぶ場合:
+ollama pull qwen3-embedding:0.6b
+```
+
+埋め込みモデルを変えるとベクトル空間も変わります。ClipsXは代わりの索引を作成します。作成中は既存の有効な索引が使われる場合があります。比較は置き換えが完了してから行ってください。
+
+## 生成モデルを選ぶ {#generation-models}
+
+文章を生成するモデルです。モデルが画像やツールに対応していても、ClipsXのテキスト生成処理にその機能が追加されるわけではありません。
+
+| 例 | このガイドでの位置づけ |
+| --- | --- |
+| [Gemma 3 4B](https://ollama.com/library/gemma3:4b) — `gemma3:4b` | 開発者の構成。約3.3 GBのダウンロード。Ollama 0.6以降が必要 |
+| [Gemma 3 1B](https://ollama.com/library/gemma3:1b) — `gemma3:1b` | 小さいパラメータ数の候補。指示への応答を評価 |
+| [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b) / [4B](https://ollama.com/library/qwen3.5:4b) — `qwen3.5:2b` / `qwen3.5:4b` | 新しい世代の候補。必要な資源と出力を比較 |
+| [Gemma 4 E4B](https://ollama.com/library/gemma4:e4b) — `gemma4:e4b` | 新しい候補。現在のOllamaで機能の検出を確認 |
+
+例:
+
+```shell
+ollama pull gemma3:1b
+```
+
+モデル一覧を更新し、ローカルテキスト生成で選んで有効化または更新します。引用付きのRecallと短いRewriteを試し、役立つ内容か、誤り、待ち時間、資源使用量を比較してください。文章が出るだけでは成功とは言えません。生成モデルの変更に意味検索の再索引化は不要です。
+
+公式一覧の確認日: **2026年10月8日**。タグや要件は変わることがあります。各リンクでサイズ、必要なOllamaバージョン、ライセンスを確認してください。モデルのライセンスはClipsXのApache 2.0とは別です。問題報告には正確なタグと `ollama list` の識別子を添えてください。
+
+## 資源の使用量を理解する {#resources}
+
+各モデルのライセンスと提供元の条件を確認してください：[BGE-M3](https://ollama.com/library/bge-m3:latest/blobs/a406579cd136), [Gemma 3](https://ollama.com/library/gemma3:4b/blobs/dd084c7d92a3), [EmbeddingGemma](https://ollama.com/library/embeddinggemma:latest/blobs/1adbfec9dcf0), [Gemma 4](https://ollama.com/library/gemma4:e4b/blobs/7339fa418c9a), [Qwen 3.5](https://ollama.com/library/qwen3.5:2b), [Qwen3 Embedding upstream](https://github.com/QwenLM/Qwen3-Embedding)。Qwenモデルは公式ページのライセンスやモデルカードへのリンクを確認します。同じOllama APIを使っていても、ライセンスは同じとは限りません。
+
+ダウンロードサイズやパラメータ数はRAM・VRAM要件ではありません。量子化、コンテキスト、読み込んだモデル数でも使用量は変わります。CPU処理は遅くなる場合があり、長いコンテキストはメモリを多く使います。一定の端末仕様や速度は保証していません。
+
+処理中に `ollama ps` でモデルとCPU・GPUの配置を確認できます。短い文章から試してください。負荷が大きい場合は小さいモデルを評価する、重い処理を閉じる、AIなしで通常の検索を使う、といった選択があります。
+
+## 推論をローカルに保つ {#local-boundary}
+
+端末にダウンロードするタグを使います。Ollamaにはクラウドモデルもあるため、ループバック接続だけではローカル推論の証明になりません。モデルとOllama設定を確認し、端末内で処理したい場合はクラウド版を選ばないでください。モデルには各処理に必要な文章が渡されます。拡張機能には別途権限の境界があります。
+
+## 復旧と無効化 {#recovery}
+
+- **接続できない:** Ollamaの起動と接続先を確認し、再接続前に `ollama list` を試します。
+- **対応モデルがない:** 必要な能力のモデルをダウンロードし、一覧を更新して選びます。
+- **索引の失敗:** インテリジェンスの索引画面で、対象クリップと診断を確認してから再試行します。
+- **生成の失敗や不適切な回答:** モデル名を確認し、入力を短くするか別のモデルを評価します。同じAPIでも能力や結果は保証されません。
+- **AIを停止:** 対応するモデル欄で無効にします。保存済み索引の削除は別の[索引操作](/ja/meaning-search#manage-index)です。元のクリップは保持されます。
+
+[トラブルシューティング](/ja/troubleshooting)と[プライバシー](/ja/privacy)も確認してください。
