@@ -1,0 +1,184 @@
+/* Mintlify presentation only. Use documented IDs and inspected component hooks;
+   keep functional icons, focus states, and mobile navigation intact. */
+:root {
+  --docs-radius: 6px;
+  --docs-focus: #7c3aed;
+}
+
+.dark {
+  --docs-focus: #a78bfa;
+}
+
+#content {
+  font-size: 15px;
+  line-height: 1.75;
+  letter-spacing: normal;
+  margin-top: 24px;
+}
+
+#page-title {
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+#header p {
+  font-size: 16px;
+  line-height: 1.65;
+  margin-top: 12px;
+}
+
+#content :is(h2, h3):not(.not-prose) {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+}
+
+#content h2:not(.not-prose) {
+  font-size: 22px;
+  margin-top: 36px;
+  margin-bottom: 16px;
+}
+
+#content h3:not(.not-prose) {
+  font-size: 18px;
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
+
+#content :is(p, ul, ol) {
+  margin-block: 16px;
+}
+
+#content > [data-as="p"] {
+  margin-block: 16px;
+}
+
+#content strong {
+  font-weight: 600;
+}
+
+#content .prose {
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: normal;
+}
+
+#content :is(pre, code) {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+#content table {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Cards have their own hierarchy; do not apply article heading margins. */
+#content .card {
+  border-radius: var(--docs-radius);
+  box-shadow: none;
+}
+
+#content [data-component-part="card-title"] {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-top: 0;
+}
+
+#content [data-component-part="card-content"] {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 6px;
+}
+
+#content [data-component-part="card-content"] [data-as="p"] {
+  margin: 0;
+}
+
+#content :is(.callout, .code-block, [data-component-part="code-block-root"]),
+#pagination a {
+  border-radius: var(--docs-radius);
+}
+
+.sidebar-group-header {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+#sidebar-content a {
+  font-size: 13px;
+  line-height: 20px;
+  border-radius: 4px;
+}
+
+#content-area a:focus-visible,
+#navbar :is(a, button):focus-visible,
+#sidebar-content a:focus-visible {
+  outline: 2px solid var(--docs-focus);
+  outline-offset: 3px;
+}
+
+/* Keep the mobile header's existing touch targets and drawer behavior. */
+@media (min-width: 1024px) {
+  #content-area {
+    width: calc(100% - 48px);
+    margin-inline: 48px auto;
+    padding-top: 32px;
+  }
+
+  #navbar .topbar-right-container > ul {
+    display: flex;
+  }
+
+  #navbar .topbar-right-container > div:last-child {
+    display: none;
+  }
+
+  #navbar :is(a, button) {
+    font-size: 13px;
+  }
+
+  #navbar :is(#localization-select-trigger, #theme-preference-menu-trigger, #search-bar-entry) {
+    height: 32px;
+    border-radius: var(--docs-radius);
+  }
+
+  #navbar #theme-preference-menu-trigger,
+  #navbar #search-bar-entry {
+    width: 32px;
+  }
+
+  #navbar li:not(#topbar-cta-button) > a {
+    height: 32px;
+    border: 0;
+    border-radius: var(--docs-radius);
+    padding-inline: 8px;
+    background: transparent;
+  }
+
+  #topbar-cta-button a {
+    height: 32px;
+    padding-inline: 12px;
+    border-radius: var(--docs-radius);
+  }
+}
+
+@media (max-width: 767px) {
+  #page-title {
+    font-size: 28px;
+  }
+
+  #content h2:not(.not-prose) {
+    font-size: 20px;
+  }
+
+  #content {
+    margin-top: 20px;
+  }
+}

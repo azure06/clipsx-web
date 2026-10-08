@@ -21,3 +21,7 @@ English- and Japanese-speaking desktop users, including developers and people wo
 
 Copying is easy; finding and reusing the useful content later is harder. ClipsX preserves multiple representations and supports explicit optional capabilities. The documentation owns complete setup instructions; marketing explains outcomes and the app provides contextual guide links. Model suggestions distinguish developer-reported use from unverified alternatives.
 
+## Presentation
+
+Documentation uses a restrained reading layout: Inter body text, a compact heading hierarchy, text-led navigation and task cards, modest corners, and violet actions. Decorative card and group icons are omitted; functional search, copy, theme, and navigation controls remain. `docs.json` owns theme and font configuration; `docs.css` adjusts Mintlify's layout and component hooks. Check those hooks against a rendered preview when updating Mintlify. English and Japanese share the presentation, with mobile navigation and scrollable code and tables preserved.
+
