@@ -83,7 +83,8 @@ Footer links use the shared keyboard-focus treatment.
 The existing localized Docs route remains available for inbound compatibility.
 The public UI now directs readers to the English Mintlify documentation site.
 
-The Changelog lists the published v0.1.0 release from October 3, 2026.
+The Changelog lists published stable desktop releases newest first, currently
+v0.1.3 through v0.1.0. Draft candidates and unreleased branch changes are excluded.
 `src/content/changelog.ts` records the source URL, publication timestamp,
 localized highlights, and platform/upgrade limits. New entries require
 published release evidence; release history is editorial content.
