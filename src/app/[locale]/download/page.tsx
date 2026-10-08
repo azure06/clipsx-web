@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Apple, ArrowUpRight, Clock3, Monitor, Terminal } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { unavailableTargets } from "@/config/download";
+import { snapStore, unavailableTargets } from "@/config/download";
 import { getPublishedRelease } from "@/lib/releases";
 import { connection } from "next/server";
 import { getDocumentationConfig, siteConfig } from "@/config/site";
@@ -32,6 +32,8 @@ const text = {
     releases: "Open GitHub Releases",
     verified: "Signed installer",
     published: "Published package",
+    snapDescription: "Prefer Snap? View the available package and installation instructions in the Snap Store.",
+    snapBadge: "Get it from the Snap Store",
     quickTitle: "From your first copy to your next paste.",
     steps: [['Install for your device', 'Choose your operating system and architecture above. For Linux, use AppImage or the Debian package on X11.'], ['Copy something', 'Copy text or a link from any app. Your clipboard history stays on your device.'], ['Find and reuse it', 'Open ClipsX with your configured shortcut, find the clip, and choose the representation to copy or paste.']],
     guide: "Open the setup guide",
@@ -55,6 +57,8 @@ const text = {
     releases: "GitHub Releases を開く",
     verified: "署名済みインストーラー",
     published: "公開済みパッケージ",
+    snapDescription: "Snap を使う方は、Snap Store でパッケージとインストール手順を確認できます。",
+    snapBadge: "Snap Store から入手",
     quickTitle: "最初のコピーから、次の貼り付けへ。",
     steps: [['端末に合わせてインストール', '上から OS とアーキテクチャを選択。Linux は X11 上で AppImage または Debian パッケージを利用できます。'], ['何かをコピー', 'アプリからテキストやリンクをコピーします。履歴は端末に保存されます。'], ['見つけて再利用', '設定したショートカットで ClipsX を開き、クリップを探して、コピーや貼り付けに使う形式を選びます。']],
     guide: "セットアップガイドを開く",
@@ -154,6 +158,21 @@ export default async function Download({
           );
         })}
       </div>
+      {snapStore.enabled && (
+        <section aria-labelledby="snap-store-title" className="marketing-card mt-4 grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div>
+            <h2 id="snap-store-title" className="font-heading font-bold text-slate-950 dark:text-white">Linux · Snap Store</h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-(--ui-text-muted)">{c.snapDescription}</p>
+          </div>
+          <a href={snapStore.url} aria-label={c.snapBadge} className="inline-flex w-fit rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-violet-500">
+            {/* Official externally hosted store badges; fixed dimensions prevent layout shifts. */}
+            {/* eslint-disable @next/next/no-img-element */}
+            <img src="https://snapcraft.io/en/light/install.svg" alt={c.snapBadge} width={182} height={56} loading="lazy" className="block max-w-full dark:hidden" />
+            <img src="https://snapcraft.io/en/dark/install.svg" alt={c.snapBadge} width={182} height={56} loading="lazy" className="hidden max-w-full dark:block" />
+            {/* eslint-enable @next/next/no-img-element */}
+          </a>
+        </section>
+      )}
       <section className="mt-16 border-t border-(--ui-border) pt-12">
         <h2 className="font-heading text-3xl font-bold tracking-tight">{c.quickTitle}</h2>
         <ol className="mt-8 grid gap-6 md:grid-cols-3">

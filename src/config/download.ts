@@ -1,5 +1,11 @@
 import { siteConfig } from "./site";
 
+// Enable only after the public listing and a supported stable package are verified.
+export const snapStore = {
+  enabled: false,
+  url: "https://snapcraft.io/clipsx",
+} as const;
+
 export type ReleasePlatform = "macos" | "windows" | "linux";
 export type ReleaseStatus = "available" | "coming-soon";
 export interface DownloadTarget {
