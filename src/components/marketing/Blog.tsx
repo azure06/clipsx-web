@@ -1,3 +1,4 @@
+import { localizeDocumentationUrl } from '@/config/site';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { Link } from '@/i18n/routing';
@@ -44,5 +45,5 @@ export function BlogResourceLink({ resource, locale }: { resource: BlogLink; loc
   const className = 'focus-ring inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-(--ui-violet) underline decoration-(--ui-border-strong) underline-offset-4 hover:decoration-current';
   return resource.href.startsWith('/')
     ? <Link href={resource.href} className={className}>{pick(resource.label, locale)}</Link>
-    : <a href={resource.href} className={className}>{pick(resource.label, locale)}</a>;
+    : <a href={localizeDocumentationUrl(resource.href, locale)} className={className}>{pick(resource.label, locale)}</a>;
 }

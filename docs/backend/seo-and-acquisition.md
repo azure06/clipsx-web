@@ -120,6 +120,15 @@ Suggested owner: site maintainer. Before the next acquisition campaign:
 
 ## Verification
 
+Product leads with Meaning Search, Recall, and extensions, followed by a core
+Getting started path. Marketing pages explain outcomes and prerequisites;
+localized task guides own setup and recovery. Shared Local AI documentation
+separates the developer-reported recipe from untested candidate models and
+records its official-source review date. Documentation has language navigation
+and page-specific canonicals, without adding Docs URLs to the marketing sitemap.
+Public-page analytics indicate website visibility; they do not measure desktop
+activation or establish conversion improvement.
+
 The sponsorship strip follows the download section, using existing typography,
 colors, and focus styles, with a stacked layout below 800px. Its heading is
 "Built in the open. Backed by you." The body names maintenance, testing, and new

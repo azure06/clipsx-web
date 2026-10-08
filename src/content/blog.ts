@@ -91,7 +91,7 @@ const meaningSearch: BlogPost = {
       l('In ClipsX, open Intelligence → Models. Enter the loopback endpoint, normally http://localhost:11434, and choose Connect.', 'ClipsX の Intelligence → Models を開く。通常は http://localhost:11434 のループバック接続先を入力し、Connect を選ぶ。'),
       l('Select an installed embedding-capable model and enable Meaning Search.', '導入済みの埋め込み対応モデルを選び、意味検索を有効にする。'),
       l('Let background indexing prepare eligible clips, then try a concept you remember and inspect the matching passage.', 'バックグラウンドで対象クリップの準備が進んだら、覚えている内容を検索し、一致箇所を確認する。'),
-    ] }, links: [{ label: l('Full local AI setup guide', 'ローカル AI の設定ガイド'), href: documentationConfig.localAi }] },
+    ] }, links: [{ label: l('Meaning Search setup guide', '意味検索の設定ガイド'), href: documentationConfig.meaningSearch }] },
     { id: 'cost-and-location', title: l('Local processing still uses resources', '端末内の処理にも負荷はかかる'), paragraphs: [
       l('Model files take disk space, and inference uses memory and compute. The initial index also takes time and storage; the amount depends on your history and model. Start with a model your machine can run comfortably. A larger model is not automatically the best choice for your language, typical clips, or patience during indexing.', 'モデルファイルにはディスク容量、推論にはメモリと計算資源が必要です。初回のインデックス構築にも時間と容量がかかり、履歴とモデルによって変わります。まず端末で無理なく動くモデルから試してください。大きいモデルが、自分の言語、クリップ、待てる時間に最適とは限りません。'),
       l('Use the supported loopback connection with a locally running model for on-device processing. Fetching model files requires network access, and Ollama also offers cloud features with different data handling. A localhost address alone is not a reason to assume every model is local. Check the chosen model and Ollama configuration rather than relying on the label “AI.”', '端末内で処理するには、対応するループバック接続とローカルで動くモデルを使います。モデルの取得には通信が必要で、Ollama にはデータの扱いが異なるクラウド機能もあります。localhost というアドレスだけで、すべてのモデルがローカルだとは判断できません。選んだモデルと Ollama の設定を確認してください。'),
@@ -105,7 +105,7 @@ const meaningSearch: BlogPost = {
     ] },
   ],
   resources: [
-    { label: l('ClipsX local AI setup', 'ClipsX ローカル AI 設定'), href: documentationConfig.localAi },
+    { label: l('ClipsX Meaning Search setup', 'ClipsX 意味検索の設定'), href: documentationConfig.meaningSearch },
     { label: l('Ollama embeddings documentation', 'Ollama 埋め込みドキュメント'), href: 'https://docs.ollama.com/capabilities/embeddings' },
     { label: l('Ollama local/cloud FAQ', 'Ollama ローカル・クラウド FAQ'), href: 'https://docs.ollama.com/faq' },
   ],
@@ -151,7 +151,7 @@ const extensions: BlogPost = {
   ],
   resources: [
     { label: l('Extension user guide', '拡張機能の利用ガイド'), href: documentationConfig.extensions },
-    { label: l('Extension developer contract', '拡張機能の開発契約'), href: documentationConfig.developerExtensions },
+    { label: l('Extension developer contract', '拡張機能の開発契約（英語）'), href: documentationConfig.developerExtensions },
     { label: l('ClipsX source code', 'ClipsX のソースコード'), href: 'https://github.com/azure06/clipsx' },
   ],
 };

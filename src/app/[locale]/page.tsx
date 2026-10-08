@@ -14,7 +14,7 @@ import { setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { HomePreview } from "@/components/marketing/HomePreview";
-import { documentationConfig, siteConfig } from "@/config/site";
+import { getDocumentationConfig, siteConfig } from "@/config/site";
 import { jsonLd, localizedUrl, pageMetadata } from '@/lib/seo';
 import type { Locale } from "@/i18n/config";
 import "./home.css";
@@ -146,6 +146,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const documentationConfig = getDocumentationConfig(locale);
   const c = copy[locale];
   const icons = [FileStack, Search, Blocks];
   return (

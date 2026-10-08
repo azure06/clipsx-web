@@ -16,8 +16,10 @@ Footer and homepage support links remain available. Its verified default is
 `https://github.com/sponsors/azure06`.
 `NEXT_PUBLIC_SPONSOR_URL` overrides that default; an empty value hides the links.
 Public documentation links send readers to `NEXT_PUBLIC_DOCS_URL`, defaulting
-to `https://docs.clipsx.app`. Feature-specific links use `/local-ai`,
-`/extensions`, `/privacy`, and `/sync`. Mintlify owns documentation routes;
+to `https://docs.clipsx.app`. User guides are localized under `/ja/`; developer
+guides stay English. Feature-specific links use `/meaning-search`, `/recall`,
+`/extensions`, `/privacy`, and `/sync`; `/local-ai` owns shared model setup.
+Mintlify owns documentation routes;
 the public app links directly to that documentation host.
 
 Desktop menus open on explicit activation, close on outside interaction or
@@ -48,10 +50,10 @@ The copy follows the desktop implementation:
 compatibility and renders
 the server component `MeaningSearchGuide`. It provides a query/result illustration,
 in-page navigation, a three-step retrieval explanation, eligible text sources,
-Ollama setup steps, local-processing boundaries, and native expandable questions
+Ollama prerequisites with a maintained setup-guide link, local-processing boundaries, and native expandable questions
 covering unavailable providers, relevance, similarity percentages, and index recovery.
 The illustration is static sample content, not a working search or a model call.
-Its documentation links now connect to the Mintlify local-AI and privacy pages;
+Its documentation links connect to the localized Mintlify Meaning Search and privacy pages;
 product links continue to connect to `/recall` and `/download`.
 
 Recall and Meaning Search share the scoped `recall.module.css` visual system:

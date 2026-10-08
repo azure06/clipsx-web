@@ -12,6 +12,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { pricingFeatureGroups } from "@/config/pricing";
+import { localizeDocumentationUrl } from "@/config/site";
 import styles from "./pricing.module.css";
 import { pageMetadata } from '@/lib/seo';
 
@@ -320,7 +321,7 @@ export default async function Pricing({
                     <tr key={feature.name.en} role="row">
                       <th scope="row" role="rowheader">
                         {feature.href ? (
-                          feature.external ? <a href={feature.href} target="_blank" rel="noreferrer">
+                          feature.external ? <a href={localizeDocumentationUrl(feature.href, locale)} target="_blank" rel="noreferrer">
                             {feature.name[locale]}
                             <ArrowRight size={13} />
                           </a> : <Link href={feature.href}>

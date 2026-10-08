@@ -13,7 +13,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
 import { RecallEvidenceStory } from "@/components/marketing/RecallEvidenceStory";
-import { documentationConfig } from "@/config/site";
+import { getDocumentationConfig } from "@/config/site";
 import styles from "./recall.module.css";
 import { pageMetadata } from '@/lib/seo';
 
@@ -29,7 +29,7 @@ const copy = {
       "Ask a question across the history you choose. Recall uses your configured local model to answer with citations, so you can check the original clips behind the response.",
     ],
     try: "Explore an example",
-    setup: "Set up local intelligence",
+    setup: "Set up Recall",
     proof: ["Explicit scope", "Visible evidence", "Local model"],
     distinction: [
       "Three ways back to what you copied.",
@@ -78,7 +78,7 @@ const copy = {
       "Ready to ask your own history?",
       "Connect Ollama, choose a generation-capable model, and let Recall work only with the scope you choose.",
       "Get ClipsX",
-      "Read the Ollama guide",
+      "Read the Recall guide",
     ],
   },
   ja: {
@@ -92,7 +92,7 @@ const copy = {
       "Recall は、選択したクリップボード履歴を、設定したローカルモデルによる一時的な会話に変えます。まず根拠を検索し、参照元を表示したまま、生成文と原本を明確に分けます。",
     ],
     try: "例を試す",
-    setup: "ローカルインテリジェンスを設定",
+    setup: "Recallを設定",
     proof: ["明示的な範囲", "確認できる根拠", "ローカルモデル"],
     distinction: [
       "コピーした情報に戻る、3つの方法。",
@@ -141,7 +141,7 @@ const copy = {
       "自分の履歴に質問してみませんか？",
       "Ollama に接続して文章生成対応モデルを選び、指定した範囲だけで Recall を使えます。",
       "ClipsX を入手",
-      "Ollama ガイドを読む",
+      "Recallガイドを読む",
     ],
   },
 } as const;
@@ -162,6 +162,7 @@ export default async function RecallPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const documentationConfig = getDocumentationConfig(locale);
   const c = copy[locale];
   return (
     <div className={styles.page} lang={locale}>
@@ -178,7 +179,7 @@ export default async function RecallPage({
               {c.try}
               <ArrowRight size={16} />
             </a>
-            <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.secondary}>
+            <a href={documentationConfig.recall} target="_blank" rel="noreferrer" className={styles.secondary}>
               {c.setup}
               <BookOpen size={16} />
             </a>
@@ -259,7 +260,7 @@ export default async function RecallPage({
           {locale === "ja" ? "プライバシー" : "Privacy & control"}
           <ArrowRight size={12} />
         </a>
-        <a href={documentationConfig.localAi} target="_blank" rel="noreferrer">
+        <a href={documentationConfig.recall} target="_blank" rel="noreferrer">
           {c.setup}
           <ArrowRight size={12} />
         </a>
@@ -279,7 +280,7 @@ export default async function RecallPage({
                   <Icon size={18} />
                   {index === 1 ? (
                     <a
-                      href={documentationConfig.localAi}
+                      href={documentationConfig.meaningSearch}
                       target="_blank"
                       rel="noreferrer"
                       className={styles.modeLink}
@@ -336,7 +337,7 @@ export default async function RecallPage({
             {c.close[2]}
             <ArrowRight size={16} />
           </Link>
-          <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.darkSecondary}>
+          <a href={documentationConfig.recall} target="_blank" rel="noreferrer" className={styles.darkSecondary}>
             {c.close[3]}
             <BookOpen size={16} />
           </a>

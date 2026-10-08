@@ -19,8 +19,39 @@ export const documentationConfig = {
   root: documentationRoot,
   gettingStarted: `${documentationRoot}/getting-started`,
   localAi: `${documentationRoot}/local-ai`,
+  meaningSearch: `${documentationRoot}/meaning-search`,
+  recall: `${documentationRoot}/recall`,
   extensions: `${documentationRoot}/extensions`,
   sync: `${documentationRoot}/sync`,
   privacy: `${documentationRoot}/privacy`,
   developerExtensions: `${documentationRoot}/developer-extensions`,
 } as const;
+
+const localizedDocumentationPages = new Set([
+  'index', 'getting-started', 'platform-support', 'core-workflows', 'local-ai',
+  'meaning-search', 'recall', 'extensions', 'sync', 'privacy', 'troubleshooting',
+]);
+
+/** Localize user guides; developer documentation retains its English URL. */
+export function localizeDocumentationUrl(href: string, locale: string): string {
+  if (locale !== 'ja') return href;
+  try {
+    const root = new URL(documentationRoot);
+    const url = new URL(href);
+    if (url.origin !== root.origin) return href;
+    const base = root.pathname.replace(/\/$/, '');
+    if (url.pathname !== base && !url.pathname.startsWith(`${base}/`)) return href;
+    const page = url.pathname.slice(base.length).replace(/^\/+|\/+$/g, '') || 'index';
+    if (!localizedDocumentationPages.has(page)) return href;
+    url.pathname = `${base}/ja/${page}`;
+    return url.href;
+  } catch {
+    return href;
+  }
+}
+
+export function getDocumentationConfig(locale: string) {
+  return Object.fromEntries(Object.entries(documentationConfig).map(([key, value]) =>
+    [key, localizeDocumentationUrl(value, locale)]
+  )) as { [K in keyof typeof documentationConfig]: string };
+}

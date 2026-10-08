@@ -20,6 +20,17 @@
 .navigation a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:10px 0;color:var(--muted);font-size:13px;text-decoration:none}
 .navigation a svg{opacity:0;flex-shrink:0}.navigation a:hover,.navigation a:focus-visible{color:var(--accent)}.navigation a:hover svg,.navigation a:focus-visible svg{opacity:1}
 .article{min-width:0}.section{padding-bottom:56px;margin-bottom:48px;border-bottom:1px solid var(--line)}
+.example{margin:28px 0 0;border:1px solid var(--line);border-radius:12px;background:var(--soft);overflow:hidden}
+.example>div{padding:22px 24px}.example>div+div{border-top:1px solid var(--line)}
+.example span,.example dt{color:var(--muted);font-size:12px;line-height:1.6}
+.example blockquote{margin:10px 0 0;font:550 clamp(20px,2vw,26px)/1.5 var(--font-heading),sans-serif;overflow-wrap:anywhere}
+.example p,.example dd,.example li{font-size:14px;line-height:1.85;overflow-wrap:anywhere}
+.example p{margin-top:10px}.example ol{padding-left:22px;margin-top:12px}
+.example figcaption{padding:12px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;line-height:1.7}
+.clipExample{border-left:3px solid var(--accent)}.example dl{margin-top:16px}.example dd{margin:4px 0 16px}.example dd:last-child{margin-bottom:0}
+.diagram{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.diagram span{border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--ink);font-size:14px}
+.diagram svg{flex-shrink:0;color:var(--accent)}
 .section,.extension{scroll-margin-top:100px}
 .section h2,.extension h2{margin:12px 0 16px;font:550 clamp(25px,2.7vw,34px)/1.25 var(--font-heading),sans-serif;letter-spacing:-.035em;text-wrap:balance}
 .section>p:not(.eyebrow),.extension p:not(.eyebrow){color:var(--muted);font-size:15px;line-height:1.85}

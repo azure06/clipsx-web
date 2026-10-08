@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/config";
-import { documentationConfig } from "@/config/site";
+import { getDocumentationConfig } from "@/config/site";
 import styles from "@/app/[locale]/recall/recall.module.css";
 
 const content = {
@@ -19,7 +19,7 @@ const content = {
     title: "Remember the idea. Find the clip.",
     intro:
       "The words you remember aren’t always the words you copied. Meaning Search finds related text in your history using an optional model running on your device.",
-    setup: "Set up with Ollama",
+    setup: "Set up Meaning Search",
     explore: "How it works",
     queryLabel: "You remember",
     query: "the café with a quiet place to work",
@@ -119,7 +119,7 @@ const content = {
     title: "言葉を忘れても、意味から見つかる。",
     intro:
       "覚えている言葉と、コピーした言葉は同じとは限りません。意味検索は、端末内で動く任意のモデルを使い、履歴から関連するテキストを探します。",
-    setup: "Ollama を設定",
+    setup: "意味検索を設定",
     explore: "仕組みを見る",
     queryLabel: "覚えていること",
     query: "静かに仕事ができるカフェ",
@@ -212,6 +212,7 @@ const content = {
 
 export function MeaningSearchGuide({ locale }: { locale: Locale }) {
   const c = content[locale];
+  const documentationConfig = getDocumentationConfig(locale);
   const ids = ["how-it-works", "searchable-content", "setup", "questions"];
   return (
     <div className={styles.page} lang={locale}>
@@ -228,7 +229,7 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
           <h1>{c.title}</h1>
           <p className={styles.lede}>{c.intro}</p>
           <div className={styles.actions}>
-            <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.primary}>
+            <a href={documentationConfig.meaningSearch} target="_blank" rel="noreferrer" className={styles.primary}>
               {c.setup}
               <ArrowRight size={16} />
             </a>
@@ -314,7 +315,7 @@ export function MeaningSearchGuide({ locale }: { locale: Locale }) {
           <p className={styles.eyebrow}>{c.nav[2]}</p>
           <h2>{c.start}</h2>
           <p>{c.startIntro}</p>
-          <a href={documentationConfig.localAi} target="_blank" rel="noreferrer" className={styles.textLink}>
+          <a href={documentationConfig.meaningSearch} target="_blank" rel="noreferrer" className={styles.textLink}>
             {c.setup}
             <BookOpen size={16} />
           </a>

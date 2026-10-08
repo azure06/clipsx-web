@@ -40,3 +40,81 @@ questions: [["アカウントは必要ですか？", "ローカルの基本機�
 closeTitle: "ClipsXを使い始める。", closeBody: "利用可能なデスクトップ版を確認し、スタートガイドに沿って設定しましょう。"
 }
 } as const;
+
+export const productJourneys = {
+  en: {
+    title: "Find what you copied. Understand it. Make it useful.",
+    intro: "Find clips by meaning, ask Recall with source citations, and preview or transform content with extensions. Start with a free local clipboard; add Ollama when you want AI.",
+    meaning: {
+      title: "Remember the idea, not the exact words.",
+      body: "Meaning Search finds related text in your captured history. It is useful when you remember what a clip was about but not how it was written.",
+      requirement: "Optional · requires an embedding model in Ollama",
+      query: "A cafe for our group meeting",
+      clip: "Team outing: Kissa Mori, Thursday at 2 pm. Six seats upstairs.",
+      explore: "Explore Meaning Search", setup: "Set up Meaning Search",
+    },
+    recall: {
+      title: "Ask your history. Check the evidence.",
+      body: "Recall uses available search sources within your selected scope, then generates an answer with citations. Generated answers can be wrong: open the original clips to check the evidence.",
+      requirement: "Optional · requires a generation model in Ollama",
+      query: "What time is the meeting, and how many seats?",
+      answer: "Thursday at 2 pm [1], with six seats upstairs [2].",
+      sources: ["Kissa Mori: Thursday at 2 pm.", "Kissa Mori confirmed six seats upstairs."],
+      explore: "Explore Recall", setup: "Set up Recall",
+    },
+    extensions: {
+      title: "Turn a copy into the next useful thing.",
+      body: "Visualize a Mermaid diagram without an LLM, or use Rewrite to change a note with your configured generation model. Review each package's permissions and the result before reuse.",
+      requirement: "Optional · requirements depend on the package",
+      visual: "Mermaid · no LLM required", transform: "Rewrite · generation required",
+      before: "Please send the updated meeting agenda before Thursday.",
+      after: "Send the updated agenda before Thursday.",
+      explore: "Explore Extensions", setup: "Try an extension",
+    },
+    example: "Illustrative example · results vary", queryLabel: "Your query", clipLabel: "A relevant clip",
+    answerLabel: "Example answer", sourcesLabel: "Selected example sources", original: "Original", result: "Example result",
+    startTitle: "Start simple. Add capabilities when you need them.",
+    startBody: "Install ClipsX, copy a harmless note, and find it in history. Accounts, extensions, and AI are optional. The guides take you from prerequisites to a first result, with recovery steps if something fails.",
+    startLinks: ["Getting started", "Choose local models"], startLabel: "Getting started",
+  },
+  ja: {
+    title: "コピーした内容を探す。理解する。役立てる。",
+    intro: "意味でクリップを探し、Recallの引用を確認し、拡張機能で表示や変換を追加。無料のローカルクリップボードから始め、AIが必要ならOllamaを設定できます。",
+    meaning: {
+      title: "正確な言葉より、覚えている意味から。",
+      body: "意味検索は保存した履歴から関連する文章を探します。内容は覚えていても、書かれた言葉を思い出せないときの手がかりになります。",
+      requirement: "任意機能 · Ollamaの埋め込みモデルが必要",
+      query: "グループで集まれるカフェ",
+      clip: "チームの集まりは木曜日14時に喫茶 森で。2階に6人分の席。",
+      explore: "意味検索を見る", setup: "意味検索を設定",
+    },
+    recall: {
+      title: "履歴に質問する。根拠を確かめる。",
+      body: "Recallは選択した範囲と利用可能な検索ソースから内容を探し、引用付きで回答します。生成された回答には誤りがあり得ます。元のクリップを開き、根拠を確認してください。",
+      requirement: "任意機能 · Ollamaの生成モデルが必要",
+      query: "集まりは何時で、席は何人分？",
+      answer: "木曜日14時 [1]、2階に6人分の席があります [2]。",
+      sources: ["喫茶 森で木曜日14時。", "喫茶 森から2階に6人分の席を用意できるとの返事。"],
+      explore: "Recallを見る", setup: "Recallを設定",
+    },
+    extensions: {
+      title: "コピーを、次の作業に役立つ形へ。",
+      body: "LLMなしでMermaidの図を表示したり、設定した生成モデルでRewriteの文章変換を試せます。パッケージの権限と結果を確認してから再利用してください。",
+      requirement: "任意機能 · 必要条件はパッケージごとに異なります",
+      visual: "Mermaid · LLM不要", transform: "Rewrite · 生成が必要",
+      before: "木曜日までに更新した会議の議題を送ってください。",
+      after: "木曜日までに更新した議題を送ってください。",
+      explore: "拡張機能を見る", setup: "拡張機能を試す",
+    },
+    example: "説明用の例 · 結果は変わります", queryLabel: "検索の言葉", clipLabel: "関連するクリップ",
+    answerLabel: "回答の例", sourcesLabel: "選択した根拠の例", original: "元の文章", result: "変換結果の例",
+    startTitle: "まず基本から。必要な機能をあとから。",
+    startBody: "ClipsXをインストールし、安全なメモをコピーして履歴から探します。アカウント、拡張機能、AIは任意です。ガイドでは必要条件から最初の結果、問題が起きたときの復旧まで案内します。",
+    startLinks: ["スタートガイド", "ローカルモデルを選ぶ"], startLabel: "使い始める",
+  },
+} as const;
+
+export const productSectionIds = [
+  "meaning-search", "recall", "extensions", "getting-started",
+  "content", "search", "reuse", "privacy", "questions",
+] as const;

@@ -4,7 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { unavailableTargets } from "@/config/download";
 import { getPublishedRelease } from "@/lib/releases";
 import { connection } from "next/server";
-import { documentationConfig, siteConfig } from "@/config/site";
+import { getDocumentationConfig, siteConfig } from "@/config/site";
 import { Link } from '@/i18n/routing';
 import { pageMetadata } from '@/lib/seo';
 import { PageIntro } from "@/components/marketing/Marketing";
@@ -69,6 +69,7 @@ export default async function Download({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const documentationConfig = getDocumentationConfig(locale);
   const c = text[locale];
   await connection();
   const release = await getPublishedRelease();

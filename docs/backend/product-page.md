@@ -5,17 +5,19 @@ interactive clipboard introduction. Product has no simulated desktop or mock
 clipboard controls. It retains visual explanations and an interactive
 representation graph, alongside the functional section menu.
 
-Recall has its own focused route at `/[locale]/recall`; Product remains the
-broader clipboard-system reference and does not duplicate Recall's evidence
-walkthrough.
+Meaning Search, Recall, and extensions lead the page with compact illustrative
+examples, prerequisites, an Explore marketing link, and a separate setup guide.
+Download remains primary; Getting started is the secondary introduction action.
+Recall also retains its focused marketing walkthrough at `/[locale]/recall`.
 
 ## Structure
 
 The route is a Server Component, using English/Japanese content in
 src/content/product.ts and scoped product.module.css styles. It contains a compact
-introduction, product facts, section navigation, a content-format reference,
+introduction, product facts, section navigation, three capability demonstrations,
+Getting started, a content-format reference,
 search and organization details, a capture representation scene, an interactive
-transformation graph, preview/reuse steps, Extensions information,
+transformation graph, preview/reuse steps,
 privacy boundaries, FAQ disclosures, and a download close.
 
 Navigation is sticky on desktop and inline on phones/tablets. Reference rows
@@ -37,17 +39,20 @@ Ollama setup. Ordinary text search needs neither. Clipboard history stays local;
 optional account sync includes supported settings and extension choices, not
 history. Extension permissions and processing depend on the chosen package.
 
-Localized links point to /download and /extensions, while the public
-documentation links point to the English Mintlify pages at
-`https://infiniti-82a6b77b.mintlify.site/docs/getting-started`,
-`https://infiniti-82a6b77b.mintlify.site/docs/privacy`, and
-`https://infiniti-82a6b77b.mintlify.site/docs/sync`. Download remains the
-source of truth for builds.
+Stable sections are meaning-search, recall, extensions, getting-started,
+content, search, reuse, privacy, and questions. All prior section anchors remain.
+Locale-aware documentation links preserve English URLs on
+`https://docs.clipsx.app` and send Japanese readers to matching `/ja/` user guides.
+Model commands and candidate tables live in Local AI; task guides own setup,
+first-result exercises, and recovery. Developer guides remain English.
+Recall needs generation; semantic retrieval is optional. Generated answers can
+be wrong. Mermaid visualizes without an LLM; Rewrite needs configured generation.
+Vault and Pro remain unavailable. Download is the source of truth for builds.
 No clipboard, OCR, network model processing or transformations run on Product.
 
 ## Verification
 
-Run npm run typecheck, npm run lint and npm run build. Check both locales at 375,
+Run npm run typecheck, npm run lint and npm run build. Check both locales at 320,
 768, 1280 and 1600 CSS pixels in both OS themes. Verify no horizontal overflow,
 readable format rows, section targets below the header, and visible focus.
 Tab through links and native FAQ summaries; test Enter/Space to toggle answers.

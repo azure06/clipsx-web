@@ -17,7 +17,7 @@ import {
 import { setRequestLocale } from "next-intl/server";
 import { ExtensionWorkbench } from "@/components/marketing/ExtensionWorkbench";
 import type { Locale } from "@/i18n/config";
-import { documentationConfig } from "@/config/site";
+import { getDocumentationConfig } from "@/config/site";
 import "./extensions.css";
 import { pageMetadata } from '@/lib/seo';
 
@@ -131,7 +131,7 @@ const content = {
     intro:
       "拡張機能はコピーした内容を認識し、必要な表示や操作を元のクリップの隣に追加します。すべて ClipsX の中で完結します。",
     explore: "できることを見る",
-    build: "拡張機能を作る",
+    build: "拡張機能を作る（英語）",
     sample: "インタラクティブ例",
     sampleNote: "拡張機能を選ぶと、役割を確認できます。",
     waysLabel: "ひとつのクリップ。その先の選択肢。",
@@ -211,7 +211,7 @@ const content = {
     devTitle: "クリップボードで実現したいことがありますか？",
     devBody:
       "Extension API v3 に沿って構築できます。マニフェストから始め、必要な機能だけを宣言し、CLI と適合テストで検証します。",
-    devLink: "開発者ドキュメント",
+    devLink: "開発者ドキュメント（英語）",
     sourceLink: "拡張機能のソース",
     path: ["マニフェスト", "機能を追加", "検証", "パッケージ"],
   },
@@ -233,6 +233,7 @@ export default async function ExtensionsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const documentationConfig = getDocumentationConfig(locale);
   const c = content[locale];
   const wayIcons = [ScanSearch, Eye, Shuffle, MousePointer2];
   return (
