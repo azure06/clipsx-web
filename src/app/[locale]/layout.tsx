@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { siteConfig } from '@/config/site';
-import { getUser } from '@/lib/supabase/server';
+import { BrowserAuthProvider } from '@/components/auth/BrowserAuthProvider';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -48,18 +48,6 @@ export default async function LocaleLayout({
   const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const messages = await getMessages();
-  const user = await getUser();
-  const provider = user?.app_metadata.provider;
-  const authProvider: 'google' | 'github' | 'email' | 'unknown' =
-    provider === 'google' || provider === 'github' || provider === 'email' ? provider : 'unknown';
-  const rawName = user?.user_metadata.full_name ?? user?.user_metadata.name;
-  const telemetryIdentity = user ? {
-    id: user.id,
-    email: user.email_confirmed_at ? (user.email ?? null) : null,
-    username: typeof rawName === 'string' && rawName.trim() ? rawName.trim().slice(0, 100) : null,
-    authProvider,
-  } : null;
-
   return (
       <html
         lang={locale}
@@ -75,13 +63,13 @@ export default async function LocaleLayout({
         </head>
         <body className="min-h-screen bg-(--ui-canvas) text-(--ui-text) antialiased font-sans">
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>
-            <Header user={user} />
+          <BrowserAuthProvider><ThemeProvider>
+            <Header />
             <a href="#main-content" className="focus-ring sr-only fixed left-4 top-20 z-[60] rounded-lg bg-(--ui-surface) px-4 py-3 focus:not-sr-only">{locale === 'ja' ? '本文へスキップ' : 'Skip to content'}</a>
             <main id="main-content" tabIndex={-1} className="pt-16">{children}</main>
             <Footer />
-            <WebObservability identity={telemetryIdentity} />
-          </ThemeProvider>
+            <WebObservability />
+          </ThemeProvider></BrowserAuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

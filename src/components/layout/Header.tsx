@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { AppWindow, ArrowRight, ArrowUpRight, Blocks, BookOpen, Braces, ChevronDown, CreditCard, History, LogOut, Menu, Search, Sparkles, UserRound, X, type LucideIcon } from 'lucide-react';
-import type { User } from '@supabase/supabase-js';
+import { useBrowserUser } from '@/components/auth/BrowserAuthProvider';
 import { Link, usePathname, useRouter } from '@/i18n/routing';
 import { mainNavLinks, mainNavMenus, type NavIcon, type NavItem, type NavMenu } from '@/config/nav';
 import { localizeDocumentationUrl, siteConfig } from '@/config/site';
@@ -24,7 +24,8 @@ function isActive(pathname: string, href: string) {
   return pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
 }
 
-export function Header({ user }: { user: User | null }) {
+export function Header() {
+  const user = useBrowserUser();
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();

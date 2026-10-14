@@ -20,6 +20,17 @@ Sponsorship does not purchase Pro or create a billing entitlement.
 
 ## Search implementation
 
+Public marketing pages prerender English and Japanese content without reading
+session cookies. Header account identity and Sentry identity load after hydration
+through one browser auth subscription; browser identity never authorizes requests.
+Account and Vault pages retain server verification, session refresh, and private,
+uncacheable responses. Known blog slugs prerender in both locales.
+
+Route parameters are validated before localized content or metadata is accessed.
+Unsupported locales and missing files return 404. Legacy `/favicon.ico` and
+`/clips.svg` permanently redirect to `/icon.svg` and `/icons/clips.svg`; missing
+`/logo.svg` is not an alias. Crawlers remain allowed under the existing robots policy.
+
 The developer page serves extension adoption: a concrete Rewrite example leads
 to the maintained first-build tutorial, followed by host-managed capabilities,
 local build/validation/import steps, permission limits, and contribution links.

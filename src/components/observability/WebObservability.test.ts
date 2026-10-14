@@ -21,7 +21,7 @@ describe('public website measurement wiring', () => {
   it.each(['/en/download', '/ja/blog/why-clipboard-extensions-need-boundaries'])(
     'connects both SDKs to the privacy filter on %s', pathname => {
       sdk.pathname = pathname
-      renderToStaticMarkup(createElement(WebObservability, { identity: null }))
+      renderToStaticMarkup(createElement(WebObservability))
       for (const mock of [sdk.analytics, sdk.speed]) {
         expect(mock).toHaveBeenCalledOnce()
         const { beforeSend } = mock.mock.calls[0][0] as {
@@ -37,7 +37,7 @@ describe('public website measurement wiring', () => {
   it.each(['/en/account', '/ja/vault', '/en/unknown'])(
     'does not mount measurement SDKs on %s', pathname => {
       sdk.pathname = pathname
-      renderToStaticMarkup(createElement(WebObservability, { identity: null }))
+      renderToStaticMarkup(createElement(WebObservability))
       expect(sdk.analytics).not.toHaveBeenCalled()
       expect(sdk.speed).not.toHaveBeenCalled()
     },

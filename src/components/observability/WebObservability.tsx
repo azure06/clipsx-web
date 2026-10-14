@@ -5,7 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useBrowserUser } from '@/components/auth/BrowserAuthProvider'
 import { filterPublicObservabilityEvent, isPublicAnalyticsPath } from '@/lib/observability/privacy'
 
 type SafeIdentity = {
@@ -44,18 +44,14 @@ function identityFromUser(user: {
   }
 }
 
-export function WebObservability({ identity }: { identity: SafeIdentity | null }) {
+export function WebObservability() {
+  const user = useBrowserUser()
   const pathname = usePathname()
   const isPublic = isPublicAnalyticsPath(pathname)
 
   useEffect(() => {
-    applyIdentity(identity)
-    const supabase = createClient()
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      applyIdentity(identityFromUser(session?.user ?? null))
-    })
-    return () => data.subscription.unsubscribe()
-  }, [identity])
+    applyIdentity(identityFromUser(user))
+  }, [user])
 
   if (!isPublic) return null
   return <>
