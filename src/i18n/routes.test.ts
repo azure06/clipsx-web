@@ -4,6 +4,9 @@ vi.mock('next/navigation', () => ({
   notFound: () => { throw new Error('NEXT_HTTP_ERROR_FALLBACK;404'); },
 }));
 vi.mock('next-intl/server', () => ({ setRequestLocale: vi.fn() }));
+vi.mock('@/i18n/routing', () => ({ Link: () => null }));
+vi.mock('@/components/marketing/HomePreview', () => ({ HomePreview: () => null }));
+vi.mock('@/lib/releases', () => ({ getPublishedRelease: vi.fn() }));
 
 import HomePage, { generateMetadata as homeMetadata } from '@/app/[locale]/page';
 import DownloadPage, { generateMetadata as downloadMetadata } from '@/app/[locale]/download/page';

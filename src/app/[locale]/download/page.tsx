@@ -4,12 +4,12 @@ import { Apple, ArrowUpRight, Clock3, Monitor, Terminal } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { snapStore, unavailableTargets } from "@/config/download";
 import { getPublishedRelease } from "@/lib/releases";
-import { connection } from "next/server";
 import { getDocumentationConfig, siteConfig } from "@/config/site";
 import { Link } from '@/i18n/routing';
 import { pageMetadata } from '@/lib/seo';
 import { PageIntro } from "@/components/marketing/Marketing";
 import type { Locale } from "@/i18n/config";
+export const revalidate = 30;
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/download', locale === 'ja' ? 'ClipsX をダウンロード' : 'Download ClipsX for Windows, macOS & Linux', text[locale].intro[2]);
@@ -76,7 +76,6 @@ export default async function Download({
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = text[locale];
-  await connection();
   const release = await getPublishedRelease();
   const downloadTargets = release?.targets ?? unavailableTargets;
   const architectureLabel = (architecture: string) =>

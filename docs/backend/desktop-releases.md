@@ -1,7 +1,7 @@
 # Desktop release downloads
 
 The localized download page reads the latest published desktop release's
-`downloads.json` at request time. Draft candidates never become active website
+`downloads.json` through a persistent server cache. Draft candidates never become active website
 downloads. Version, tag, source revision, complete platform matrix, SHA-256 and
 native signing/notarization flags are validated before links are exposed.
 
@@ -10,13 +10,16 @@ Linux x64 AppImage and Debian targets. URLs must be exact versioned assets in
 `azure06/clipsx`; arbitrary hosts, unsigned Windows targets, unnotarized Mac
 targets, incomplete inventories and duplicate target IDs are rejected.
 
-The server loader uses a 30-second cache and a five-second fetch timeout. Expired
-metadata refreshes before the request completes, and concurrent requests share
-one refresh per process. A previously validated release remains available during
-temporary upstream failure. A cold instance without valid metadata displays the
-unavailable state and no placeholder URLs. Healthy publication is normally
-visible on a subsequent request within one minute; there is no refresh webhook
-or website redeployment per desktop release.
+The server loader uses Next.js's persistent data cache with 30-second
+revalidation, a five-second fetch timeout, and a streamed 64 KiB byte limit.
+Only validated manifests enter the cache. The public download page also
+revalidates every 30 seconds; visitors can receive the previous verified release
+while revalidation runs in the background. Failed refreshes do not overwrite
+the last verified manifest. An empty cache during an upstream failure displays
+the unavailable state and no placeholder URLs. Cache reuse does not depend on
+the same running function instance. The refresh interval is not a strict
+publication-latency guarantee; there is no refresh webhook or website
+redeployment per desktop release.
 
 Deploy this reader once before publishing the first desktop release. Verify both
 localized download pages, separate Mac architecture labels, the unavailable
