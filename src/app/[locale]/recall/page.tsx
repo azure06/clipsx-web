@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -151,7 +152,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/recall', copy[locale].metadata[0], copy[locale].metadata[1]);
 }
 
@@ -160,7 +161,7 @@ export default async function RecallPage({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = copy[locale];

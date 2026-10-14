@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import { Apple, ArrowUpRight, Clock3, Monitor, Terminal } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
@@ -10,7 +11,7 @@ import { pageMetadata } from '@/lib/seo';
 import { PageIntro } from "@/components/marketing/Marketing";
 import type { Locale } from "@/i18n/config";
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/download', locale === 'ja' ? 'ClipsX をダウンロード' : 'Download ClipsX for Windows, macOS & Linux', text[locale].intro[2]);
 }
 const icons = { windows: Monitor, linux: Terminal, macos: Apple };
@@ -71,7 +72,7 @@ export default async function Download({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = text[locale];

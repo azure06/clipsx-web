@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from 'next';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
@@ -72,7 +73,7 @@ const copy = {
 } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/developers', locale === 'ja' ? 'クリップボード拡張機能を作る' : 'Build clipboard extensions', copy[locale].description);
 }
 
@@ -80,7 +81,7 @@ const textLink = 'focus-ring inline-flex items-center gap-2 rounded-sm text-sm f
 const packageSource = 'https://github.com/azure06/clipsx-extensions';
 
 export default async function Developers({ params }: { params: Promise<{ locale: Locale }> }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const c = copy[locale];
   return (

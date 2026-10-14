@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
@@ -10,7 +11,7 @@ export default async function AccountPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
 
   const user = await getUser();

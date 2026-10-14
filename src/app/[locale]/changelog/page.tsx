@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from 'next';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import { setRequestLocale } from 'next-intl/server';
@@ -13,12 +14,12 @@ const copy = {
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/changelog', copy[locale].title, copy[locale].description);
 }
 
 export default async function ChangelogPage({ params }: { params: Promise<{ locale: Locale }> }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const c = copy[locale];
   return <div className="marketing-shell pb-24 pt-20">

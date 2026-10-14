@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -222,7 +223,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/extensions', locale === 'ja' ? '拡張機能' : 'Clipboard extensions', content[locale].intro);
 }
 
@@ -231,7 +232,7 @@ export default async function ExtensionsPage({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = content[locale];

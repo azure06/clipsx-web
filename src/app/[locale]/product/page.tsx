@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight, ChevronDown, FileText, Code2, Image, Link2, Files, Laptop, Sparkles, Cloud, ShieldCheck } from "lucide-react";
 import { ProductRepresentationGraph } from "@/components/marketing/ProductRepresentationGraph";
@@ -11,14 +12,14 @@ import { pageMetadata } from '@/lib/seo';
 
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/product',
     locale === 'ja' ? 'ClipsX — 意味検索、Recall、拡張機能' : 'ClipsX — Meaning Search, Recall & extensions',
     productJourneys[locale].intro);
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ locale: Locale }> }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const c = productContent[locale];
   const j = productJourneys[locale];

@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import { NextIntlClientProvider } from 'next-intl';
@@ -44,7 +45,7 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const messages = await getMessages();
   const user = await getUser();

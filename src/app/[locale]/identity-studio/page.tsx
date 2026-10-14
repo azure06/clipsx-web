@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/config";
@@ -14,7 +15,7 @@ export default async function IdentityStudioPage({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   return <IconLab />;
 }

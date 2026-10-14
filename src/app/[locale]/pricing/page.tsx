@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import {
   ArrowRight,
@@ -178,7 +179,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/pricing', copy[locale].metadata[0], copy[locale].metadata[1]);
 }
 
@@ -187,7 +188,7 @@ export default async function Pricing({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const c = copy[locale];
   const icons = [Layers, Search, SlidersHorizontal, Settings2];

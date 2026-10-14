@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -15,14 +16,14 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale; slug: string }> }): Promise<Metadata> {
-  const { locale, slug } = await params;
+  const { locale, slug } = await params; assertLocale(locale);
   const post = blogPosts.find(post => post.slug === slug);
   if (!post) notFound();
   return articleMetadata(post, locale);
 }
 
 export default async function Article({ params }: { params: Promise<{ locale: Locale; slug: string }> }) {
-  const { locale, slug } = await params;
+  const { locale, slug } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const post = blogPosts.find(post => post.slug === slug);
   if (!post) notFound();

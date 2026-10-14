@@ -9,6 +9,12 @@ const sentryRelease = process.env.SENTRY_RELEASE ??
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async redirects() {
+    return [
+      { source: '/favicon.ico', destination: '/icon.svg', permanent: true },
+      { source: '/clips.svg', destination: '/icons/clips.svg', permanent: true },
+    ];
+  },
   env: {
     NEXT_PUBLIC_SENTRY_RELEASE: sentryRelease,
   },

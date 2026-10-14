@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { MeaningSearchGuide } from "@/components/marketing/MeaningSearchGuide";
@@ -9,7 +10,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/meaning-search', locale === 'ja' ? '意味検索' : 'Meaning Search',
       locale === "ja"
         ? "ClipsX の任意のローカル意味検索が、完全一致だけでなく内容の意味からクリップを見つける仕組み。"
@@ -22,7 +23,7 @@ export default async function MeaningSearchPage({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   return <MeaningSearchGuide locale={locale} />;
 }

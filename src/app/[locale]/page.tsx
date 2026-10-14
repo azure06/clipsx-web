@@ -1,3 +1,4 @@
+import { assertLocale } from '@/i18n/validate';
 import {
   ArrowDown,
   ArrowRight,
@@ -131,7 +132,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   const title = locale === 'ja' ? 'ClipsX — 無料クリップボードマネージャー' : 'ClipsX — Free Clipboard Manager for Windows, macOS & Linux';
   return {
     ...pageMetadata(locale, '', title, locale === 'ja' ? '履歴を保存・検索し、拡張機能で活用。Windows、macOS、Linux/X11 向けの無料アプリ。履歴は端末に保存、アカウントは不要。' : 'Save and search clipboard history, then transform it with extensions. Free for Windows, macOS, and Linux/X11. Local storage. No account required.'),
@@ -144,7 +145,7 @@ export default async function HomePage({
 }: {
   params: Promise<{ locale: Locale }>;
 }) {
-  const { locale } = await params;
+  const { locale } = await params; assertLocale(locale);
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = copy[locale];
