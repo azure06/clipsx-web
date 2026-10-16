@@ -33,6 +33,53 @@ const compatibleUpgrade = [l(
 // Published stable releases only. Dates are GitHub publication timestamps (UTC).
 export const releases = [
   {
+    version: '0.1.6',
+    publishedAt: '2026-10-16T12:30:29Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.6',
+    title: l('App information and easier assistant setup.', 'アプリ情報とアシスタント設定を改善。'),
+    description: l('Find your build details, connect assistants more easily, and get more reliable Recall context.', 'ビルド情報の確認、アシスタントの接続、Recallのコンテキスト処理を改善しました。'),
+    highlights: [
+      l('Add Settings → About with version and build details, Copy app info, and update controls.', '設定にバージョン情報を追加。ビルド情報の確認・コピーとアプリ更新をまとめました。'),
+      l('Simplify assistant setup and allow deleting active or revoked assistant access.', 'アシスタント設定を簡潔にし、有効なアクセスと失効済みアクセスの削除に対応。'),
+      l('Improve MCP retrieval guidance for vaguely remembered content and source checking.', '曖昧に覚えている内容の検索と引用元の確認に向けて、MCPの案内を改善。'),
+      l('Include initial clipboard evidence in Recall and fit retrieved sources to the model’s available context.', 'Recallに最初のクリップの根拠を含め、モデルの残りコンテキストに合わせて検索結果を調整。'),
+      l('Add platform shortcut defaults, a disabled shortcut option, and conflict feedback.', 'OS別のショートカット初期値、無効化、競合の表示に対応。'),
+      l('Restore macOS Dock activation, improve indexing status, and reduce false secret detection.', 'macOSのDockからの表示を復旧し、索引の状態表示と秘密情報の誤検出を改善。'),
+      l('Update Wasmtime and rustls for security fixes.', 'Wasmtimeとrustlsにセキュリティ修正を適用。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
+    version: '0.1.5',
+    publishedAt: '2026-10-14T09:33:00Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.5',
+    title: l('Saved Recall chats and assistant integrations.', 'Recallの会話保存とアシスタント連携。'),
+    description: l('Use saved local conversations, choose models by feature, and connect compatible assistants to ClipsX.', '会話を端末に保存し、機能ごとにモデルを選び、対応アシスタントをClipsXに接続できます。'),
+    highlights: [
+      l('Add saved Recall conversations with clipboard sources, image context, and undoable actions.', 'クリップの引用元、画像コンテキスト、取り消し可能な操作を備えたRecallの会話保存を追加。'),
+      l('Configure multiple Ollama, OpenAI, Anthropic, Gemini, and OpenRouter connections with independent feature selections.', 'Ollama、OpenAI、Anthropic、Gemini、OpenRouterの複数接続と機能ごとのモデル選択に対応。'),
+      l('Add authenticated local MCP access for compatible external assistants.', '対応する外部アシスタント向けに、認証付きローカルMCPアクセスを追加。'),
+      l('Improve context limits, conversation compaction, and provider diagnostics.', 'コンテキスト制限、会話の要約、プロバイダーの診断を改善。'),
+      l('Keep the active semantic index available while a replacement builds.', '新しい意味検索の索引を作成中も、既存の有効な索引を保持。'),
+    ],
+    limits: [
+      ...compatibleUpgrade,
+      l('Chats stay on your device. Hosted indexing requires explicit enablement; MCP is off by default and requires assistant access grants.', '会話は端末に保存されます。外部サービスでの索引作成は明示的な有効化が必要です。MCPは初期状態で無効で、アシスタントごとのアクセス許可が必要です。'),
+    ],
+  },
+  {
+    version: '0.1.4',
+    publishedAt: '2026-10-09T05:27:26Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.4',
+    title: l('Shortcut reliability and setup help.', 'ショートカットの安定性と設定ヘルプを改善。'),
+    description: l('Keep the global shortcut working with extension windows open and find help where you need it.', '拡張機能のウィンドウを開いていてもグローバルショートカットを使え、画面から関連ヘルプを開けます。'),
+    highlights: [
+      l('Preserve the global shortcut while extension windows are open.', '拡張機能のウィンドウを開いている間もグローバルショートカットを維持。'),
+      l('Add English and Japanese contextual help for Search, Recall, and Intelligence setup.', '検索、Recall、インテリジェンス設定に英語・日本語の関連ヘルプを追加。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
     version: '0.1.3',
     publishedAt: '2026-10-07T23:55:55Z',
     url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.3',

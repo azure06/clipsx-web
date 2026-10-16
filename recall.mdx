@@ -1,17 +1,17 @@
 ---
 title: "Set up Recall"
 description: "Ask questions about scoped clipboard history and check source citations."
-keywords: ["Recall", "local generation", "citations", "clipboard questions"]
+keywords: ["Recall", "saved chats", "citations", "MCP", "clipboard questions"]
 ---
 
 Recall retrieves supporting clips from your selected history scope and uses a generation model to answer. It does not automatically read every file, application, or uncaptured content. Answers can be wrong.
 
 ## Prepare Recall {#setup}
 
-1. Connect Ollama and enable generation under **Intelligence → Models → Local Text Generation** using [Local AI setup](/local-ai#generation-models).
+1. Add a connection and chat preset in **Intelligence → Models**. In **Usage & defaults**, select the preset for **Recall assistant**. You can use Ollama or a supported hosted provider; see [model setup](/local-ai).
 2. Optionally [enable Meaning Search](/meaning-search) for semantic retrieval. Recall uses available enabled retrieval sources; embeddings and generation have separate roles.
 3. Select the relevant history scope and filters.
-4. Type a question in search and use **Recall**, or the displayed shortcut. When generation is unavailable, the setup action opens Intelligence.
+4. Open Recall from the sidebar, or ask from clipboard search using **Recall** or its displayed shortcut. Choose a model in the chat header. If no model is configured, open Intelligence to set one up.
 
 ## Try an answer with evidence {#first-answer}
 
@@ -33,18 +33,35 @@ The goal is a supported answer, not an exact wording or retrieval order. If no e
 
 Open citation buttons to inspect excerpts and original clips. Select sources and **Use only these clips** for a focused follow-up, or deliberately choose **Search all history** to widen scope.
 
+Recall includes initial clipboard evidence when available. Long sources may be shortened or omitted to fit the model's remaining context. Review partial-source indicators before relying on a reply.
+
 Detected secret clips are excluded from Recall evidence. There is no Recall override for that exclusion. Never use real secrets in setup exercises. Citations help inspection; they do not guarantee correct interpretation.
 
 ## Understand incomplete results {#recovery}
 
 - **No evidence:** check scope, filters, captured text, and enabled sources. Try an exact name before a broad question.
 - **Incomplete or reduced context:** review sources and ask something narrower. Not all retrieved text necessarily fits generation context.
-- **Generation unavailable:** check Ollama, model installation, and enablement.
+- **Generation unavailable:** check the selected connection, credential, model, and feature assignment. For Ollama, also check that the service is running and the model is installed.
 - **Incorrect answer:** compare sources, refine the question, or evaluate another model. Larger models do not guarantee accuracy.
-- **Expired session:** ask again. Conversations are temporary and expire after inactivity.
+- **Interrupted answer:** reopen the saved chat and retry deliberately. Restarting the app does not replay unfinished tool actions.
 
 ## Stop and reuse deliberately {#controls}
 
-Cancel an active answer when needed. Review before **Copy answer** or **Copy with sources**. Prompts and answers do not become canonical clip metadata. Disable Local Text Generation in Models to stop it.
+Cancel an active answer when needed. Review before copying a reply or applying an action. Supported clipboard changes have an Undo action; available tools depend on the selected model and permissions.
+
+Chats and their source snapshots are saved on this device and remain separate from clipboard retention and settings sync. Clearing history does not delete saved chats. Delete a chat to remove its conversation and owned attachments; captured clips remain.
+
+## Connect an external assistant {#integrations}
+
+1. Open **Intelligence → Integrations** and enable the local MCP server.
+2. Select **Add assistant**, choose a setup template, and create named access. Start with read-only access unless the assistant needs to change clips.
+3. Use the generated setup command or configuration for your client. Keep the token private. Creating access in ClipsX does not configure the external app.
+4. Follow the displayed restart instructions and use **Test access**. This checks authentication and tool discovery; also ask your assistant to find a harmless saved note.
+
+For Codex, choose the instructions for your client: a CLI command configures the CLI, while the desktop app also needs its token available to the app process. On Windows, follow the generated persistent user-environment setup, then fully quit and reopen Codex.
+
+The token is shown only when you create or rotate access. Rotation replaces the old token. Revoke access to disconnect an assistant, or delete it to remove its saved access configuration. Deletion keeps clips and activity records.
+
+ClipsX gives assistants guidance for keyword and meaning-based retrieval, refining searches, and checking sources. Meaning-based retrieval needs an embedding model. Each assistant decides when to call tools; the guidance does not guarantee a search on every request. Detected secret clips are excluded. Read/write access also allows supported clipboard changes, so grant it deliberately.
 
 See [model resources](/local-ai#resources) and [Troubleshooting](/troubleshooting).

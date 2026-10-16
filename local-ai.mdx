@@ -1,6 +1,6 @@
 ---
 title: "Local AI with Ollama"
-description: "Choose models, connect Ollama, and verify optional local AI in ClipsX."
+description: "Connect Ollama, assign models to features, and understand hosted-provider options."
 keywords: ["Ollama setup", "embedding model", "BGE-M3", "Gemma"]
 ---
 
@@ -24,10 +24,10 @@ The developer reports using **`bge-m3:latest` for Meaning Search** and **`gemma3
     The list should contain the downloaded names. For search only, skip Gemma. Downloads need internet access; local inference uses the installed model.
   </Step>
   <Step title="Connect ClipsX">
-    Open **Intelligence → Models**, enter `http://localhost:11434`, and select **Connect**. A successful connection lists installed models and their capabilities. Refresh after downloading another model.
+    Open **Intelligence → Models → New connection**, choose Ollama, and enter `http://localhost:11434`. Save the connection and select **Test and discover models**. Refresh after downloading another model.
   </Step>
   <Step title="Enable the capabilities you want">
-    Under Meaning Search, select `bge-m3:latest` and **Enable**. ClipsX validates the model and indexes eligible clips in the background. Under **Local Text Generation**, select `gemma3:4b` and **Enable** for Recall or compatible extensions. A connected service alone does not enable either capability.
+    Add a text-embedding preset for `bge-m3:latest` and a chat preset for `gemma3:4b`. In **Usage & defaults**, assign the embedding preset to **Semantic search** and the chat preset to **Recall assistant** or **Extension text generation**. Each feature has its own selection. Search validates the embedding configuration and indexes eligible clips in the background.
   </Step>
 </Steps>
 
@@ -55,7 +55,7 @@ Changing embedding models changes the vector space. ClipsX builds a replacement 
 
 ## Choose a generation model {#generation-models}
 
-Generation writes text. A model's vision or tool capabilities do not add those features to ClipsX's text-generation workflow.
+Generation writes text. Recall can use image context and tools when the selected model and provider support them. Extension generation has its own capabilities and assignment; a model name alone does not establish support.
 
 | Example | Role in this guide |
 | --- | --- |
@@ -70,7 +70,7 @@ For example:
 ollama pull gemma3:1b
 ```
 
-Refresh Models, choose the installed name under **Local Text Generation**, and select **Enable** or **Update**. Compare a Recall question with citations and a short Rewrite task. Assess usefulness, errors, waiting time, and resources—not only whether text appears. Generation model changes do not require rebuilding the semantic index.
+Refresh the connection, add or update its chat preset, and assign it in **Usage & defaults**. Compare a Recall question with citations and a short Rewrite task. Assess usefulness, errors, waiting time, and resources—not only whether text appears. Changing a chat preset does not require rebuilding the semantic index.
 
 Listings reviewed **October 8, 2026**. Tags and requirements can change. Check linked official listings for sizes, minimum Ollama versions, and model licenses. Model licenses are separate from ClipsX's Apache 2.0 license. When reporting a problem, record the exact tag and identifier shown by `ollama list`.
 
@@ -86,13 +86,21 @@ Use `ollama ps` during a task to inspect loaded models and CPU/GPU placement. St
 
 Use locally downloaded tags. A loopback endpoint alone does not prove local inference: Ollama also offers cloud-backed models. Check the selected model and Ollama settings. Avoid cloud variants for device-local processing. Models receive the text needed for each task; extensions have their own permission boundaries.
 
+## Use a hosted provider {#hosted-providers}
+
+You can also add OpenAI, Anthropic, Gemini, or OpenRouter connections in **Intelligence → Models**. Save the provider's credential, test the connection, and create a preset for a supported purpose. Assign it in **Usage & defaults**. Existing chats keep their own model selection.
+
+Hosted models receive the content needed for the selected task. Background clipboard indexing requires separate explicit permission. Provider capabilities vary; not every provider supports embeddings, images, or tools.
+
+Credentials stay in this device's protected storage and are excluded from configuration exports. On macOS, Keychain may ask permission. Removing a connection clears its model assignments rather than silently selecting a replacement.
+
 ## Recover or disable {#recovery}
 
 - **Cannot connect:** confirm Ollama is running and the endpoint matches. Check `ollama list` before reconnecting.
 - **No suitable model:** download one with the required capability, refresh, and choose its installed name.
 - **Indexing fails:** review **Intelligence → Indexing**, affected clips, and diagnostics before retrying.
 - **Generation fails or answers poorly:** check the installed model, try shorter input, and evaluate another model. The same API does not guarantee support or useful output.
-- **Stop AI:** use **Disable** in the relevant model section. Removing stored semantic data is a separate [index action](/meaning-search#manage-index); original clips remain.
+- **Stop AI:** clear the feature assignment in **Usage & defaults** or disable its connection. Removing stored semantic data is a separate [index action](/meaning-search#manage-index); original clips remain.
 
 See [Troubleshooting](/troubleshooting) and [privacy boundaries](/privacy).
 

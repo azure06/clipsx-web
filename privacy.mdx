@@ -8,6 +8,12 @@ keywords: ["ClipsX privacy", "local data", "account deletion"]
 
 Original clipboard content, managed files, OCR, search indexes, provider settings, credentials, grants, and derived data are stored on the device. Settings sync does not include clipboard history. Optional models and extensions receive content needed for their tasks; external processing depends on configuration and granted capabilities.
 
+## Chats, models, and assistants
+
+Recall chats and source snapshots are saved locally, separately from clipboard retention, and are excluded from settings sync. Deleting a chat removes its owned attachments without deleting captured clips.
+
+Provider credentials use protected device-local storage. Hosted providers receive content needed for enabled tasks; hosted background indexing requires explicit permission. Local MCP is off by default and requires a separate token for each assistant. Read-only grants allow retrieval; read/write grants also allow supported changes. Revoking or deleting access disconnects that assistant; deleting access does not delete clips or activity records.
+
 ## Optional accounts
 
 Supabase handles authentication, email, sessions, and supported settings-sync records. Google and GitHub process sign-in when selected. Pro billing and Vault are not advertised as available features. Settings sync is not end-to-end encrypted.

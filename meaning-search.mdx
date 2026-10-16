@@ -8,8 +8,8 @@ Meaning Search helps when you remember an idea but not its wording. Use exact te
 
 ## Connect and enable {#setup}
 
-1. Follow [Local AI setup](/local-ai#starting-setup) to install Ollama, download an embedding model, and connect it in **Intelligence → Models**.
-2. Choose an installed embedding-capable model under Meaning Search and select **Enable**.
+1. Add a connection and text-embedding preset in **Intelligence → Models**. For a local setup, follow [the Ollama guide](/local-ai#starting-setup).
+2. Select the preset for **Semantic search** in **Usage & defaults**. Hosted background indexing requires explicit permission to send clipboard text to that provider.
 3. Check **Intelligence → Indexing** for progress. Validation and indexing take time; exact search stays available.
 4. Enable the Meaning Search source using the clipboard search source controls.
 
@@ -41,6 +41,6 @@ Ordering depends on the model, threshold, and other clips. This exercise does no
 
 Use **Intelligence → Indexing** to index missing content, retry failed jobs, or rebuild. Clearing or rebuilding the semantic index preserves original clips and exact text search.
 
-Changing embedding models builds a replacement index. Wait for readiness before comparing retrieval. **Disable** stops embedding; clearing stored index data is separate. Read the app's confirmation and diagnostic before choosing an action.
+Changing embedding models builds a replacement index while the existing active index remains available. Wait for readiness before comparing retrieval. Clearing the semantic-search assignment stops embedding; removing stored index data is separate. Read the app's confirmation and diagnostic before choosing an action.
 
 [Recall](/recall) adds generated answers with sources. It needs generation; embeddings alone do not write answers.
