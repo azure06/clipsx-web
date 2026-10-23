@@ -165,3 +165,7 @@ hreflang, Open Graph URLs, article schema, sitemap entries, and noindex layouts.
 Review Blog, Pricing, Download, and Changelog in English/Japanese and both
 themes, with the compact header, keyboard focus, and reduced motion. Confirm
 working setup/download links and no horizontal overflow at narrow widths.
+
+Home and Product share localized, fixed-data workflow illustrations for meaning retrieval, cited Recall, Rewrite, decision rules, and MCP. Examples do not call models or access the clipboard. Decision rules carry an unreleased-preview label because v0.1.7 lacks them; Rewrite is generation-only. Product preserves existing anchors and adds decision-rules and assistant-access. Local storage is distinguished from hosted model and external assistant processing.
+
+Home uses a wide, varied composition: an asymmetric pickup-workflow card group, a support investigation with saved evidence, a client-writing transformation beside a decision-rule preview, and an assistant handoff workspace. Role-based scenarios are illustrative tasks, not customer testimonials or measured outcomes. The MCP example shows searching and reading copied evidence, separates unknowns from findings, and does not imply direct access to customer systems.

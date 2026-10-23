@@ -1,13 +1,12 @@
+import { HomeWorkflows } from '@/components/marketing/HomeWorkflows';
 import { assertLocale } from '@/i18n/validate';
 import {
   ArrowDown,
   ArrowRight,
   Blocks,
   Code2,
-  FileStack,
   Laptop,
   Pin,
-  Search,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -149,7 +148,6 @@ export default async function HomePage({
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = copy[locale];
-  const icons = [FileStack, Search, Blocks];
   return (
     <div className="cx-home">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: 'ClipsX', url: localizedUrl(locale, ''), applicationCategory: 'UtilitiesApplication', operatingSystem: 'Windows, macOS, Linux/X11', description: copy[locale].intro, offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }, downloadUrl: localizedUrl(locale, '/download'), softwareVersion: siteConfig.version }) }} />
@@ -198,127 +196,7 @@ export default async function HomePage({
           <div key={label}><Icon size={19} /><span>{label}</span></div>
         ))}
       </section>
-      <section className="cx-shell cx-workflow">
-        <p className="cx-kicker">
-          <span className="cx-kicker-index" aria-hidden="true">01</span>
-          {c.workflow}
-        </p>
-        <h2>{c.heading}</h2>
-        <div className="cx-benefits">
-          {c.steps.map(([title, body], i) => {
-            const Icon = icons[i];
-            return (
-              <article key={title} className={`cx-benefit-${i}`}>
-                <span className="cx-benefit-index" aria-hidden="true">{`0${i + 1}`}</span>
-                <div className="cx-feature-icon">
-                  <Icon size={23} strokeWidth={1.6} />
-                </div>
-                <h3>{title}</h3>
-                <p>{body}</p>
-                {i === 0 && (
-                  <div className="cx-capture-art" aria-hidden="true">
-                    <span>
-                      <FileStack size={19} />
-                      notes.md
-                    </span>
-                    <span>
-                      <Code2 size={19} />
-                      {'{ "idea": "next" }'}
-                    </span>
-                    <span>
-                      <Blocks size={19} />
-                      diagram.mmd
-                    </span>
-                    <span>
-                      <Laptop size={19} />
-                      weekend.png
-                    </span>
-                  </div>
-                )}
-                {i === 1 && (
-                  <div className="cx-search-art" aria-hidden="true">
-                    <Search size={17} />
-                    <span>
-                      {locale === "ja" ? "あの旅行のメモ" : "that note about the trip"}
-                    </span>
-                    <Sparkles size={15} />
-                  </div>
-                )}
-                {i === 2 && (
-                  <div className="cx-format-art" aria-hidden="true">
-                    <span>Markdown</span>
-                    <ArrowRight size={16} />
-                    <span>Mermaid</span>
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
-      </section>
-      <section className="cx-shell cx-extensions">
-        <div className="cx-extension-main">
-          <div className="cx-extension-copy">
-            <p className="cx-kicker">
-              <span className="cx-kicker-index" aria-hidden="true">02</span>
-              {c.extensionsLabel}
-            </p>
-            <h2>{c.extensions}</h2>
-            <p>{c.extensionsBody}</p>
-            <Link href="/extensions" className="cx-text-link">
-              {c.extensionsLink}
-              <ArrowRight size={17} />
-            </Link>
-          </div>
-          <div className="cx-extension-visual" aria-label={c.diagram}>
-            <div className="cx-code-card">
-              <span>
-                <Code2 size={14} />
-                Mermaid
-              </span>
-              <pre>{"graph LR\n  Idea --> Copy\n  Copy --> Create"}</pre>
-            </div>
-            <div className="cx-render-card">
-              <div className="cx-render-label">
-                <Blocks size={15} />
-                {c.diagram}
-              </div>
-              <div className="cx-diagram">
-                <span>Idea</span>
-                <ArrowRight />
-                <span>Copy</span>
-                <ArrowRight />
-                <span>Create</span>
-              </div>
-              <div className="cx-render-bottom">
-                <span>Mermaid</span>
-                <span>SVG</span>
-              </div>
-            </div>
-            <div className="cx-token-card">
-              <span className="cx-token-symbol">{"{ }"}</span>
-              <div>
-                <strong>JWT</strong>
-                <p>{c.token}</p>
-              </div>
-              <span className="cx-token-dots" aria-hidden="true">
-                •••
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="cx-developer-strip">
-          <Code2 size={25} />
-          <div>
-            <h3>{c.developer}</h3>
-            <p>{c.developerBody}</p>
-          </div>
-          <Link href="/developers" className="cx-text-link">
-            {c.developerLink}
-            <ArrowRight size={17} />
-          </Link>
-        </div>
-      </section>
+      <HomeWorkflows locale={locale} />
       <section className="cx-shell cx-everyday">
         <h2>{locale === "ja" ? "毎日のコピーを、もっと快適に。" : "Small details. Smoother days."}</h2>
         <div className="cx-everyday-grid">

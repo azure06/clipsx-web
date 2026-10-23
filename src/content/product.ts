@@ -9,14 +9,14 @@ captureTitle: "Keep the useful parts of a copy.", captureBody: "A single copy ca
 formats: [["Text & Markdown", "Notes, snippets, and formatted writing, with readable previews and text representations."], ["HTML & rich text", "Rich content and its plain-text companion when the source application supplies both."], ["Images", "Image previews and available metadata. OCR text may be available on supported systems."], ["Links & structured data", "URLs, JSON, and other recognized text, with relevant previews and actions."], ["Tables & files", "Supported table representations and file references supplied by the source application."]],
 captureNote: "Available formats depend on the source app, operating system, and capture policy. A file reference is not a cloud backup.",
 searchTitle: "Find it with the details you remember.", searchBody: "Start with full-text search. Narrow the history and keep frequently used clips easy to reach.",
-searchRows: [["Search", "Look for words in your clipboard history."], ["Pins & favorites", "Mark clips you want to return to often."], ["Tags & filters", "Organize clips and narrow the visible history."], ["Optional Meaning Search", "Find related content using a compatible local Ollama model. Requires separate setup."]],
+searchRows: [["Search", "Look for words in your clipboard history."], ["Pins & favorites", "Mark clips you want to return to often."], ["Tags & filters", "Organize clips and narrow the visible history."], ["Optional Meaning Search", "Find related content using a configured compatible embedding model. Requires separate setup."]],
 reuseTitle: "Check the content. Choose the next action.", reuseBody: "Available representations and actions depend on what was captured and which extensions you have installed.",
 reuseRows: [["Preview", "Read formatted text, inspect structured content, or view an image."], ["Inspect", "Check available source information, metadata, and representations. OCR is an additional artifact where supported."], ["Reuse", "Choose an available representation to copy or paste. Export, sharing, and transformations depend on the content and installed capabilities."]],
 extensionTitle: "Add the capabilities your work needs.", extensionBody: "Optional extensions can recognize content, add previews, provide actions, or transform a clip. Review each package’s permissions and behavior before enabling it.", extensionLink: "Browse Extensions",
 privacyTitle: "Understand where your data goes.", privacyBody: "Local clipboard history and account features have separate roles.",
-privacyRows: [["On your device", "Clipboard history and its local search data stay on the desktop device."], ["Optional local processing", "Meaning Search uses your configured compatible Ollama setup. It is not required for ordinary text search."], ["Optional account sync", "Selected settings and extension choices can sync through an account. Clipboard history is not included."], ["Extension access", "Permissions and processing depend on the extension. Check requested access before approving it."]],
+privacyRows: [["On your device", "Clipboard history and its local search data stay on the desktop device."], ["Optional local processing", "Optional models use your configured compatible connection. It is not required for ordinary text search."], ["Optional account sync", "Selected settings and extension choices can sync through an account. Clipboard history is not included."], ["Extension access", "Permissions and processing depend on the extension. Check requested access before approving it."]],
 privacyLink: "Privacy details", syncLink: "What account sync includes", faqTitle: "Before you get started.",
-questions: [["Do I need an account?", "No. The core local clipboard experience does not require an account. Account-based features, such as supported settings sync, are optional."], ["Which download should I use?", "The Download page lists currently available builds and installation information. Check it for availability on your operating system."], ["Can this website access my clipboard?", "This Product page does not read or write your clipboard. Capture happens in the installed desktop application."], ["Are OCR and Meaning Search always available?", "No. OCR depends on platform support and configuration. Meaning Search requires an optional compatible Ollama setup. Ordinary text search works without either."]],
+questions: [["Do I need an account?", "No. The core local clipboard experience does not require an account. Account-based features, such as supported settings sync, are optional."], ["Which download should I use?", "The Download page lists currently available builds and installation information. Check it for availability on your operating system."], ["Can this website access my clipboard?", "This Product page does not read or write your clipboard. Capture happens in the installed desktop application."], ["Are OCR and Meaning Search always available?", "No. OCR depends on platform support and configuration. Meaning Search requires an optional compatible embedding model. Ordinary text search works without either."]],
 closeTitle: "Ready to set up ClipsX?", closeBody: "Check the available desktop builds, then follow the getting started guide."
 },
 ja: {
@@ -29,14 +29,14 @@ captureTitle: "コピーした内容を、役立つ形で残す。", captureBody
 formats: [["テキストとMarkdown", "メモやコード、書式付きの文章を、読みやすいプレビューやテキスト表現で確認。"], ["HTMLとリッチテキスト", "コピー元のアプリが提供する場合、リッチな内容とプレーンテキストを保持。"], ["画像", "画像プレビューと利用可能なメタデータ。対応環境ではOCRテキストも利用可能。"], ["リンクと構造化データ", "URLやJSONなどを、内容に合ったプレビューや操作で利用。"], ["表とファイル", "コピー元のアプリが提供する、対応する表の表現やファイル参照。"]],
 captureNote: "対応形式はコピー元のアプリ、OS、保存ポリシーによって異なります。ファイル参照はクラウドバックアップではありません。",
 searchTitle: "覚えている手がかりから探す。", searchBody: "まずは全文検索。履歴を絞り込み、よく使うクリップを見つけやすく整理できます。",
-searchRows: [["検索", "クリップボード履歴の中から言葉を検索。"], ["ピンとお気に入り", "繰り返し使うクリップに目印を付ける。"], ["タグとフィルター", "クリップを整理し、表示する履歴を絞り込む。"], ["任意の意味検索", "互換性のあるローカルOllamaモデルで関連する内容を検索。別途設定が必要です。"]],
+searchRows: [["検索", "クリップボード履歴の中から言葉を検索。"], ["ピンとお気に入り", "繰り返し使うクリップに目印を付ける。"], ["タグとフィルター", "クリップを整理し、表示する履歴を絞り込む。"], ["任意の意味検索", "設定した対応埋め込みモデルで関連する内容を検索。別途設定が必要です。"]],
 reuseTitle: "内容を確かめて、次の操作を選ぶ。", reuseBody: "選べる表現や操作は、保存された内容とインストール済みの拡張機能によって変わります。",
 reuseRows: [["プレビュー", "書式付きテキスト、構造化データ、画像を内容に合った表示で確認。"], ["詳細を確認", "コピー元の情報、メタデータ、利用可能な表現を確認。OCRは対応環境で追加される成果物です。"], ["再利用", "利用可能な表現を選んでコピーや貼り付け。書き出し、共有、変換は内容と追加した機能によって異なります。"]],
 extensionTitle: "自分の作業に必要な機能を追加。", extensionBody: "任意の拡張機能で、内容の認識、プレビュー、操作、変換を追加できます。有効にする前に、権限と動作を確認してください。", extensionLink: "拡張機能を見る",
 privacyTitle: "データの保存先を理解する。", privacyBody: "ローカルの履歴とアカウント機能は、それぞれ役割が異なります。",
-privacyRows: [["端末内の保存", "クリップボード履歴とローカル検索データは、デスクトップ端末内に保存されます。"], ["任意のローカル処理", "意味検索には、設定した互換Ollama環境を使用。通常のテキスト検索には不要です。"], ["任意のアカウント同期", "一部の設定と拡張機能の選択を同期できます。クリップボード履歴は含まれません。"], ["拡張機能のアクセス", "権限や処理方法は拡張機能によって異なります。承認前に要求されるアクセスを確認してください。"]],
+privacyRows: [["端末内の保存", "クリップボード履歴とローカル検索データは、デスクトップ端末内に保存されます。"], ["任意のローカル処理", "意味検索には、設定した対応するモデル環境を使用。通常のテキスト検索には不要です。"], ["任意のアカウント同期", "一部の設定と拡張機能の選択を同期できます。クリップボード履歴は含まれません。"], ["拡張機能のアクセス", "権限や処理方法は拡張機能によって異なります。承認前に要求されるアクセスを確認してください。"]],
 privacyLink: "プライバシーの詳細", syncLink: "アカウント同期の対象", faqTitle: "使い始める前に。",
-questions: [["アカウントは必要ですか？", "ローカルの基本機能にアカウントは不要です。設定の同期など、アカウント機能は任意です。"], ["どのビルドをダウンロードすればよいですか？", "ダウンロードページに現在利用できるビルドとインストール情報を掲載しています。お使いのOSへの対応をご確認ください。"], ["このサイトはクリップボードにアクセスしますか？", "この製品ページはクリップボードを読み書きしません。保存はインストールしたデスクトップアプリで行われます。"], ["OCRや意味検索は常に使えますか？", "OCRは対応環境や設定に依存します。意味検索は任意で互換Ollama環境が必要です。通常のテキスト検索は、それらなしでも使えます。"]],
+questions: [["アカウントは必要ですか？", "ローカルの基本機能にアカウントは不要です。設定の同期など、アカウント機能は任意です。"], ["どのビルドをダウンロードすればよいですか？", "ダウンロードページに現在利用できるビルドとインストール情報を掲載しています。お使いのOSへの対応をご確認ください。"], ["このサイトはクリップボードにアクセスしますか？", "この製品ページはクリップボードを読み書きしません。保存はインストールしたデスクトップアプリで行われます。"], ["OCRや意味検索は常に使えますか？", "OCRは対応環境や設定に依存します。意味検索は任意で対応するモデル環境が必要です。通常のテキスト検索は、それらなしでも使えます。"]],
 closeTitle: "ClipsXを使い始める。", closeBody: "利用可能なデスクトップ版を確認し、スタートガイドに沿って設定しましょう。"
 }
 } as const;
@@ -44,11 +44,11 @@ closeTitle: "ClipsXを使い始める。", closeBody: "利用可能なデスク�
 export const productJourneys = {
   en: {
     title: "Find what you copied. Understand it. Make it useful.",
-    intro: "Find clips by meaning, ask Recall with source citations, and preview or transform content with extensions. Start with a free local clipboard; add Ollama when you want AI.",
+    intro: "Find clips by meaning, ask Recall with source citations, and preview or transform content with extensions. Start with a free local clipboard; configure compatible models when you want AI.",
     meaning: {
       title: "Remember the idea, not the exact words.",
       body: "Meaning Search finds related text in your captured history. It is useful when you remember what a clip was about but not how it was written.",
-      requirement: "Optional · requires an embedding model in Ollama",
+      requirement: "Optional · requires a configured compatible embedding model",
       query: "A cafe for our group meeting",
       clip: "Team outing: Kissa Mori, Thursday at 2 pm. Six seats upstairs.",
       explore: "Explore Meaning Search", setup: "Set up Meaning Search",
@@ -56,7 +56,7 @@ export const productJourneys = {
     recall: {
       title: "Ask your history. Check the evidence.",
       body: "Recall uses available search sources within your selected scope, then generates an answer with citations. Generated answers can be wrong: open the original clips to check the evidence.",
-      requirement: "Optional · requires a generation model in Ollama",
+      requirement: "Optional · requires a configured compatible chat model",
       query: "What time is the meeting, and how many seats?",
       answer: "Thursday at 2 pm [1], with six seats upstairs [2].",
       sources: ["Kissa Mori: Thursday at 2 pm.", "Kissa Mori confirmed six seats upstairs."],
@@ -79,11 +79,11 @@ export const productJourneys = {
   },
   ja: {
     title: "コピーした内容を探す。理解する。役立てる。",
-    intro: "意味でクリップを探し、Recallの引用を確認し、拡張機能で表示や変換を追加。無料のローカルクリップボードから始め、AIが必要ならOllamaを設定できます。",
+    intro: "意味でクリップを探し、Recallの引用を確認し、拡張機能で表示や変換を追加。無料のローカルクリップボードから始め、AIが必要なら対応するモデルを設定できます。",
     meaning: {
       title: "正確な言葉より、覚えている意味から。",
       body: "意味検索は保存した履歴から関連する文章を探します。内容は覚えていても、書かれた言葉を思い出せないときの手がかりになります。",
-      requirement: "任意機能 · Ollamaの埋め込みモデルが必要",
+      requirement: "任意機能 · 対応する埋め込みモデルの設定が必要",
       query: "グループで集まれるカフェ",
       clip: "チームの集まりは木曜日14時に喫茶 森で。2階に6人分の席。",
       explore: "意味検索を見る", setup: "意味検索を設定",
@@ -91,7 +91,7 @@ export const productJourneys = {
     recall: {
       title: "履歴に質問する。根拠を確かめる。",
       body: "Recallは選択した範囲と利用可能な検索ソースから内容を探し、引用付きで回答します。生成された回答には誤りがあり得ます。元のクリップを開き、根拠を確認してください。",
-      requirement: "任意機能 · Ollamaの生成モデルが必要",
+      requirement: "任意機能 · 対応するチャットモデルの設定が必要",
       query: "集まりは何時で、席は何人分？",
       answer: "木曜日14時 [1]、2階に6人分の席があります [2]。",
       sources: ["喫茶 森で木曜日14時。", "喫茶 森から2階に6人分の席を用意できるとの返事。"],
@@ -115,6 +115,6 @@ export const productJourneys = {
 } as const;
 
 export const productSectionIds = [
-  "meaning-search", "recall", "extensions", "getting-started",
+  "meaning-search", "recall", "extensions", "decision-rules", "assistant-access", "getting-started",
   "content", "search", "reuse", "privacy", "questions",
 ] as const;

@@ -6,7 +6,7 @@ import { getDocumentationConfig } from '../config/site';
 describe('Product setup journey', () => {
   const page = readFileSync('src/app/[locale]/product/page.tsx', 'utf8');
   it('preserves prior anchors while leading with the three optional capabilities', () => {
-    expect(productSectionIds.slice(0, 4)).toEqual(['meaning-search', 'recall', 'extensions', 'getting-started']);
+    expect(productSectionIds.slice(0, 6)).toEqual(['meaning-search', 'recall', 'extensions', 'decision-rules', 'assistant-access', 'getting-started']);
     for (const id of productSectionIds) expect(page).toContain(`id="${id}"`);
     const positions = productSectionIds.map(id => page.indexOf(`id="${id}"`));
     expect(positions).toEqual([...positions].sort((a, b) => a - b));

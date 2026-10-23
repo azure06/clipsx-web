@@ -1,3 +1,5 @@
+import { WorkflowDemo } from '@/components/marketing/WorkflowDemo';
+import { WorkflowStories } from '@/components/marketing/WorkflowStories';
 import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight, ChevronDown, FileText, Code2, Image, Link2, Files, Laptop, Sparkles, Cloud, ShieldCheck } from "lucide-react";
@@ -26,7 +28,7 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   const documentationConfig = getDocumentationConfig(locale);
   const formatIcons = [FileText, Code2, Image, Link2, Files];
   const privacyIcons = [Laptop, Sparkles, Cloud, ShieldCheck];
-  const nav = ['Meaning Search', 'Recall', locale === 'ja' ? '拡張機能' : 'Extensions', j.startLabel,
+  const nav = ['Meaning Search', 'Recall', locale === 'ja' ? '拡張機能' : 'Extensions', locale === 'ja' ? '判定ルール' : 'Decision rules', locale === 'ja' ? 'アシスタント連携' : 'Assistant access', j.startLabel,
     c.nav[0], c.nav[1], c.nav[2], c.nav[4], c.nav[5]];
   const featureLinks = (href: string, guide: string, explore: string, setup: string) => (
     <div className={styles.actions}>
@@ -48,36 +50,23 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
         <section id="meaning-search" aria-labelledby="meaning-title" className={styles.section}>
           <p className={styles.eyebrow}>Meaning Search</p><h2 id="meaning-title">{j.meaning.title}</h2><p>{j.meaning.body}</p>
           <p className={styles.note}>{j.meaning.requirement}</p>
-          <figure className={styles.example}>
-            <div><span>{j.queryLabel}</span><blockquote>{j.meaning.query}</blockquote></div>
-            <div className={styles.clipExample}><span>{j.clipLabel}</span><p>{j.meaning.clip}</p></div>
-            <figcaption>{j.example}</figcaption>
-          </figure>
+          <WorkflowDemo locale={locale} kind="meaning" />
           {featureLinks('/meaning-search', documentationConfig.meaningSearch, j.meaning.explore, j.meaning.setup)}
         </section>
         <section id="recall" aria-labelledby="recall-title" className={styles.section}>
           <p className={styles.eyebrow}>Recall</p><h2 id="recall-title">{j.recall.title}</h2><p>{j.recall.body}</p>
           <p className={styles.note}>{j.recall.requirement}</p>
-          <figure className={styles.example}>
-            <div><span>{j.queryLabel}</span><blockquote>{j.recall.query}</blockquote></div>
-            <div className={styles.clipExample}><span>{j.answerLabel}</span><p>{j.recall.answer}</p></div>
-            <div><span>{j.sourcesLabel}</span><ol>{j.recall.sources.map(source => <li key={source}>{source}</li>)}</ol></div>
-            <figcaption>{j.example}</figcaption>
-          </figure>
+          <WorkflowDemo locale={locale} kind="recall" />
           {featureLinks('/recall', documentationConfig.recall, j.recall.explore, j.recall.setup)}
         </section>
         <section id="extensions" aria-labelledby="extensions-title" className={styles.section}>
           <p className={styles.eyebrow}>{nav[2]}</p><h2 id="extensions-title">{j.extensions.title}</h2><p>{j.extensions.body}</p>
           <p className={styles.note}>{j.extensions.requirement}</p>
-          <figure className={styles.example}>
-            <div><span>{j.extensions.visual}</span><div className={styles.diagram} aria-label={locale === 'ja' ? 'コピー、検索、再利用の流れ' : 'Copy, find, reuse flow'}>
-              <span>{locale === 'ja' ? 'コピー' : 'Copy'}</span><ArrowRight aria-hidden="true" size={16} /><span>{locale === 'ja' ? '検索' : 'Find'}</span><ArrowRight aria-hidden="true" size={16} /><span>{locale === 'ja' ? '再利用' : 'Reuse'}</span>
-            </div></div>
-            <div className={styles.clipExample}><span>{j.extensions.transform}</span><dl><dt>{j.original}</dt><dd>{j.extensions.before}</dd><dt>{j.result}</dt><dd>{j.extensions.after}</dd></dl></div>
-            <figcaption>{j.example}</figcaption>
-          </figure>
+          <WorkflowDemo locale={locale} kind="rewrite" />
           {featureLinks('/extensions', documentationConfig.extensions, j.extensions.explore, j.extensions.setup)}
         </section>
+        <div id="decision-rules" className="scroll-mt-24"><WorkflowStories locale={locale} only="decision" /></div>
+        <div id="assistant-access" className="scroll-mt-24"><WorkflowStories locale={locale} only="assistant" /></div>
         <section id="getting-started" aria-labelledby="start-title" className={styles.section}>
           <p className={styles.eyebrow}>{j.startLabel}</p><h2 id="start-title">{j.startTitle}</h2><p>{j.startBody}</p>
           <div className={styles.actions}><a href={documentationConfig.gettingStarted} className={styles.link}>{j.startLinks[0]}<ArrowUpRight size={16} aria-hidden="true" /></a><a href={documentationConfig.localAi} className={styles.link}>{j.startLinks[1]}<ArrowUpRight size={16} aria-hidden="true" /></a></div>
