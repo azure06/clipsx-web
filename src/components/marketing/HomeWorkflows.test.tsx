@@ -13,6 +13,9 @@ describe('role-based Home workflows', () => {
   expect(html).toContain('Claude Code');
   expect(html).toContain('read_clip');
   expect(html).toContain(workflowExamples[locale].sources[0]);
+  expect(html).toContain(workflowExamples[locale].originalText);
+  expect(html).toContain(workflowExamples[locale].outputs[0]);
+  for (const operation of workflowExamples[locale].operations) expect(html).toContain(operation);
   expect(html).toContain('/product#decision-rules');
   expect(html).toContain('/recall#integrations');
   expect(html).toContain(locale==='ja'?'未確認事項':'unanswered questions');

@@ -3,17 +3,32 @@
 /* Full-width background marks the feature boundary; content shares the page grid. */
 .featureBand { background: #10182a; border-block: 1px solid var(--cx-line); margin-block: 24px 72px; }
 :global(html:not(.dark)) .featureBand { background: #edf0f8; }
-.transformStory { scroll-margin-top: 90px; padding-block: 72px; gap: 36px 28px; }
-.transformIntro { grid-column: 1 / -1; }
-.transformIntro .storyCopy { display: grid; grid-template-columns: 1.1fr .9fr; column-gap: 64px; align-items: start; }
-.transformIntro .storyCopy > :first-child { grid-column: 1; margin-bottom: 18px; }
-.transformIntro .storyCopy h2 { grid-column: 1; max-width: 520px; }
-.transformIntro .storyCopy > p:not(:first-child) { grid-column: 2; grid-row: 1 / 4; margin: 0; }
-.transformIntro .storyCopy > a { grid-column: 1; justify-self: start; margin-top: 20px; }
-.transformMain { background: var(--ui-surface); padding: 24px; }
-.rewriteStage { margin-top: 0; }
-.rewriteStage > figure { margin-block: 0; }
-.decisionCard { margin-top: 0; align-self: start; padding: 24px; }
+.transformStory { scroll-margin-top: 90px; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); padding-block: 72px; gap: 48px 56px; align-items: center; }
+.transformIntro { min-width: 0; }
+.transformIntro h2 { max-width: 440px; }
+.transformIntro > p:not(:first-child) { color: var(--cx-muted); font-size: 15px; line-height: 1.85; margin-block: 22px; max-width: 390px; }
+.transformIntro > .note { margin-block: 16px 0; }
+.transformMain { min-width: 0; background: none; border: 0; border-radius: 0; padding: 0; }
+.rewriteExample { margin: 0; border: 1px solid var(--ui-border); border-radius: 16px; overflow: hidden; background: var(--ui-surface); box-shadow: 0 16px 48px #0000000a; }
+.rewriteToolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 22px; border-bottom: 1px solid var(--ui-border); }
+.rewriteToolbar > span { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.rewriteToolbar > div { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--ui-border); border-radius: 8px; }
+.rewriteToolbar button { min-height: 36px; padding: 6px 9px; border-radius: 5px; font-size: 12px; color: var(--ui-text-muted); }
+.rewriteToolbar button[aria-pressed="true"] { color: var(--ui-violet); background: #8b5cf61a; }
+.rewriteComparison { display: grid; grid-template-columns: minmax(0,1fr) 18px minmax(0,1fr); align-items: start; gap: 18px; padding: 32px 24px; min-height: 240px; }
+.rewriteComparison > div > span { display: block; color: var(--ui-text-muted); font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 18px; }
+.rewriteComparison p { font-size: 16px; line-height: 1.85; overflow-wrap: anywhere; }
+.rewriteComparison > div:last-child > span { color: var(--ui-violet); }
+.rewriteArrow { margin-top: 48px; color: var(--ui-text-muted); }
+.rewriteExample figcaption { padding: 14px 22px; border-top: 1px solid var(--ui-border); font-size: 11px; line-height: 1.7; color: var(--ui-text-muted); }
+.mermaidNote { margin-top: 18px; font-size: 12px; line-height: 1.8; color: var(--cx-muted); }
+.decisionCard { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-self: start; margin: 0; padding: 32px 0 0; border: 0; border-top: 1px solid var(--cx-line); border-radius: 0; background: none; }
+.decisionCard h3 { font-size: 22px; margin-bottom: 12px; }
+.decisionCard > div > p:not(:first-child) { font-size: 13px; line-height: 1.8; color: var(--cx-muted); }
+.ruleSummary { display: flex; flex-wrap: wrap; align-items: center; align-content: start; gap: 12px; font-size: 12px; line-height: 1.8; }
+.ruleSummary > span { flex-basis: 100%; }
+.ruleSummary strong { border: 1px solid #8b5cf64a; border-radius: 6px; padding: 5px 10px; color: var(--cx-accent); font-weight: 500; }
+.ruleSummary > a, .ruleSummary > p { flex-basis: 100%; }
 .windowControls { display: flex; flex: 0 0 auto; gap: 7px; }
 .windowControls i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 1px #00000018; }
 .windowControls i:nth-child(2) { background: #febc2e; }
@@ -23,14 +38,17 @@
 .clientNote { font-size: 12px; line-height: 1.8; padding: 0 24px 16px; color: var(--ui-text-muted); }
 @media (max-width:760px) {
   .featureBand { margin-block: 16px 48px; }
-  .transformStory { padding-block: 40px; gap: 24px; }
-  .transformIntro .storyCopy { display: block; }
-  .transformIntro .storyCopy > p:not(:first-child) { margin-block: 20px; }
-  .transformIntro .storyCopy > a { margin-top: 0; }
+  .transformStory { grid-template-columns: 1fr; padding-block: 40px; gap: 28px; }
+  .transformIntro > p:not(:first-child) { margin-block: 18px; }
+  .decisionCard { grid-template-columns: 1fr; gap: 24px; }
+  .rewriteComparison { grid-template-columns: 1fr; gap: 20px; padding: 24px 20px; min-height: 0; }
+  .rewriteComparison > div > span { margin-bottom: 10px; }
+  .rewriteArrow { margin-top: 0; transform: rotate(90deg); }
+  .rewriteToolbar { padding: 16px; }
   .chrome { gap: 8px; }
   .chrome strong { font-size: 11px; }
   .windowControls { gap: 5px; }
   .windowControls i { width: 9px; height: 9px; }
-  .transformMain, .decisionCard { padding: 18px; }
+  .transformMain { padding: 0; }
   .clients { padding-inline: 16px; }
 }
