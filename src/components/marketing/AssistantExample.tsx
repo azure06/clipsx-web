@@ -4,7 +4,7 @@ import styles from './home-workflows.module.css';
 export function AssistantExample({locale}: {locale: Locale}) {
  const ja=locale==='ja'; const c=workflowExamples[locale];
  return <figure className={styles.assistant}>
- <div className={styles.chrome}><span aria-hidden="true">◉</span><strong>{ja?'アシスタントの作業画面':'Assistant workspace'}</strong><span>MCP · ClipsX</span></div>
+ <div className={styles.chrome}><span className={styles.windowControls} aria-hidden="true"><i/><i/><i/></span><strong>{ja?'アシスタントの作業画面':'Assistant workspace'}</strong><span>MCP · ClipsX</span></div>
  <div className={styles.clients} aria-label={ja?'対応クライアントの例':'Example compatible clients'}><span>Codex</span><span>Claude Code</span><span>{ja?'その他の対応MCPクライアント':'Other compatible MCP clients'}</span></div><p className={styles.clientNote}>{ja?'これはClipsXのMCPサーバーを使う共通のワークフローです。接続方法や対応機能はクライアントごとに異なります。クラウド型クライアントからの接続には対応するローカルブリッジが必要です。':'One ClipsX MCP server, your choice of compatible assistant. Setup and capabilities vary by client; cloud-hosted clients need a supported local bridge.'}</p><div className={styles.assistantGrid}><div className={styles.conversation}>
  <p className={styles.small}>{ja?'サポートエンジニア → 調査の引き継ぎ':'SUPPORT ENGINEER → ENGINEERING HANDOFF'}</p>
  <blockquote className={styles.prompt}>{ja?'コピーした顧客の報告とAPIメモから、開発チーム向けの引き継ぎを作って。根拠と未確認事項を分けて。':'Use the customer ticket and API notes I copied to draft an engineering handoff. Separate evidence from unknowns.'}</blockquote>
