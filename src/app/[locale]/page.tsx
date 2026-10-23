@@ -25,7 +25,7 @@ const copy = {
     title: "Copy something.",
     accent: "Do more with it.",
     intro:
-      "The desktop clipboard for everything worth keeping — find that link, bring back an idea, and turn it into what's next.",
+      "The desktop clipboard for everything worth keeping. Find that link, bring back an idea, and turn what you copy into what you need next.",
     download: "Download ClipsX",
     tour: "Take a closer look",
     noteItems: ["Free", "Local storage", "No account needed"],
