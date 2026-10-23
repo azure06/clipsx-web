@@ -9,6 +9,8 @@ describe('role-based Home workflows', () => {
   const html=renderToStaticMarkup(<HomeWorkflows locale={locale}/>);
   expect(html).toContain(workflowExamples[locale].preview);
   expect(html).toContain('search_clips');
+  expect(html).toContain('Codex');
+  expect(html).toContain('Claude Code');
   expect(html).toContain('read_clip');
   expect(html).toContain(workflowExamples[locale].sources[0]);
   expect(html).toContain('/product#decision-rules');

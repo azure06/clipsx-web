@@ -1253,13 +1253,21 @@
 }
 .cx-closing .cx-shell {
   position: relative;
+  padding: clamp(24px, 5vw, 64px);
+  border: 1px solid #ffffff26;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(ellipse at 100% 0%, #a78bfa55, transparent 65%),
+    linear-gradient(120deg, #4c1d95, #5b21b6 55%, #3730a3);
 }
 .cx-closing h2 {
+  color: #fff;
   max-width: 750px;
   font-size: clamp(28px, 3.4vw, 44px);
 }
 .cx-closing > div > p {
-  color: var(--cx-muted);
+  color: #ede9fe;
   font-size: 14px;
   margin-top: 17px;
 }
@@ -1736,8 +1744,16 @@ html:not(.dark) .cx-closing {
     radial-gradient(ellipse 45% 60% at 0% 100%, rgb(147 197 253 / .2), transparent 55%),
     #edf1f8;
 }
-html:not(.dark) .cx-closing > div > p { color: var(--cx-muted); }
-html:not(.dark) .cx-closing .cx-text-link { color: #4c1d95; }
+.cx-closing .cx-button,
+html:not(.dark) .cx-closing .cx-button {
+  background: #fff;
+  color: #4c1d95;
+  border-color: #fff;
+}
+.cx-closing .cx-text-link,
+html:not(.dark) .cx-closing .cx-text-link { color: #f5f3ff; }
+html:not(.dark) .cx-closing > div > p { color: #ede9fe; }
+.cx-closing a:focus-visible { outline: 2px solid #fff; outline-offset: 5px; }
 @media (max-width: 600px) {
   html[lang="ja"] .cx-home h1 {
     font-size: clamp(28px, 8.3vw, 46px);
