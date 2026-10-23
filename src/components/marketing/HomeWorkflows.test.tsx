@@ -12,6 +12,10 @@ describe('role-based Home workflows', () => {
   expect(html).toContain('Codex');
   expect(html).toContain('Claude Code');
   expect(html).toContain('read_clip');
+  expect(html).toContain(locale === 'ja' ? 'サンプルのタスク一覧' : 'Example task sidebar');
+  expect(html).toContain('<textarea');
+  expect(html).toContain('readOnly=""');
+  expect(html).toContain(locale === 'ja' ? '説明用 · 送信されません' : 'Illustration · does not send');
   expect(html).toContain(workflowExamples[locale].sources[0]);
   expect(html).toContain(workflowExamples[locale].originalText);
   expect(html).toContain(workflowExamples[locale].outputs[0]);

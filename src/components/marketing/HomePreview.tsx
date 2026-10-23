@@ -14,11 +14,14 @@ import {
   Layers,
   Link2,
   Moon,
+  MessagesSquare,
+  Minus,
   Pin,
   Search,
   Settings,
   Sparkles,
   Star,
+  Square,
   Sun,
   UserRound,
   X,
@@ -257,6 +260,7 @@ export function HomePreview({ locale }: { locale: Locale }) {
         .includes(query.toLowerCase()),
   );
   const active = filtered.find((clip) => clip.id === selected) ?? filtered[0];
+  const PreviewIcon = active?.icon ?? FileText;
   function showStep(step: number) {
     setPlaying(false);
     setTourStep(step);
@@ -353,27 +357,33 @@ export function HomePreview({ locale }: { locale: Locale }) {
         className="cx-app"
         onPointerDown={() => setPlaying(false)}
         onFocusCapture={() => setPlaying(false)}
+        onKeyDown={(event) => {
+          if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            rootRef.current?.querySelector('input')?.focus();
+          }
+        }}
       >
         <div className="cx-app-title">
-          <Layers size={13} />
           <span>{ui.clips}</span>
           <div aria-hidden="true">
             <span>
               {clips.length} {ui.clips}
             </span>
-            <span>—</span>
-            <span>□</span>
+            <Minus size={12} />
+            <Square size={10} />
             <X size={12} />
           </div>
         </div>
         <div className="cx-app-body">
           <div className="cx-app-sidebar" aria-hidden="true">
-            <Layers size={19} />
-            <Sparkles size={18} />
-            <Blocks size={18} />
+            <span className="cx-sidebar-active"><Layers size={16} /></span>
+            <span><MessagesSquare size={16} /></span>
+            <span><Sparkles size={16} /></span>
+            <span><Blocks size={16} /></span>
             <div />
-            <UserRound size={17} />
-            <Settings size={17} />
+            <span><UserRound size={15} /></span>
+            <span><Settings size={15} /></span>
           </div>
           <div className="cx-app-workspace">
             <div className="cx-app-search">
@@ -388,6 +398,7 @@ export function HomePreview({ locale }: { locale: Locale }) {
                   setMobileDetail(false);
                 }}
               />
+              {!query && <span className="cx-search-shortcut" aria-hidden="true">Ctrl K</span>}
               {query && (
                 <button
                   type="button"
@@ -439,7 +450,7 @@ export function HomePreview({ locale }: { locale: Locale }) {
                         </span>
                         <span className="cx-clip-text">
                           <strong>{clip.title}</strong>
-                          <small>{clip.subtitle}</small>
+                          <small><span>{clip.subtitle}</span><time>{`10:${String(48 - clips.indexOf(clip) * 3).padStart(2, '0')}`}</time></small>
                         </span>
                         {clip.pinned ? (
                           <Pin size={12} className="cx-clip-star" />
@@ -466,8 +477,13 @@ export function HomePreview({ locale }: { locale: Locale }) {
                     <ArrowLeft size={14} />
                     {ui.back}
                   </button>
-                  <span>{c.preview}</span>
-                  <span>{active?.type ?? "—"}</span>
+                  <span className="cx-preview-type"><PreviewIcon size={14} aria-hidden="true" />{active?.type ?? c.preview}</span>
+                  {active && <div className="cx-preview-actions">
+                    <span aria-hidden="true"><Star size={14} className={active.favorite ? 'cx-action-selected' : ''}/><Pin size={14} className={active.pinned ? 'cx-action-selected' : ''}/></span>
+                    <button type="button" onClick={copySample} aria-label={c.copy} title={c.copy}>
+                      {copyState === c.copied ? <Check size={14}/> : <Clipboard size={14}/>}
+                    </button>
+                  </div>}
                 </div>
                 {active && (
                   <>
@@ -498,14 +514,7 @@ export function HomePreview({ locale }: { locale: Locale }) {
                         <span className="cx-status-dot" />
                         {c.saved}
                       </span>
-                      <button type="button" onClick={copySample}>
-                        {copyState === c.copied ? (
-                          <Check size={13} />
-                        ) : (
-                          <Clipboard size={13} />
-                        )}
-                        {c.copy}
-                      </button>
+                      <span>{locale === 'ja' ? `${active.content.length} 文字` : `${active.content.length} characters`}</span>
                     </div>
                   </>
                 )}
