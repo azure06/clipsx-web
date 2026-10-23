@@ -33,3 +33,5 @@ English; Japanese marketing links label that destination explicitly.
 
 Documentation uses a restrained reading layout: Inter body text, a compact heading hierarchy, text-led navigation and task cards, modest corners, and violet actions. Decorative card and group icons are omitted; functional search, copy, theme, and navigation controls remain. `docs.json` owns theme and font configuration; `docs.css` adjusts Mintlify's layout and component hooks. Check those hooks against a rendered preview when updating Mintlify. English and Japanese share the presentation, with mobile navigation and scrollable code and tables preserved.
 
+
+Home and Product use shared illustrative workflows, not live inference. Decision rules are an unreleased preview relative to desktop v0.1.7, with separate general and privacy assignments. Rewrite currently uses generation only. The AI setup guide preserves this distinction in both languages.
