@@ -83,8 +83,11 @@ JWTs.
 - `public.sync_profiles`: account owner, generation, initialized flag, and
   per-account committed cursor. Profile locking serializes mutations and resets.
 - `public.sync_devices`: account/device identity, authenticated session ID,
-  display name, last seen, and revocation. A revoked session cannot enroll a new
-  ID. A fresh authenticated session can enroll separately.
+  display name, last seen, revocation and removal time. Removal revokes access,
+  scrubs the display name and hides the entry. Removed entries do not consume
+  the 64-device quota; their session bindings remain until the Auth session is
+  no longer live, preventing re-enrollment with an existing token. Enrollment
+  prunes expired bindings. A fresh authenticated session can enroll separately.
 - `public.sync_records`: current winning records and tombstones in a generation;
   unique account/generation cursor supports ordered pagination.
 - `sync_internal`: not exposed through PostgREST. Narrow executors run as
@@ -99,10 +102,19 @@ All public entrypoints are security invokers with explicit authenticated grants:
 | --- | --- |
 | `sync_enroll_device(device_id, device_name)` | Validate live Auth session; return enrolled device, generation, initialization state, server time |
 | `sync_apply_batch(protocol_version, generation, device_id, after_cursor, records)` | Validate device/session and generation; apply deterministically newer records; return exact revision acknowledgements, winning records, next page, cursor, hasMore, and server time |
-| `sync_list_devices()` | List own device metadata for an active enrolled session |
+| `sync_list_devices()` | List own unremoved devices with live Auth sessions, current device first |
 | `sync_revoke_device(device_id)` | Revoke an own device under the profile lock |
+| `sync_rename_device(device_id, device_name)` | Rename an own unremoved device; trim and validate 1–120 characters without control characters |
+| `sync_remove_device(device_id)` | Revoke and remove an own device from the list and quota; keep its blocked session binding |
 | `sync_reset_profile(generation)` | Atomically clear records and increment generation; old uploads cannot resurrect them |
 | `sync_replace_profile(generation, device_id, records, replace)` | Atomically initialize an empty profile or replace it with a new generation; any invalid record rolls back the entire operation |
+
+Device management requires a live, enrolled, unrevoked caller. Rename, removal,
+revocation and enrollment use the profile lock. Removing the current device
+immediately stops its sync access; neither local settings nor cloud records are
+deleted. The desktop uses computer names, supports user renaming and displays
+“This device” only as the current-device badge. Existing generic names are
+upgraded by the owning device, or shown with a short identity fallback.
 
 RPC argument names have a `p_` prefix. Protocol version is 1. Upload and download
 pages have at most 100 records; upload JSON is capped at 1 MiB and individual
@@ -183,6 +195,6 @@ not expired independently; generation replacement/reset is the reclamation
 boundary. Snapshot replacement rejects duplicate identities and a null replace
 choice. Invalid-only batches do not initialize a profile.
 
-Enrollment removes device rows whose Auth sessions no longer exist or have
-expired before admitting a new session; a profile allows at most 64 enrolled
-sessions. This does not change Auth token validation or make sync billing-gated.
+A profile allows at most 64 unremoved device registrations. Removed session
+bindings do not consume that quota. Auth validation and billing independence
+remain unchanged.
