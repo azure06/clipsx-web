@@ -49,6 +49,9 @@
               "local-ai",
               "meaning-search",
               "recall",
+              "decision-models",
+              "automation",
+              "mcp",
               "extensions",
               "sync"
             ]
@@ -104,6 +107,9 @@
               "ja/local-ai",
               "ja/meaning-search",
               "ja/recall",
+              "ja/decision-models",
+              "ja/automation",
+              "ja/mcp",
               "ja/extensions",
               "ja/sync"
             ]

@@ -1,0 +1,45 @@
+---
+title: "Conditional extension automation"
+description: "Choose which copied text runs an extension, test conditions, and control rule priority."
+keywords: ["automation", "decision model", "Rewrite", "conditional rules", "saved setups"]
+---
+
+Use automation when you repeat the same transformation on matching copies. A rule selects an application, an extension setup, and an optional **Only run when…** question. The decision model evaluates the question before the extension runs.
+
+Automation processes future captures, including another copy of an existing clip. It does not transform your whole history. Results stay attached to the original clip; automation never copies or pastes them for you.
+
+## Prepare a manual result {#prepare}
+
+1. Install and enable an extension that declares capture automation, such as Rewrite. Review its permissions.
+2. Run your intended setup manually on harmless text and check its output. Save customized setup choices so a rule can reuse them.
+3. For a conditional rule, assign a compatible **General decisions** preset in **Intelligence → Models → Usage & defaults**. Rewrite also needs **Extension text generation**. See [decision model setup](/decision-models#setup).
+
+A rule without a condition does not need a decision model, but the selected operation still needs its own prerequisites and permissions.
+
+## Create and test a condition {#first-rule}
+
+For example, prepare a Rewrite setup that translates into English, then ask whether the copy is a Japanese message that needs translation.
+
+1. Open the extension's settings and **Automation rules**. **Manage automation** from Tools also opens the editor for the selected setup.
+2. Add a rule. Select the operation, source application or **All copied clips**, and your built-in or saved setup.
+3. Enable **Only run when…** and enter **Is this a Japanese message that needs translation into English?**
+4. Save and review the processing permission. Configured decision and generation providers receive the text needed for their tasks; either may be hosted.
+5. Test the saved enabled rules with harmless Japanese and English samples. Inspect the selected rule and setup before copying another sample normally.
+
+The test evaluates conditions without saving the sample or generating a rewrite. Yes at **50% or more** matches; the score does not guarantee correctness. If a model check fails, evaluation stops with a retryable failure. An error never counts as No and never selects a different provider automatically.
+
+## Put rules in the right order {#priority}
+
+ClipsX tries enabled rules for the exact source application first, in their displayed order. If none matches, it tries **All copied clips** rules in order. Only the first matching rule runs for each extension operation and capture.
+
+Put specific conditions above broad fallbacks. An unconditional rule always matches eligible input and prevents later rules in its scope from winning. Use the up/down controls to reorder rules.
+
+The source application is where you copied the text, not where you plan to paste it. A website inside a browser is identified as that browser. If ClipsX cannot identify the source application, an exact-application rule cannot match.
+
+## Review results and recover {#recovery}
+
+Inspect **Recent automation attempts** for no match, privacy restrictions, unavailable decision checks, or other failures. Check the assigned models, saved setup, package permissions, and source application before retrying. Privacy-restricted and secret clips are excluded from automatic extension processing.
+
+Editing a saved setup affects future captures. Deleting a setup disables rules that use it; existing results remain readable. Disable or delete rules to stop future automatic runs. Manual extension operations run directly without evaluating automation conditions, so always review the selected input and permissions.
+
+See [extensions](/extensions) and [privacy behavior](/decision-models#failed-checks).

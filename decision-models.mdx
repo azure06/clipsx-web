@@ -1,0 +1,75 @@
+---
+title: "Decision models and capture rules"
+description: "Classify new copied text, organize matching clips, and choose what stays out of history."
+keywords: ["decision model", "privacy checks", "secret detection", "capture rules", "Laya"]
+---
+
+A decision model answers a yes/no question about copied text. You choose what a matching answer does: add a tag, favorite, pin, mark private, mark secret, or skip saving. A generation model writes a result; a decision model decides whether a condition matches.
+
+These instructions describe ClipsX **0.1.8 and later**. Rules apply to new text captures. They do not scan existing history or inspect image pixels.
+
+## Choose the model for the job {#assignments}
+
+| Assignment | Used for |
+| --- | --- |
+| **General decisions** | Tag, favorite, and pin rules; extension automation conditions; permitted extension decision requests |
+| **Privacy checks** | Credential classification and rules that mark private, mark secret, or don't save |
+| **Extension text generation** | Writing the output of an AI extension such as Rewrite |
+
+Privacy is evaluated before general organization. Successfully classified secret or private clips do not go to the General decisions assignment. The privacy provider itself receives the text it evaluates: use on-device inference when that text must stay on your device.
+
+## Set up a decision model {#setup}
+
+1. Open **Intelligence → Models** and add or select a connection. Decision presets support Ollama and OpenRouter; an ordinary chat model is not automatically a decision model.
+2. For local Ollama, install a compatible System One decision model. The app offers Laya as an example:
+
+   ```shell
+   ollama pull laya
+   ```
+
+3. Refresh the connection's models and create a preset with the **Decision** purpose. Select the installed model and use **Test decision** to check the connection and response.
+4. In **Usage & defaults**, assign the preset to **General decisions**, **Privacy checks**, or both. The assignments are separate so you can choose different providers for each.
+
+There is no automatic provider fallback. A local endpoint does not prove local inference; check that Ollama is using a downloaded local model rather than a cloud-backed model. For connection setup, see [Local AI](/local-ai).
+
+## Try an organization rule {#first-rule}
+
+1. Open **Intelligence → Decision rules**, then **Add rule**.
+2. Name it **Debugging**, ask **Does this describe a software error?**, and choose **Add tag** with the tag **Debugging**.
+3. In **Test a rule**, select your draft and try both samples:
+
+   ```text
+   The application crashed with a connection timeout.
+   ```
+
+   ```text
+   Our team lunch is on Thursday.
+   ```
+
+4. Inspect the answers, revise the question if needed, then enable the rule and save. Copy a harmless example again and check its tag in History.
+
+The test sends only your sample to the assigned provider. It does not save a clip or apply the action. A Yes probability of **50% or more** counts as a match. That probability is model judgment, not measured accuracy. Test realistic examples, including cases that should not match.
+
+## Choose a privacy action {#privacy-actions}
+
+Built-in secret detection remains active without a model. Assigning **Privacy checks** adds model-based credential classification and lets you ask your own privacy questions, such as **Does this contain confidential customer information?**
+
+| Action | Result when the rule matches |
+| --- | --- |
+| **Mark private** | Save the clip with a privacy restriction; exclude it from Recall, Meaning Search, MCP access, and automatic extensions |
+| **Mark secret** | Classify it as a secret, with the same processing exclusions; **Don't save detected secrets** also controls whether it is stored |
+| **Don't save** | Skip storing this copy in ClipsX |
+
+Enable **Don't save detected secrets** if recognized credentials should be excluded before storage. These controls do not clear or replace your system clipboard, remove the original from its source application, or delete older history. Use invented sample data for tests, never real credentials.
+
+## Understand failed checks {#failed-checks}
+
+If a configured check times out, is unavailable, returns an invalid response, or exceeds an input limit, ClipsX saves the full clip with a **Not checked** notice. A failed check does **not** automatically make the clip private: it can remain available to Recall, Meaning Search, and enabled extensions. Organization rules are skipped when privacy evaluation fails. Existing restrictions and successfully detected secrets still follow their exclusion settings.
+
+A No answer does not establish that text is safe. These rules help you control capture; they do not guarantee detection of every secret or confidential passage. Review the notice, model assignment, connection, and input size when a check cannot finish.
+
+## Run an extension only when it fits {#automation}
+
+An extension automation rule can ask a question before selecting a setup. For example, run a translation setup only when the copied text needs translation. The condition uses **General decisions**; Rewrite then uses **Extension text generation** to write the result.
+
+Continue with [Conditional automation](/automation), or [connect an assistant through MCP](/mcp).

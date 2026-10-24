@@ -105,10 +105,8 @@ Credentials stay in this device's protected storage and are excluded from config
 See [Troubleshooting](/troubleshooting) and [privacy boundaries](/privacy).
 
 
-## Decision rules preview {#decision-rules}
+## Decision models {#decision-rules}
 
-Preview · coming in a future desktop release. Decision rules are not available in published v0.1.7.
+In ClipsX 0.1.8 and later, decision models evaluate yes/no questions about new copied text. **General decisions** serves organization rules, extension automation conditions, and permitted extension requests. **Privacy checks** separately serves credential classification and restrictive capture rules. Generation still writes the resulting text.
 
-A decision model judges a question about newly copied text; a generation model writes text. General decisions can support rules that add a tag, favorite, or pin. Privacy decisions have a separate assignment for restrictive capture rules. Judgments can be wrong; privacy rules are not a guarantee that sensitive content will always be recognized.
-
-Compatible extensions can request decision capability through the host. Current Rewrite uses generation only, including translation and rephrasing; it does not currently use decision models. Hosted decision providers receive the evaluated text. Choose local inference when you need on-device processing.
+Follow [Decision model setup](/decision-models#setup), then try a harmless tag rule or [conditional Rewrite automation](/automation). Use the [privacy action and failure guide](/decision-models#privacy-actions) before relying on a rule to restrict capture. Hosted providers receive evaluated text; local inference is recommended for privacy.

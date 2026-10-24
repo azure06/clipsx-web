@@ -33,7 +33,9 @@ Their build requirements differ; use the repository's package instructions.
 Use the [Extension API](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V3.md)
 for supported contributions, manifest fields, lifecycle rules, and limits. Start
 with one contribution and only the permissions that behavior needs. The contract
-and pinned WIT must match your target desktop host; the current source uses v3.2.
+and pinned WIT must match your target desktop host. The WebAssembly interface
+remains v3.2; extensions that request decision capability declare API `^3.3`.
+Existing `^3.2` packages remain compatible.
 
 ## What belongs to the host {#capabilities}
 
@@ -50,6 +52,20 @@ required only for packages that request it.
 Credentials and grants do not synchronize between devices. Changed package bytes
 require renewed permission review. Automatic transformations store results with
 the source clip; they do not replace the system clipboard.
+
+## Decision capability and automation {#decisions}
+
+Compatible transformers can declare `decision.text` separately from
+`generation.text`. The host uses the user's **General decisions** assignment;
+the response is a probability, not generated text or permission to perform an
+external action. Secret and private source clips cannot use this general
+capability. See the [decision contract](https://github.com/azure06/clipsx/blob/main/docs/EXTENSION_API_V3.md#decision-models)
+for the request, response, permission, and input limits.
+
+A user's **Only run when…** automation condition belongs to the host. It does
+not require the extension itself to request decision capability. Conditions
+select which setup runs; generation writes the result. See
+[conditional automation](/automation) for rule ordering, sample tests, and failures.
 
 ## Validate locally before distributing {#validation}
 

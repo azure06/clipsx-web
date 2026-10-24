@@ -35,7 +35,7 @@ Open citation buttons to inspect excerpts and original clips. Select sources and
 
 Recall includes initial clipboard evidence when available. Long sources may be shortened or omitted to fit the model's remaining context. Review partial-source indicators before relying on a reply.
 
-Detected secret clips are excluded from Recall evidence. There is no Recall override for that exclusion. Never use real secrets in setup exercises. Citations help inspection; they do not guarantee correct interpretation.
+Secret and private clips are excluded from Recall evidence. There is no Recall override for that exclusion. A failed privacy check alone does not restrict a clip; see [decision rules](/decision-models#failed-checks). Never use real secrets in setup exercises. Citations help inspection; they do not guarantee correct interpretation.
 
 ## Understand incomplete results {#recovery}
 
@@ -53,15 +53,8 @@ Chats and their source snapshots are saved on this device and remain separate fr
 
 ## Connect an external assistant {#integrations}
 
-1. Open **Intelligence → Integrations** and enable the local MCP server.
-2. Select **Add assistant**, choose a setup template, and create named access. Start with read-only access unless the assistant needs to change clips.
-3. Use the generated setup command or configuration for your client. Keep the token private. Creating access in ClipsX does not configure the external app.
-4. Follow the displayed restart instructions and use **Test access**. This checks authentication and tool discovery; also ask your assistant to find a harmless saved note.
+External assistants can retrieve eligible saved clips through the optional local MCP server. They use their own model, while Recall uses the model selected inside ClipsX. Start with read-only access and inspect retrieved sources.
 
-For Codex, choose the instructions for your client: a CLI command configures the CLI, while the desktop app also needs its token available to the app process. On Windows, follow the generated persistent user-environment setup, then fully quit and reopen Codex.
-
-The token is shown only when you create or rotate access. Rotation replaces the old token. Revoke access to disconnect an assistant, or delete it to remove its saved access configuration. Deletion keeps clips and activity records.
-
-ClipsX gives assistants guidance for keyword and meaning-based retrieval, refining searches, and checking sources. Meaning-based retrieval needs an embedding model. Each assistant decides when to call tools; the guidance does not guarantee a search on every request. Detected secret clips are excluded. Read/write access also allows supported clipboard changes, so grant it deliberately.
+Follow [Connect assistants with MCP](/mcp) for Codex and Claude Code setup, a first retrieval exercise, permission levels, and token rotation or revocation.
 
 See [model resources](/local-ai#resources) and [Troubleshooting](/troubleshooting).

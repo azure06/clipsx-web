@@ -14,6 +14,14 @@ Recall chats and source snapshots are saved locally, separately from clipboard r
 
 Provider credentials use protected device-local storage. Hosted providers receive content needed for enabled tasks; hosted background indexing requires explicit permission. Local MCP is off by default and requires a separate token for each assistant. Read-only grants allow retrieval; read/write grants also allow supported changes. Revoking or deleting access disconnects that assistant; deleting access does not delete clips or activity records.
 
+## Decision rules and failed checks
+
+Built-in secret detection remains active. Optional [decision rules](/decision-models) can classify new text before storage, mark it private or secret, or skip saving. Secret and private clips are excluded from Recall, Meaning Search, MCP access, and automatic extensions. The privacy provider receives the text it evaluates; on-device inference is recommended. Rules do not scan existing history or image pixels and do not clear the system clipboard.
+
+If a configured check fails, the full clip is saved with a **Not checked** notice. Failure alone does not restrict the clip from AI or extension processing. Organization rules are skipped when privacy evaluation fails; existing restrictions and successfully detected secrets still apply. Read [failure behavior](/decision-models#failed-checks) before choosing your settings. No model guarantees detection of every secret.
+
+For assistant setup and access controls, see [MCP](/mcp). A local connection does not prevent the external assistant from sending retrieved text to its own provider.
+
 ## Optional accounts
 
 Supabase handles authentication, email, sessions, and supported settings-sync records. Google and GitHub process sign-in when selected. Pro billing and Vault are not advertised as available features. Settings sync is not end-to-end encrypted.

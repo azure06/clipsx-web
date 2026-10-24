@@ -1,0 +1,65 @@
+---
+title: "Connect assistants with MCP"
+description: "Give Codex, Claude Code, or another compatible assistant controlled access to saved clipboard context."
+keywords: ["MCP server", "Codex", "Claude Code", "clipboard context", "assistant integration"]
+---
+
+Connect an assistant when your task needs something you already copied: a customer report, API note, error message, or saved reference. The assistant can search relevant clips and inspect sources without you pasting each one again.
+
+ClipsX provides a local **Streamable HTTP MCP server**, off by default. ClipsX must be running. The default endpoint is `http://127.0.0.1:39389/mcp`; **Advanced** lets you change the port. Hiding the ClipsX window keeps the server running.
+
+## Connect your first assistant {#setup}
+
+1. Open **Intelligence → Integrations** and enable the server.
+2. Choose **Add assistant**, select a Codex, Claude Code, or generic template, and create named access. Start with **read-only**.
+3. Follow the generated setup instructions for your actual client. Keep the token private; creating access in ClipsX does not configure the external app.
+4. Restart the client as instructed. Use **Test access** in ClipsX, then ask the assistant to find a harmless saved note.
+
+**Test access** verifies authentication and tool discovery. It does not verify the external client's configuration or whether its model uses the tools correctly.
+
+### Codex desktop and CLI
+
+Use the setup view's instructions for your operating system and client. A CLI registration also needs the token available in the process that runs the client. On Windows desktop, follow the generated persistent user-environment setup, then fully quit and reopen Codex, including background processes. Opening a new chat alone does not refresh its environment.
+
+The persistent Windows environment value is outside ClipsX's protected credential storage. Keep tokens and completed setup commands out of shared project files and screenshots. If access fails, use **Not connecting?** in the setup view before recreating it.
+
+### Claude Code and other clients
+
+Use the generated HTTP configuration and bearer authorization header for the selected client. Templates help with setup; they do not restrict protocol compatibility. A cloud-hosted assistant cannot reach your device's loopback address directly. ClipsX does not create a public tunnel.
+
+## Try retrieval with evidence {#first-task}
+
+Copy these notes separately:
+
+```text
+Orion support report: two concurrent checkout requests time out after 30 seconds.
+```
+
+```text
+Orion API note: the default client timeout is 30 seconds. The cause of the checkout failure is not confirmed.
+```
+
+Ask your connected assistant: **Find my copied Orion report and API note. Draft an engineering handoff with the evidence and unanswered questions.** Check that the assistant searches and reads the relevant clips before treating them as evidence. A matching timeout alone does not establish the cause.
+
+Keyword search needs no AI model in ClipsX. Meaning-based retrieval needs an active embedding model and index. The external assistant uses its own model; you do not need a ClipsX generation model just to expose saved clips over MCP.
+
+## Choose the access level {#permissions}
+
+| Access | Available tools |
+| --- | --- |
+| **Read-only** | `get_clipboard_status`, `list_clipboard_filters`, `search_clips`, `read_clip`, `read_clip_image` |
+| **Read/write** | All read tools, plus `create_clip`, `organize_clips`, `undo_clipboard_action` |
+
+Read access covers eligible saved text, existing OCR, and supported stored image previews. File references do not grant access to files elsewhere on your device. Write access allows supported creation and organization, not shell access, arbitrary files, or history deletion. Created clips appear in History and do not replace the system clipboard. Undo applies to supported changes and can refuse if the clip has changed since.
+
+ClipsX supplies retrieval guidance, but the assistant decides when to call tools. Search results are leads; inspect source text before relying on an answer. **Recent changes** records MCP mutations, not every read.
+
+## Keep control of the connection {#access-control}
+
+Create separate named access for each assistant. Tokens appear only on creation or rotation. Rotate a lost token, replace it in the client, and restart the client. Rotation or revocation disconnects that assistant's sessions immediately. Disabling the server disconnects all assistants.
+
+**Revoke** keeps the access entry but disables it. **Delete assistant** removes its saved access configuration; clips and retained activity remain. Neither action removes the external client's configuration or saved environment variable.
+
+Secret and private clips are excluded from assistant access. These exclusions depend on successful classification; a failed privacy check alone does not restrict a clip. Read [decision-rule failure behavior](/decision-models#failed-checks).
+
+The connection is local, but the external assistant may send retrieved content to its model provider. MCP access, endpoint settings, and activity are device-local and excluded from settings sync. See [privacy](/privacy).

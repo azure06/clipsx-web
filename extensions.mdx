@@ -37,6 +37,12 @@ Open the captured text and choose the available Mermaid view. Inspect the diagra
 
 Generated text can change meaning. **Save as new clip** creates an independent clip; attached results remain associated with the source. Automatic rules are optional and configured separately. Start manually.
 
+## Automate matching copies {#automation}
+
+For repeated work, select a built-in or saved setup in the extension's **Automation rules**. Add an optional **Only run when…** question to evaluate copied text with **General decisions** before the operation runs. Rewrite uses its generation assignment to write the result. Test conditions on harmless samples and review rule order; only the first matching rule runs for each operation and capture.
+
+See [Conditional extension automation](/automation) for setup, priority, consent, and recovery. Results stay attached to the original; automation never copies or pastes.
+
 ## Understand the boundary {#permissions}
 
 Bounded WebAssembly packages do not receive ambient access to all history, files, or the network. Network destinations and external navigation must be declared and granted for the exact release. Generation uses the host's configured provider.

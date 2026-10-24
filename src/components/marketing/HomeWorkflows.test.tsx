@@ -21,7 +21,8 @@ describe('role-based Home workflows', () => {
   expect(html).toContain(workflowExamples[locale].outputs[0]);
   for (const operation of workflowExamples[locale].operations) expect(html).toContain(operation);
   expect(html).toContain('/product#decision-rules');
-  expect(html).toContain('/recall#integrations');
+  expect(html).toContain(locale === 'ja' ? '/ja/mcp' : '/mcp');
+  expect(html).toContain(locale === 'ja' ? '/ja/automation' : '/automation');
   expect(html).toContain(locale==='ja'?'未確認事項':'unanswered questions');
   expect(html).not.toContain('<form');
  });
