@@ -21,10 +21,13 @@ export function BlogMeta({ post, locale }: { post: BlogPost; locale: Locale }) {
 
 export function BlogCard({ post, locale, featured = false }: { post: BlogPost; locale: Locale; featured?: boolean }) {
   return <article className={`marketing-card overflow-hidden ${featured ? 'grid lg:grid-cols-2' : 'flex flex-col'}`}>
-    <div className={`bg-[#f6f8fc] ${featured ? 'flex items-center' : ''}`}>
-      <Image src={post.image.src} width={post.image.width} height={post.image.height} alt={pick(post.image.alt, locale)}
-        sizes={featured ? '(min-width: 1280px) 624px, (min-width: 1024px) 50vw, 100vw' : '(min-width: 1280px) 624px, (min-width: 768px) 50vw, 100vw'}
-        preload={featured} className="h-auto w-full" />
+    <div className={`bg-[#f6f8fc] ${featured ? 'relative aspect-video lg:aspect-auto' : ''}`}>
+      {featured
+        ? <Image src={post.image.src} fill alt={pick(post.image.alt, locale)}
+          sizes="(min-width: 1280px) 624px, (min-width: 1024px) 50vw, 100vw"
+          preload className="object-cover" />
+        : <Image src={post.image.src} width={post.image.width} height={post.image.height} alt={pick(post.image.alt, locale)}
+          sizes="(min-width: 1280px) 624px, (min-width: 768px) 50vw, 100vw" className="h-auto w-full" />}
     </div>
     <div className={`flex flex-1 flex-col ${featured ? 'justify-center p-6 sm:p-10 lg:p-12' : 'p-6 sm:p-8'}`}>
       {featured && <p className="eyebrow mb-4">{locale === 'ja' ? '最新の記事' : 'Latest article'}</p>}
