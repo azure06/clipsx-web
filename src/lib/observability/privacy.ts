@@ -9,6 +9,7 @@ const IDENTIFIER = /^(?:\d{6,}|[0-9a-f]{8}-[0-9a-f-]{27,}|[A-Za-z0-9_-]{24,})$/i
 // Explicit exceptions for published slugs that resemble long opaque identifiers.
 // Keep article content out of the client-side observability bundle.
 const PUBLIC_BLOG_SLUGS = new Set([
+  'connect-your-assistant-to-clipboard-with-mcp',
   'local-first-is-a-data-boundary',
   'meaning-search-with-ollama',
   'why-clipboard-extensions-need-boundaries',
