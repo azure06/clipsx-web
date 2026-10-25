@@ -33,6 +33,58 @@ const compatibleUpgrade = [l(
 // Published stable releases only. Dates are GitHub publication timestamps (UTC).
 export const releases = [
   {
+    version: '0.1.9',
+    publishedAt: '2026-10-25T00:39:04Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.9',
+    title: l('Closer previews and clearer device controls.', 'プレビューと端末管理を改善。'),
+    description: l('Inspect images in detail, manage synced devices, and see when privacy checks could not finish.', '画像を詳しく確認し、同期端末を管理し、プライバシー判定が完了しなかった場合を確認できます。'),
+    highlights: [
+      l('Zoom, pan, Fit, 100%, and expand image previews. Open a separate full-resolution copy in your default image app while preserving the stored clip.', '画像プレビューの拡大・移動、全体表示、100%表示、拡張表示に対応。保存済みクリップを変えずに、別の原寸コピーを既定の画像アプリで開けます。'),
+      l('Use trackpad pinch in visual previews without scaling the rest of the app. Expand custom extension previews without restarting their view.', '表示プレビューでトラックパッドのピンチ操作に対応。アプリ全体の倍率を変えず、拡張機能のプレビューも再起動せずに広げられます。'),
+      l('Recognize synced computers by name, rename them, or remove a device to stop its sync access and free a slot while keeping local and cloud settings.', '同期端末をコンピューター名で確認し、名前の変更や削除ができます。削除は同期アクセスを止めて枠を空け、端末内とクラウドの設定は保持します。'),
+      l('Show privacy decision progress, distinguish unchecked clips from private content, and preserve long copied text.', 'プライバシー判定の進行状況を表示し、未確認と非公開を区別。長いコピー内容も保持します。'),
+      l('Apply model context limits consistently in Recall and update request and validation dependencies to patched versions.', 'Recallでモデルのコンテキスト上限を一貫して適用し、通信と検証の依存関係に修正を適用。'),
+    ],
+    limits: [
+      ...compatibleUpgrade,
+      l('Device management requires the matching configuration-sync backend update. Diagram canvas navigation depends on the installed extension.', '端末管理には対応する設定同期バックエンドの更新が必要です。図のキャンバス操作は導入済みの拡張機能に依存します。'),
+    ],
+  },
+  {
+    version: '0.1.8',
+    publishedAt: '2026-10-23T15:17:39Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.8',
+    title: l('Decision models and conditional automation.', '判定モデルと条件付き自動実行。'),
+    description: l('Ask questions about new copied text, organize matching clips, and choose when an extension setup runs.', '新しくコピーした文章を質問で判定し、一致したクリップの整理や拡張機能の実行条件を選べます。'),
+    highlights: [
+      l('Add separate Privacy checks and General decisions assignments. Keep built-in secret detection active and use rules to tag, favorite, pin, mark private or secret, or skip saving matching copies.', 'プライバシー判定と一般的な判定の割り当てを追加。組み込みの秘密情報検出を維持し、タグ、お気に入り、ピン、非公開、秘密情報、保存しない、のルールに対応。'),
+      l('Add ordered automation rules per application, optional decision conditions, sample testing, and retryable failures. Only the first matching setup runs; results stay attached to the original.', 'アプリ別の順序付き自動実行ルール、判定条件、サンプルテスト、再試行可能な失敗に対応。最初に一致した設定だけを実行し、結果は原文に添付します。'),
+      l('Open Intelligence on Overview, with model assignments, search progress, and setup shortcuts.', 'インテリジェンスの最初の画面を概要にし、モデル割り当て、検索の進行状況、設定への導線を表示。'),
+      l('Let permitted extensions request General decisions through Extension API 3.3 while keeping existing 3.2 packages compatible.', 'Extension API 3.3で許可された拡張機能から一般的な判定を要求可能に。既存の3.2パッケージとの互換性を維持。'),
+      l('Update Wasmtime and certificate-verification dependencies to patched versions.', 'Wasmtimeと証明書検証の依存関係に修正を適用。'),
+    ],
+    limits: [
+      ...compatibleUpgrade,
+      l('Models may be local or explicitly selected hosted providers. On-device inference is recommended for privacy checks; model judgments do not guarantee detection of sensitive content.', 'モデルはローカルまたは明示的に選んだホスト型を利用できます。プライバシーには端末内の推論を推奨します。機密情報の完全な検出は保証しません。'),
+    ],
+  },
+  {
+    version: '0.1.7',
+    publishedAt: '2026-10-19T22:33:11Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.7',
+    title: l('Reliable shortcut recording and remembered window size.', 'ショートカット記録とウィンドウサイズの復元を改善。'),
+    description: l('Record shortcuts with keyboard focus and reopen ClipsX at your previous normal window size.', 'キーボードフォーカスを保ってショートカットを記録し、通常時のウィンドウサイズを次回起動時に復元します。'),
+    highlights: [
+      l('Focus shortcut recorders when recording starts, including global, extension, and built-in command shortcuts on WebKit.', '記録開始時にフォーカスを移し、WebKitでグローバル、拡張機能、組み込みコマンドのショートカットを記録可能に。'),
+      l('Restore the normal window size across restarts, centered and fitted to the available screen.', '通常時のウィンドウサイズを再起動後に復元し、画面内に収まるよう中央に配置。'),
+      l('Update ZIP archive handling and disable unused ZIP updater payloads while keeping published installer formats.', 'ZIP処理を修正版に更新し、未使用のZIP更新ペイロードを無効化。公開インストーラーの形式は維持。'),
+    ],
+    limits: [
+      ...compatibleUpgrade,
+      l('Window position and maximized or fullscreen state are not restored.', 'ウィンドウ位置、最大化、フルスクリーンの状態は復元しません。'),
+    ],
+  },
+  {
     version: '0.1.6',
     publishedAt: '2026-10-16T12:30:29Z',
     url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.6',

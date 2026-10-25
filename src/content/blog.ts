@@ -156,7 +156,50 @@ const extensions: BlogPost = {
   ],
 };
 
-export const blogPosts: BlogPost[] = [localFirst, meaningSearch, extensions].sort((a, b) => b.date.localeCompare(a.date));
+const clipboardMcp: BlogPost = {
+  slug: 'connect-your-assistant-to-clipboard-with-mcp', date: '2026-10-25',
+  topic: l('Assistant workflows', 'アシスタントの活用'),
+  title: l('Let your assistant find what you already copied', 'コピー済みの情報を、アシスタントから探す'),
+  description: l('Use the ClipsX MCP server to turn saved snippets into a support handoff, coding context, or a grounded research comparison.', 'ClipsXのMCPサーバーで保存済みの断片を探し、サポートの引き継ぎ、開発の参考情報、根拠のある調査比較に活用します。'),
+  takeaway: l('Connect a compatible assistant with read-only access, ask for relevant saved clips, and inspect the sources. Start with one task you would otherwise solve by hunting through tabs and pasting context again.', '対応アシスタントを読み取り専用で接続し、関連クリップを探して原文を確認します。まずはタブを探し直して資料を貼り直す作業を、一つ置き換えてみましょう。'),
+  image: { src: '/images/blog/clipboard-mcp.webp', width: 1600, height: 900,
+    alt: l('Saved clipboard notes connect through authorized local MCP access to an assistant, which returns a draft with source references.', '保存済みのメモが許可されたローカルMCP接続を通ってアシスタントに渡り、引用元付きの下書きになる流れ。'),
+    caption: l('Conceptual workflow: saved clips → authorized retrieval → a draft you can check. These are illustrative scenarios, not customer testimonials.', '概念図：保存済みクリップ → 許可した検索 → 確認できる下書き。利用例は説明用であり、顧客の体験談ではありません。') },
+  sections: [
+    { id: 'the-context-you-already-collected', title: l('The context is already in your clipboard history', '必要な資料は、すでに履歴の中に'), paragraphs: [
+      l('You copy an error, a paragraph from documentation, and a useful customer message. Later, your assistant needs those same details. Reopening tabs and rebuilding the story interrupts the task. ClipsX can expose eligible saved clips through MCP, so a compatible assistant can search for relevant material and read its sources when you need them.', 'エラー、ドキュメントの一節、顧客からのメッセージをコピーした後、同じ情報をアシスタントに渡したくなることがあります。タブを開き直して説明を組み立てる代わりに、ClipsXのMCP経由で保存済みクリップを検索し、必要な原文を確認できます。'),
+      l('MCP is the connection between the assistant and ClipsX, not a second chat model inside your clipboard. The examples below are realistic workflow scenarios, not observed customer results. Their value is a shorter path from scattered notes to a useful draft; they do not establish measured time savings or guaranteed accuracy.', 'MCPはアシスタントとClipsXをつなぐ仕組みで、クリップボード内に別のチャットモデルを追加するものではありません。以下は実際の作業を想定した例であり、確認済みの顧客事例ではありません。断片から下書きへ進む流れを示すもので、時間短縮や正確さを保証しません。'),
+    ], links: [{ label: l('Connect Codex, Claude Code, or another MCP client', 'Codex、Claude CodeなどのMCP接続手順'), href: documentationConfig.mcp + '#setup' }] },
+    { id: 'support-handoff', title: l('Support: hand off the evidence, not just the symptom', 'サポート：症状だけでなく根拠も引き継ぐ'), paragraphs: [
+      l('A support engineer has copied a report about concurrent checkout failures and an API note describing timeout behavior. Ask: “Find my copied Orion report and API note. Draft an engineering handoff with the symptom, supporting excerpts, and unanswered questions.” Give a project name or approximate capture date to narrow the search.', 'サポート担当者が、注文の同時処理に関する障害報告と、タイムアウトのAPIメモをコピーしています。「コピーしたOrionの報告とAPIメモを探し、症状、根拠の抜粋、未確認事項を分けて開発者への引き継ぎを作って」と依頼します。案件名やコピーした時期を添えると絞り込めます。'),
+      l('The useful result is a handoff another engineer can verify without reconstructing the investigation. Check that the assistant reads the clips, distinguishes the customer’s observation from its own inference, and leaves the cause open when the evidence does not establish it. A shared timeout value is a clue, not proof of a defect.', '役立つ結果は、調査をやり直さずに別の担当者が確認できる引き継ぎです。原文を読んでいるか、顧客の観察と推測を分けているか、根拠のない原因を断定していないか確認します。同じタイムアウト値は手掛かりですが、不具合の原因の証明ではありません。'),
+    ] },
+    { id: 'coding-context', title: l('Development: recover the API detail you read earlier', '開発：さっき読んだAPIの情報を取り戻す'), paragraphs: [
+      l('While implementing an integration, you copied an error message and a relevant documentation excerpt. Ask: “Find the retry guidance and connection error I copied for Orion. Explain what the saved notes support, and what I still need to verify before changing the code.” The assistant can bring those snippets into the current coding task.', '連携の実装中に、エラーメッセージと関連ドキュメントをコピーしたとします。「Orion向けにコピーした再試行の案内と接続エラーを探し、保存メモから分かることとコード変更前に確認すべきことを整理して」と頼めば、現在の開発作業に参考情報を戻せます。'),
+      l('Use exact identifiers for distinctive errors. For a vague memory, Meaning Search can help when embeddings and indexing are configured. The assistant should inspect candidates before proposing a fix. A saved excerpt may be old or incomplete, so check current official documentation when library versions or behavior matter.', '固有のエラーには正確な識別子を使います。曖昧な記憶には、埋め込みと索引を設定した意味検索が役立つ場合があります。修正案の前に候補の原文を確認させましょう。保存した抜粋は古い場合もあるため、バージョンが関わる仕様は最新の公式資料で確認します。'),
+    ] },
+    { id: 'research-comparison', title: l('Research: compare the passages you chose to keep', '調査：自分が残した文章を比較する'), paragraphs: [
+      l('A researcher or product manager has copied passages about two tools during evaluation. Ask: “Compare the saved Orion and Vega notes on offline support. Separate explicit claims, missing information, and questions for follow-up.” The goal is a comparison grounded in selected passages, with a route back to each supporting clip.', '調査担当者やプロダクト担当者が、候補ツールの評価中に文章をコピーしています。「保存したOrionとVegaのメモでオフライン対応を比較し、明示された主張、情報不足、追加確認の質問を分けて」と頼みます。選んだ文章に基づき、根拠のクリップへ戻れる比較を目指します。'),
+      l('This helps turn an interrupted reading session into a reviewable brief. It does not mean the assistant has searched the whole web or independently verified a vendor claim. If a clip lacks its original URL or publication date, preserve that gap instead of manufacturing a citation. Copied text is evidence of what was saved, not proof of what is true.', '中断した読み物を、確認可能な比較メモへまとめる使い方です。ウェブ全体を調査したことや、提供元の主張を独立に検証したことにはなりません。URLや公開日が残っていなければ、その不足を明示させます。保存された文章と、検証済みの事実は区別してください。'),
+    ] },
+    { id: 'start-read-only', title: l('Start with read-only and one harmless note', '読み取り専用と安全なメモから始める'), paragraphs: [
+      l('In Intelligence → Integrations, enable the local server and add named access for your assistant. Follow the generated client instructions, restart the client as directed, and use Test access. Then copy a harmless note with a distinctive project name and ask the assistant to find and quote it. Creating access in ClipsX alone does not configure the other app.', 'インテリジェンスの連携画面でサーバーを有効にし、アシスタント用の名前付きアクセスを追加します。表示された接続手順と再起動に従い、アクセスをテストします。固有の案件名を入れた安全なメモをコピーし、検索して引用するよう依頼してください。ClipsXでの許可だけでは相手のアプリは設定されません。'),
+      l('ClipsX must remain running. Keyword retrieval needs no ClipsX AI model; meaning-based retrieval needs an embedding model and index. The external assistant uses its own model. Test access checks authentication and tool discovery, so also verify an actual search and source read in the client. Keep setup details in the guide rather than copying tokens into shared files.', 'ClipsXは起動しておく必要があります。キーワード検索にはClipsX側のAIモデルは不要で、意味検索には埋め込みモデルと索引が必要です。外部アシスタントは自身のモデルを使います。接続テストに加え、クライアントで検索と原文の読み取りも確認し、トークンを共有ファイルに残さないでください。'),
+    ], links: [{ label: l('Follow the MCP setup and first-task guide', 'MCPの接続と最初の検索を試す'), href: documentationConfig.mcp }] },
+    { id: 'choose-the-boundary', title: l('Choose what the connection should allow', '接続に許可する範囲を決める'), paragraphs: [
+      l('Read-only access is enough for these scenarios. Read/write additionally permits supported clip creation, organization, and undo; it does not grant arbitrary files, shell access, or history deletion. Create separate access for each assistant and revoke it when no longer needed. The local connection does not stop an external assistant from sending retrieved material to its provider.', 'ここまでの例は読み取り専用で試せます。読み書きは対応する作成、整理、取り消しを追加しますが、任意ファイル、シェル、履歴削除は許可しません。アシスタントごとにアクセスを分け、不要なら失効させます。接続がローカルでも、取得内容を外部アシスタントの提供元に送る場合があります。'),
+      l('Secret and private clips are excluded from assistant retrieval. Classification can miss sensitive content, and a failed privacy check does not automatically restrict a clip. Review your settings before using customer material. For organization or conditional Rewrite, decision models serve a different job: deciding what happens on a new copy, rather than answering an assistant’s later question.', '秘密情報や非公開のクリップは検索対象外ですが、分類が機密情報を見逃す場合や、判定失敗だけでは制限されない場合があります。顧客情報を使う前に設定を確認してください。整理や条件付きRewriteの判定モデルは、新しいコピー時の操作を決める機能であり、後からアシスタントに質問するMCPとは別の役割です。'),
+    ], links: [{ label: l('Understand decision rules and failed privacy checks', '判定ルールとプライバシー判定の失敗を理解する'), href: documentationConfig.decisionModels + '#failed-checks' }] },
+  ],
+  resources: [
+    { label: l('MCP setup, permissions, and troubleshooting', 'MCPの接続、権限、トラブル対応'), href: documentationConfig.mcp },
+    { label: l('Set up Meaning Search', '意味検索を設定する'), href: documentationConfig.meaningSearch },
+    { label: l('Conditional extension automation', '拡張機能の条件付き自動実行'), href: documentationConfig.automation },
+    { label: l('ClipsX MCP implementation and protocol reference', 'ClipsXのMCP実装とプロトコル仕様（英語）'), href: 'https://github.com/azure06/clipsx/blob/main/docs/MCP.md' },
+  ],
+};
+
+export const blogPosts: BlogPost[] = [localFirst, meaningSearch, extensions, clipboardMcp].sort((a, b) => b.date.localeCompare(a.date));
 
 export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway, ...post.sections.flatMap(section => [section.title, ...section.paragraphs, ...(section.list?.items ?? [])])]

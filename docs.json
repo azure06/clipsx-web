@@ -51,7 +51,7 @@
               "recall",
               "decision-models",
               "automation",
-              "mcp",
+              "assistant-setup",
               "extensions",
               "sync"
             ]
@@ -109,7 +109,7 @@
               "ja/recall",
               "ja/decision-models",
               "ja/automation",
-              "ja/mcp",
+              "ja/assistant-setup",
               "ja/extensions",
               "ja/sync"
             ]

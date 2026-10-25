@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#ddd7ed"/></pattern>
+    <linearGradient id="paper" x2="1" y2="1"><stop stop-color="#faf8ff"/><stop offset="1" stop-color="#eef2fc"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#paper)"/>
+  <rect width="1600" height="900" fill="url(#dots)"/>
+  <g font-family="Arial, sans-serif">
+    <text x="108" y="116" fill="#7650c3" font-size="20" letter-spacing="5">CLIPSX / MCP</text>
+    <text x="108" y="195" fill="#25213b" font-size="52" font-weight="700">Your saved context. Within reach.</text>
+    <rect x="90" y="280" width="445" height="405" rx="24" fill="#fff" stroke="#d9d2e7" stroke-width="2"/>
+    <text x="124" y="328" fill="#6b627d" font-size="17" letter-spacing="3">SAVED CLIPS</text>
+    <g fill="#faf9fd" stroke="#e2dceb" stroke-width="2">
+      <rect x="121" y="355" width="383" height="86" rx="12"/>
+      <rect x="121" y="457" width="383" height="86" rx="12"/>
+      <rect x="121" y="559" width="383" height="86" rx="12"/>
+    </g>
+    <g fill="#342e48" font-size="21"><text x="146" y="391">Support report</text><text x="146" y="493">API reference</text><text x="146" y="595">Research excerpt</text></g>
+    <g stroke="#d0c6e4" stroke-width="5" stroke-linecap="round"><path d="M147 417h270"/><path d="M147 519h221"/><path d="M147 621h250"/></g>
+    <path d="M537 478h95m340 0h95" stroke="#8b65d0" stroke-width="3" stroke-dasharray="8 8"/>
+    <path d="m623 469 10 9-10 9m435-18 10 9-10 9" fill="none" stroke="#8b65d0" stroke-width="3"/>
+    <rect x="637" y="366" width="330" height="224" rx="28" fill="#f0e8ff" stroke="#a58acc" stroke-width="2"/>
+    <circle cx="801" cy="421" r="22" fill="#7c3aed"/>
+    <path d="m791 421 7 7 14-15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <text x="801" y="481" fill="#3e226b" font-size="31" font-weight="700" text-anchor="middle">Authorized MCP</text>
+    <text x="801" y="524" fill="#675180" font-size="20" text-anchor="middle">Search · Read · Check</text>
+    <rect x="1072" y="280" width="438" height="405" rx="24" fill="#fff" stroke="#d9d2e7" stroke-width="2"/>
+    <text x="1106" y="328" fill="#6b627d" font-size="17" letter-spacing="3">YOUR ASSISTANT</text>
+    <rect x="1103" y="356" width="376" height="70" rx="12" fill="#272237"/>
+    <text x="1126" y="399" fill="#fff" font-size="21">Find my saved Orion notes</text>
+    <text x="1105" y="475" fill="#342e48" font-size="25" font-weight="700">A draft with evidence</text>
+    <g stroke="#d8d2e2" stroke-width="6" stroke-linecap="round"><path d="M1107 510h326"/><path d="M1107 535h289"/><path d="M1107 560h310"/></g>
+    <g fill="#f0e8ff"><rect x="1105" y="596" width="69" height="39" rx="8"/><rect x="1186" y="596" width="69" height="39" rx="8"/></g>
+    <g fill="#7040b9" font-size="20"><text x="1126" y="622">[1]</text><text x="1207" y="622">[2]</text></g>
+    <text x="108" y="775" fill="#756b83" font-size="21">Local history → relevant sources → work you can review</text>
+    <text x="108" y="820" fill="#8f849b" font-size="17">Conceptual illustration · External assistants have their own provider boundaries</text>
+  </g>
+</svg>

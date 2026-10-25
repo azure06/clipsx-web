@@ -23,7 +23,7 @@ export const documentationConfig = {
   recall: `${documentationRoot}/recall`,
   decisionModels: `${documentationRoot}/decision-models`,
   automation: `${documentationRoot}/automation`,
-  mcp: `${documentationRoot}/mcp`,
+  mcp: `${documentationRoot}/assistant-setup`,
   extensions: `${documentationRoot}/extensions`,
   sync: `${documentationRoot}/sync`,
   privacy: `${documentationRoot}/privacy`,
@@ -34,7 +34,7 @@ export const documentationConfig = {
 const localizedDocumentationPages = new Set([
   'index', 'getting-started', 'platform-support', 'core-workflows', 'local-ai',
   'meaning-search', 'recall', 'extensions', 'sync', 'privacy', 'troubleshooting',
-  'decision-models', 'automation', 'mcp',
+  'decision-models', 'automation', 'assistant-setup',
 ]);
 
 /** Localize user guides; developer documentation retains its English URL. */

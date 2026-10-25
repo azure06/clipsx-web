@@ -14,7 +14,7 @@ describe('published release history', () => {
     expect(html).toContain('2026-10-03T02:39:45Z');
     expect(html).toContain('https://github.com/azure06/clipsx/releases/tag/v0.1.0');
     expect(html).toContain('Wayland');
-    expect(releases.map(release => release.version)).toEqual(['0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2', '0.1.1', '0.1.0']);
+    expect(releases.map(release => release.version)).toEqual(['0.1.9', '0.1.8', '0.1.7', '0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2', '0.1.1', '0.1.0']);
     let previousPosition = -1;
     for (const release of releases) {
       const position = html.indexOf(`id="v${release.version.replaceAll('.', '-')}"`);

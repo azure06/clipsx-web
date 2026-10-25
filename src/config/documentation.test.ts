@@ -5,7 +5,7 @@ import { footerNav, mainNavLinks } from './nav';
 
 const config = JSON.parse(readFileSync('docs.json', 'utf8'));
 const userPages = ['index', 'getting-started', 'platform-support', 'core-workflows',
-  'local-ai', 'meaning-search', 'recall', 'decision-models', 'automation', 'mcp', 'extensions', 'sync', 'privacy', 'troubleshooting'];
+  'local-ai', 'meaning-search', 'recall', 'decision-models', 'automation', 'assistant-setup', 'extensions', 'sync', 'privacy', 'troubleshooting'];
 
 describe('documentation journey', () => {
   it('preserves English URLs and localizes user guides without rewriting other destinations', () => {
@@ -14,7 +14,7 @@ describe('documentation journey', () => {
     expect(getDocumentationConfig('ja').meaningSearch).toBe('https://docs.clipsx.app/ja/meaning-search');
     expect(getDocumentationConfig('ja').decisionModels).toBe('https://docs.clipsx.app/ja/decision-models');
     expect(getDocumentationConfig('ja').automation).toBe('https://docs.clipsx.app/ja/automation');
-    expect(getDocumentationConfig('ja').mcp).toBe('https://docs.clipsx.app/ja/mcp');
+    expect(getDocumentationConfig('ja').mcp).toBe('https://docs.clipsx.app/ja/assistant-setup');
     expect(getDocumentationConfig('ja').developerExtensions).toBe(documentationConfig.developerExtensions);
     expect(getDocumentationConfig('ja').rewriteExtension).toBe(documentationConfig.rewriteExtension);
     expect(localizeDocumentationUrl(documentationConfig.localAi + '#generation-models', 'ja'))

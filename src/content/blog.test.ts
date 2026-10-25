@@ -6,14 +6,23 @@ import { blogPosts, blogText, readingMinutes } from './blog';
 import { pick } from './marketing';
 
 describe('published blog content', () => {
-  it('keeps existing slugs and presents the selected dates newest first, two weeks apart', () => {
+  it('keeps existing publication dates and puts the new MCP article first', () => {
     expect(blogPosts.map(post => post.slug)).toEqual([
+      'connect-your-assistant-to-clipboard-with-mcp',
       'why-clipboard-extensions-need-boundaries', 'meaning-search-with-ollama', 'local-first-is-a-data-boundary',
     ]);
-    expect(blogPosts.map(post => post.date)).toEqual(['2026-10-04', '2026-09-20', '2026-09-06']);
+    expect(blogPosts.map(post => post.date)).toEqual(['2026-10-25', '2026-10-04', '2026-09-20', '2026-09-06']);
     for (let index = 1; index < blogPosts.length; index++) {
-      expect(Date.parse(blogPosts[index - 1].date) - Date.parse(blogPosts[index].date)).toBe(14 * 86400000);
+      expect(Date.parse(blogPosts[index - 1].date)).toBeGreaterThan(Date.parse(blogPosts[index].date));
     }
+  });
+
+  it('connects MCP use cases to setup and makes the evidence limits explicit', () => {
+    const post = blogPosts.find(post => post.slug === 'connect-your-assistant-to-clipboard-with-mcp')!;
+    expect(post.sections.map(section => section.id)).toEqual(expect.arrayContaining(['support-handoff', 'coding-context', 'research-comparison', 'start-read-only']));
+    expect(post.sections.flatMap(section => section.links ?? []).map(link => link.href)).toContain('https://docs.clipsx.app/assistant-setup#setup');
+    expect(blogText(post, 'en')).toContain('not observed customer results');
+    expect(blogText(post, 'en')).toContain('failed privacy check does not automatically restrict a clip');
   });
 
   it('provides complete localized guides, stable anchors, and reading estimates from their text', () => {
