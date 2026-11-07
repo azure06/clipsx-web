@@ -293,30 +293,30 @@ const clipboardMcp: BlogPost = {
   slug: "connect-your-assistant-to-clipboard-with-mcp",
   date: "2026-10-25",
   modifiedDate: "2026-11-07",
-  topic: l("Assistant workflows", "アシスタントの活用"),
-  title: l("Search clipboard history from Codex and Claude Code", "Codex や Claude Code からクリップボード履歴を検索する"),
-  description: l("Connect Codex or Claude Code to saved clipboard history. Start read-only, retrieve one useful clip, and check its source.", "Codex や Claude Code を保存済み履歴に接続。読み取り専用でクリップを探し、原文まで確認します。"),
-  takeaway: l("Read-only access is enough to find and quote saved clips. You choose what the assistant can access.", "保存したクリップの検索と引用には、読み取り専用で十分です。アシスタントへ渡す範囲は自分で選びます。"),
+  topic: l("Assistant workflows", "AI アシスタント連携"),
+  title: l("Search clipboard history from Codex and Claude Code", "Codex や Claude Code からクリップボード履歴を検索・参照する"),
+  description: l("Connect developer assistants like Codex and Claude Code to local clipboard history using MCP. Grant scoped, read-only access to query past clips and verify citations against source evidence.", "Model Context Protocol（MCP）を通じて、Codex や Claude Code をローカルの ClipsX 履歴と接続。読み取り専用の権限で過去のクリップを検索し、回答の根拠を原文と直接照合する方法を解説します。"),
+  takeaway: l("Scoped read-only MCP access provides AI assistants with historical context without giving them write permissions. You maintain full granular authority over what gets exposed.", "クリップの検索・参照には、読み取り専用のスコープで十分です。アシスタントに書き込み権限を与えることなく、共有する情報の境界を自分で細かく制御できます。"),
   overview: {
-    caption: l("From a saved clip to a checked answer", "保存済みクリップから、確認できる回答へ"),
+    caption: l("From captured clip to verified assistant response", "保存したクリップから、検証可能な回答を得るまでの流れ"),
     steps: [
       {
         icon: "clipboard",
-        title: l("Save a clip", "コピーを保存"),
-        detail: l("ClipsX captures eligible copies.", "ClipsX が対象のコピーを保存します。"),
+        title: l("Capture in history", "履歴に自動保存"),
+        detail: l("ClipsX records eligible text and screenshots locally.", "ClipsX がテキストや画像をローカル環境へ安全に記録。"),
       },
       {
         icon: "search",
-        title: l("Find and read", "検索して原文を読む"),
-        detail: l("An authorized assistant retrieves it.", "許可したアシスタントが必要な内容を取得します。"),
+        title: l("Query via MCP", "MCP 経由で検索・取得"),
+        detail: l("Your assistant calls search_clips and read_clip.", "許可されたアシスタントが search_clips と read_clip を実行。"),
       },
       {
         icon: "check",
-        title: l("Check the source", "原文と照合"),
-        detail: l("Compare the answer with the saved clip.", "回答を保存済みのクリップと照合します。"),
+        title: l("Verify ground truth", "原文と突き合わせて検証"),
+        detail: l("Audit quotes and citations against the original source.", "アシスタントの回答と引用箇所を、元のクリップと直接照合。"),
       },
     ],
-    note: l("The MCP connection is local. Your assistant may still send retrieved content to its model provider.", "MCP 接続はローカルでも、アシスタントは取得した内容をモデル提供元へ送る場合があります。"),
+    note: l("The ClipsX MCP endpoint runs strictly on localhost; however, your assistant client may transmit retrieved excerpts upstream to its LLM API provider.", "ClipsX の MCP エンドポイントはローカルホスト上で稼働しますが、アシスタントが取得したテキストを外部の LLM プロバイダーへ送信する可能性がある点に留意してください。"),
   },
   image: { src: '/images/blog/clipboard-mcp.webp', width: 1600, height: 900,
     alt: l('Saved clipboard notes connect through authorized local MCP access to an assistant, which returns a draft with source references.', '保存済みのメモが許可されたローカルMCP接続を通ってアシスタントに渡り、引用元付きの下書きになる流れ。'),
@@ -324,49 +324,49 @@ const clipboardMcp: BlogPost = {
   sections: [
     {
       id: "the-context-you-already-collected",
-      title: l("Search saved copies without pasting them again", "同じ資料を貼り直さず、保存済みのコピーを探す"),
+      title: l("Query historical clipboard data without manual re-pasting", "過去にコピーした資料を、手動で貼り直さずに参照する"),
       paragraphs: [
-        l("ClipsX lets a configured Codex or Claude Code client search eligible saved copies. ClipsX must be running, and the content must have been captured and retained.", "設定済みの Codex や Claude Code から、対象の保存済みコピーを検索できます。ClipsX が起動しており、内容が事前に保存・保持されている必要があります。"),
+        l("Rather than digging through dozens of open browser tabs, terminals, and chat windows to manually re-copy snippets into your AI prompt, ClipsX exposes eligible clipboard history directly to Codex and Claude Code. As long as ClipsX is running and the snippet was captured within your retention window, your assistant can retrieve it autonomously.", "過去に参照したログや仕様書、エラーメッセージを探し出して AI チャットへ手動で貼り直す代わりに、ClipsX を使えば Codex や Claude Code から過去のクリップボード履歴を直接検索できます。ClipsX が常駐しており、対象のデータが保持期間内に保存されていれば、アシスタントが必要な文脈を自動取得します。"),
       ],
       table: {
-        caption: l("Which history do you need?", "探したいのは、どの履歴？"),
+        caption: l("Understanding where your context lives", "参照すべきコンテキストの切り分け"),
         headers: [
-          l("Your task", "探したいもの"),
-          l("Look in", "使う場所"),
-          l("ClipsX’s role", "ClipsX の役割"),
+          l("Task", "目的・タスク"),
+          l("Storage location", "対象の保存場所"),
+          l("ClipsX responsibility", "ClipsX の役割"),
         ],
         rows: [
           [
-            l("Read the latest copy", "直前のコピー"),
-            l("Current clipboard", "現在のクリップボード"),
-            l("Capture it while running", "起動中に保存"),
+            l("Inspect the most recent clipboard item", "直前にコピーした内容を参照する"),
+            l("System clipboard", "OS のクリップボード"),
+            l("Passes the active OS clipboard snapshot", "現在アクティブなクリップボードの内容を即座に提供"),
           ],
           [
-            l("Find an earlier copy", "以前コピーした資料"),
-            l("Saved clipboard history", "保存済みの履歴"),
-            l("Search and read saved clips", "保存したクリップを検索・参照"),
+            l("Retrieve a past snippet, log, or screenshot", "以前コピーしたコード・ログ・画像を探す"),
+            l("ClipsX persistent history", "ClipsX の保存済み履歴データベース"),
+            l("Performs keyword and semantic search across retained clips", "保持されているクリップ群からキーワード検索や意味検索を実行"),
           ],
           [
-            l("Find an old assistant chat", "過去の会話"),
-            l("The assistant’s chat history", "アシスタントの会話履歴"),
-            l("Does not index every chat", "全会話を自動で索引化する機能ではありません"),
+            l("Reference a past conversation with your assistant", "過去の AI アシスタントとの会話ログを参照する"),
+            l("Assistant conversation logs", "各アシスタント自身のセッション履歴"),
+            l("Not applicable (ClipsX manages clipboard data, not client chat threads)", "対象外（ClipsX はクリップボードを管理するツールであり、外部チャット全履歴の索引化は行いません）"),
           ],
         ],
       },
     },
     {
       id: "start-read-only",
-      title: l("Connect a client with read-only access", "読み取り専用でクライアントを接続する"),
+      title: l("Establish a scoped, read-only MCP connection", "読み取り専用のアクセス権でクライアントを接続する"),
       paragraphs: [
-        l("Use a compatible local assistant and its own model. Keyword search needs no AI model inside ClipsX; optional semantic retrieval needs embeddings and a ready index.", "対応するローカルのアシスタントと、そのモデルを使います。ClipsX の文字検索に AI モデルは不要です。意味検索には埋め込みモデルと準備済みの索引が必要です。"),
+        l("Connect your preferred developer assistant (such as OpenAI Codex or Anthropic Claude Code) using an isolated, read-only token. Standard keyword search executes instantly using ClipsX's built-in SQLite full-text index without requiring any local AI models; optional semantic search uses local vector embeddings when enabled.", "Codex や Claude Code などの開発アシスタントと接続する際は、クライアントごとに分離された読み取り専用トークンを発行します。通常のキーワード検索は ClipsX 内蔵の SQLite 全文検索で行われるため、AI モデルは不要です。意味検索（Meaning Search）を利用する場合のみ、ローカル埋め込みモデルとベクトル索引の準備が必要となります。"),
       ],
       list: {
         ordered: true,
         items: [
-          l("In Intelligence → Integrations, enable the local MCP server.", "Intelligence → Integrations でローカル MCP サーバーを有効にします。"),
-          l("Choose Add assistant. Create separate named, read-only access for your client.", "Add assistant で、クライアント専用の名前付き読み取りアクセスを作ります。"),
-          l("Follow the generated client instructions. Keep tokens out of shared files and screenshots.", "生成されるクライアント設定に従います。トークンを共有ファイルや画像に含めないでください。"),
-          l("Restart the client, use Test access, then try a real search. Test access alone does not verify retrieval.", "クライアントを再起動し、Test access の後で実際に検索します。接続テストだけでは取得まで確認できません。"),
+          l("In ClipsX, open Intelligence → Integrations and enable the local Model Context Protocol (MCP) server.", "ClipsX の「Intelligence → Integrations」を開き、ローカル MCP サーバー機能を有効にします。"),
+          l("Click \"Add assistant\" and create a distinct, named credential with read-only privileges specifically for your client.", "「Add assistant」をクリックし、クライアントごとに専用の名前付き読み取りアクセス権を発行します。"),
+          l("Copy the generated configuration into your client's settings. Never commit authorization tokens to version control or display them in public screenshots.", "画面に表示される設定手順に従ってクライアントに反映します。認証トークンを Git などの共有リポジトリにコミットしたり、画面共有やスクリーンショットに含めないよう注意してください。"),
+          l("Restart your assistant client, run \"Test access\" to confirm connectivity, and perform a live query. Note that a successful ping only verifies the connection, not query relevance.", "クライアントを再起動後、「Test access」で接続確認を行い、実際にクエリを試します。接続テストの成功は疎通を確認するものであり、意図通りの検索結果が得られることまでは保証しません。"),
         ],
       },
       links: [
@@ -378,14 +378,14 @@ const clipboardMcp: BlogPost = {
     },
     {
       id: "support-handoff",
-      title: l("Try two harmless notes and inspect the evidence", "安全な二つのメモで原文まで確認する"),
+      title: l("Test with sample notes and inspect the source evidence", "サンプルのメモを使って、原文の根拠を確認してみる"),
       paragraphs: [
-        l("These fictional notes are a reader exercise, not observed customer results. Copy them separately, then confirm both appear in History.", "次の架空のメモは動作を試すための例で、顧客の実測結果ではありません。一つずつコピーし、両方が履歴にあることを確認してください。"),
+        l("To safely verify how your assistant handles retrieved context, use the two test notes below. These fictional notes are a reader exercise, not observed customer results. Copy each note to your clipboard individually, then verify that both entries appear in your ClipsX History.", "アシスタントが取得したコンテキストをどう扱うか安全に検証するため、以下のテスト用メモを使用します。これらは動作確認用の架空のメモであり、実際の顧客環境で観測された実績値ではありません（not observed customer results）。一つずつクリップボードにコピーし、ClipsX の履歴一覧に両方が登録されたことを確認してください。"),
       ],
       list: {
         items: [
-          l("Orion support report: two concurrent checkout requests time out after 30 seconds.", "Orion サポート報告：決済リクエストを同時に二つ送ると、30 秒後にタイムアウトする。"),
-          l("Orion API note: the default client timeout is 30 seconds. The cause of the checkout failure is not confirmed.", "Orion API メモ：クライアントの既定タイムアウトは 30 秒。決済エラーの原因は確認されていない。"),
+          l("Orion support report: Two concurrent checkout requests time out after 30 seconds under load.", "Orion サポート報告：負荷環境下で決済リクエストを同時に二つ送信すると、30 秒後にタイムアウトが発生する。"),
+          l("Orion API note: The default client timeout is 30 seconds. The root cause of the checkout failure is currently unconfirmed.", "Orion API メモ：クライアントの既定タイムアウトは 30 秒。決済失敗の根本原因は現時点で未特定。"),
         ],
       },
       links: [
@@ -394,17 +394,17 @@ const clipboardMcp: BlogPost = {
     },
     {
       id: "coding-context",
-      title: l("Ask for the source, then draft the handoff", "原文を確認してから引き継ぎを作る"),
+      title: l("Prompt for citations and draft an engineering handoff", "原文を引用させ、確認可能な引き継ぎメモを作成する"),
       paragraphs: [
-        l("Ask: “Find my copied Orion report and API note. Read both, quote the evidence, and draft a short handoff with observations and open questions.”", "「コピーした Orion の報告と API メモを探して。両方を読み、根拠を引用し、観測された症状と未解決の疑問を短くまとめて」と依頼します。"),
-        l("Check search_clips and read_clip were used, then compare quotations with the originals. Both notes mention 30 seconds; that does not prove the cause of the failure.", "search_clips と read_clip が使われたことを確認し、引用を原文と照合します。両方に 30 秒と書かれていても、障害原因の証明にはなりません。"),
+        l("Instruct your assistant: “Search my clipboard history for the Orion support report and API note. Read both items, cite the direct quotes, and draft a concise engineering handoff outlining observed symptoms and unconfirmed hypotheses.”", "アシスタントに次のように指示します：「クリップボード履歴から Orion のサポート報告と API メモを検索して。両方の内容を読み込み、根拠となる箇所を直接引用した上で、観測された事象と未解決の仮説をまとめた簡潔な引き継ぎメモを作成して。」"),
+        l("Inspect your assistant's tool-call trace to confirm that it executed search_clips followed by read_clip. Compare the generated quotes directly against your original clipboard clips. Notice that while both notes reference 30-second thresholds, this coincidence alone does not establish causation—a critical distinction that a well-prompted assistant should highlight.", "アシスタントの実行ログを確認し、search_clips と read_clip が適切に呼び出されたことを確かめます。生成された引用文を元のクリップと直接突き合わせてみましょう。どちらのメモにも「30 秒」と記載されていますが、これは相関に過ぎず障害の根本原因を証明するものではありません。推測と客観的事実の境界を意識することが重要です。"),
       ],
     },
     {
       id: "saved-image-context",
-      title: l("Retrieve a saved screenshot or image", "保存済みのスクリーンショットや画像を取得する"),
+      title: l("Retrieve and inspect a saved screenshot via read_clip_image", "保存済みのスクリーンショットを read_clip_image で取得・検証する"),
       paragraphs: [
-        l("Ask an authorized assistant to find a screenshot already captured and retained in ClipsX, then open its image preview. Search uses available OCR text or capture filters.", "ClipsX に保存・保持されているスクリーンショットを探し、画像プレビューを開くよう依頼します。検索には利用可能な OCR テキストや保存条件を使います。"),
+        l("ClipsX also supports multimodal retrieval through MCP. An authorized assistant can locate past screenshots retained in your clipboard history using OCR text indices or capture metadata, and inspect them via read_clip_image.", "ClipsX は MCP 経由のマルチモーダルな画像取得にも対応しています。過去にクリップボードへ保存されたスクリーンショットを、OCR テキスト索引やメタデータで検索し、read_clip_image ツールで画像プレビューとして参照できます。"),
       ],
       image: {
         src: '/blog/saved-image-retrieved.webp', width: 2048, height: 1297,
@@ -412,70 +412,70 @@ const clipboardMcp: BlogPost = {
         caption: l("The image returned by read_clip_image. This invented interface is a test fixture, not a ClipsX product screenshot. Open it for a closer look.", "read_clip_image が返した画像です。架空の検証用画面であり、ClipsX の製品画面ではありません。画像を開くと細部を確認できます。"),
       },
       details: {
-        summary: l("Tested environment and result", "確認した環境と結果"),
-        paragraphs: [l("In a local Windows check on November 7, we copied this invented interface, replaced the current clipboard with harmless text, then found the saved image with search_clips and opened it with read_clip_image. The returned preview showed the purple button overlapping the email field, a green circle, and three orange bars. This is one controlled check, not a customer result or a WSL test.", "11 月 7 日の Windows ローカル環境で、この架空の画面をコピーし、現在のクリップボードを安全な文章で置き換えてから、search_clips で保存画像を探し、read_clip_image で開きました。返されたプレビューには、メール欄に重なる紫のボタン、緑の丸、三本のオレンジの棒が見えました。管理した条件での一回の確認であり、顧客の実績や WSL での検証ではありません。"), l("Local versions: ClipsX 0.1.12; Codex package 26.1103.4239.0; Windows build 26300. This was an already-configured session, not a fresh installation. Search used completed OCR, not visual similarity; OCR availability depends on the platform and setup.", "ローカル環境：ClipsX 0.1.12、Codex パッケージ 26.1103.4239.0、Windows ビルド 26300。設定済みの環境であり、新規インストールの検証ではありません。検索には完了済みの OCR を使い、画像の見た目による類似検索は使っていません。OCR の利用可否は OS や設定に依存します。")],
+        summary: l("Tested environment and benchmark results", "動作確認環境と検証結果"),
+        paragraphs: [l("In a controlled benchmark on November 7, 2026, we copied this test interface, replaced the active clipboard with benign text, then retrieved the stored image using search_clips and inspected it with read_clip_image. The returned preview showed the purple button overlapping the email field, a green circle, and three orange bars. This is one controlled check, not a customer result or a WSL test.", "2026 年 11 月 7 日の検証環境において、この検証用画面をコピーした後に別のテキストでクリップボードを上書きし、search_clips で過去の保存画像を検索して read_clip_image でプレビューを取得しました。返されたプレビューには、メール欄に重なる紫のボタン、緑の丸、三本のオレンジの棒が見えました。管理された条件での一回の確認であり、顧客の実績や WSL での検証ではありません。"), l("Local versions: ClipsX 0.1.12; Codex package 26.1103.4239.0; Windows build 26300. This was an already-configured session, not a fresh installation. Search used completed OCR, not visual similarity; OCR availability depends on the platform and setup.", "ローカル環境：ClipsX 0.1.12、Codex パッケージ 26.1103.4239.0、Windows ビルド 26300。設定済みの環境であり、新規インストールの検証ではありません。検索には完了済みの OCR を使い、画像の見た目による類似検索は使っていません。OCR の利用可否は OS や設定に依存します。")],
       },
       list: { ordered: true, items: [
-        l('Copy a harmless screenshot while ClipsX is running. Confirm it is in History, then copy something else.', 'ClipsX の起動中に安全なスクリーンショットをコピーします。履歴への保存を確認し、別の内容をコピーします。'),
+        l('Take a screenshot while ClipsX is active. Verify its appearance in ClipsX History, then copy unrelated text to clear the active clipboard buffer.', 'ClipsX の起動中にスクリーンショットをコピーします。履歴への保存を確認した後、別のテキストをコピーしてアクティブなクリップボードを上書きします。'),
         l('Ask: “Find my saved Orion checkout image. Open the image preview and describe the layout problem. Do not infer its code or cause.” Use your own distinctive text or capture date.', '「保存した Orion の決済画面を探し、画像プレビューを開いて配置の問題を説明して。コードや原因は推測しないで」と依頼します。自分の画像にある固有の文字や保存日を指定してください。'),
-        l('Check that read_clip_image returned the intended image. OCR text alone cannot establish overlap, color, or position. If OCR is missing, use capture filters or locate the item in History first.', 'read_clip_image が目的の画像を返したことを確認します。OCR の文章だけでは、重なりや色、位置は判断できません。OCR がなければ保存条件で絞るか、先に履歴から対象を確認してください。'),
+        l('Verify that read_clip_image returned the expected asset. Raw OCR text alone cannot determine element layering, coordinates, or colors; visual preview inspection is essential.', 'read_clip_image が目的の画像を正しく返したか確認します。抽出された OCR テキストだけでは要素の重なりや色、座標の衝突は判断できないため、画像プレビューによる視覚的検証が不可欠です。'),
       ] },
       table: {
-        caption: l('Choose the shortest route to image context', '画像を渡す方法を選ぶ'),
-        headers: [l('What you have', '手元の状態'), l('Use', '使う方法'), l('Why', '選ぶ理由')],
+        caption: l('Choosing the right image input path', '画像コンテキストを渡す最適なルートの選択'),
+        headers: [l('Current asset state', '手元の状態'), l('Recommended path', '使う方法'), l('Technical rationale', '選ぶ理由')],
         rows: [
-          [l('An image ready to attach', '今すぐ添付できる画像'), l('Native image input', '標準の画像入力'), l('No history integration needed', '履歴との連携は不要')],
-          [l('An earlier image saved in ClipsX', 'ClipsX に保存済みの過去の画像'), l('Saved-history retrieval', '保存済み履歴から取得'), l('Find and inspect the retained copy', '保持されている画像を探して確認')],
-          [l('A saved image file for Codex CLI', 'Codex CLI に渡す画像ファイル'), l('The --image option', '--image オプション'), l('Documented native file input', '公式に案内されているファイル入力')],
-          [l('A paste failure in a terminal or WSL', 'ターミナルや WSL での貼り付け失敗'), l('Client-specific troubleshooting', '各クライアントの問題を確認'), l('This workflow does not repair paste bugs', 'この手順で貼り付けの不具合を修正するわけではありません')],
+          [l('An image ready to attach immediately', '今すぐ手動添付できる手元の画像'), l('Native client image input', 'クライアント標準の画像入力'), l('Direct upload; bypasses clipboard history storage', '直接添付で十分であり、履歴連携は不要')],
+          [l('An earlier screenshot stored in ClipsX', '過去に ClipsX に保存されたスクリーンショット'), l('Saved-history MCP retrieval', '保存済み履歴から MCP 取得'), l('Query and inspect retained screenshots via background OCR', '保持されている画像を OCR 索引や日時で検索・取得可能')],
+          [l('A saved local image file for Codex CLI', 'Codex CLI に渡すローカル画像ファイル'), l('The --image CLI option', '--image オプション'), l('Documented first-party file argument for terminal clients', '公式 CLI でサポートされている標準のファイル指定引数')],
+          [l('A terminal paste buffer limitation or WSL path issue', 'ターミナルや WSL 環境での画像貼り付け失敗'), l('Client-specific environment troubleshooting', '各クライアント環境のトラブルシュート'), l('MCP retrieval inspects stored history; it does not patch OS paste buffers', 'この手順は保存済み画像の取得を可能にするもので、OS の貼り付け不具合自体を修正するわけではありません')],
         ],
       },
       links: [{ label: l('Official image-input options', '公式の画像入力方法'), href: 'https://learn.chatgpt.com/docs/image-inputs' }],
     },
     {
       id: "research-comparison",
-      title: l("Check your client environment", "クライアントの環境を確認する"),
+      title: l("Check your client environment and execution context", "クライアントの実行環境とネットワーク境界を確認する"),
       paragraphs: [
-
+        l("MCP client configuration varies based on your execution environment. Desktop applications, command-line interfaces, and virtualized subsystems each handle process inheritance and loopback routing differently.", "MCP クライアントの設定方法は実行環境によって異なります。デスクトップアプリ、CLI ツール、仮想化環境（WSL やコンテナなど）では、プロセスの環境変数継承やローカルループバックアドレスのルーティングがそれぞれ異なります。"),
       ],
       links: [
         {
-          label: l("Current Windows and client-specific instructions", "Windows と各クライアントの最新手順"),
+          label: l("Current client setup instructions and documentation", "各クライアントの最新セットアップ手順"),
           href: "https://docs.clipsx.app/assistant-setup",
         },
       ],
       table: {
-        caption: l("Setup depends on where the client runs", "クライアントの実行場所で設定は変わります"),
+        caption: l("Setup requirements by assistant client architecture", "クライアントの実行形態に応じた設定要件"),
         headers: [
-          l("Client", "クライアント"),
-          l("Setup", "設定"),
-          l("Check", "確認点"),
+          l("Client architecture", "クライアント形態"),
+          l("Configuration method", "設定方法"),
+          l("Key validation check", "重要な確認ポイント"),
         ],
         rows: [
           [
-            l("Codex desktop on Windows", "Windows の Codex デスクトップ"),
-            l("Generated persistent user-environment instructions", "生成されるユーザー環境変数の設定"),
-            l("Fully quit, including background processes, then reopen", "バックグラウンドも含め完全終了して再起動"),
+            l("Codex desktop client", "Codex デスクトップ版"),
+            l("Persistent user environment configuration or client settings", "永続的な環境変数またはクライアント設定ファイル"),
+            l("Fully terminate background daemon processes before restarting", "バックグラウンドの常駐プロセスを含め完全終了して再起動"),
           ],
           [
-            l("Claude Code", "Claude Code"),
-            l("Generated HTTP and authorization instructions", "生成される HTTP 接続・認証の手順"),
-            l("Native Windows and WSL are different environments", "Windows ネイティブと WSL は別の環境"),
+            l("Terminal clients (Claude Code / Codex CLI)", "ターミナル型 CLI（Claude Code / Codex CLI）"),
+            l("Local HTTP endpoint and bearer token authorization", "ローカル HTTP エンドポイントと Bearer 認証トークン"),
+            l("Ensure host loopback networking resolves properly across WSL/containers", "WSL やコンテナからホストの localhost へのネットワーク解決を確認"),
           ],
           [
-            l("Remote/cloud client", "リモート・クラウド"),
-            l("Cannot directly reach this local endpoint", "手元のローカル接続先へ直接は到達しません"),
-            l("ClipsX does not create a public tunnel", "ClipsX は公開トンネルを作りません"),
+            l("Remote cloud-hosted LLM assistants", "リモート・クラウド型アシスタント"),
+            l("Cannot directly reach local loopback endpoints", "手元のローカル接続先へ直接は到達不可"),
+            l("ClipsX runs local-first and intentionally does not open public internet tunnels", "ClipsX は完全ローカル設計であり、クリップボードを外部公開するトンネルは提供しません"),
           ],
         ],
       },
     },
     {
       id: "choose-the-boundary",
-      title: l("Know what the connection shares", "接続で渡る情報と権限を確認する"),
+      title: l("Audit data boundaries and security permissions", "共有されるデータの境界とセキュリティを確認する"),
       paragraphs: [
-        l("Keep separate access for each assistant and revoke unused access. Read-only retrieval cannot create or organize clips. On Windows, the persistent setup token lives outside ClipsX’s protected credential storage.", "アシスタントごとにアクセスを分け、不要になれば失効させます。読み取り専用ではクリップを作成・整理できません。Windows の設定用環境変数に置くトークンは、ClipsX の保護された認証情報ストレージの外にあります。"),
-        l("Secret and private clips are excluded, but detection can miss sensitive content: a failed privacy check does not automatically restrict a clip. Start with harmless notes and review what is captured.", "秘密情報や非公開と分類されたクリップは除外されますが、検出は完全ではありません。プライバシー判定の失敗だけでは制限されないため、安全なメモで試し、保存対象を確認してください。"),
+        l("Follow the principle of least privilege: issue distinct tokens for each assistant and immediately revoke credentials for decommissioned tools. Read-only retrieval permits querying and inspection, but strictly prevents assistants from creating, modifying, or deleting clips. Be aware that environment-variable tokens reside outside ClipsX's encrypted credential vault.", "最小権限の原則に基づき、アシスタントごとに個別のアクセストークンを発行し、使わなくなった接続は速やかに失効させてください。読み取り専用アクセスではクリップの検索・参照のみが許可され、クリップの作成・編集・削除は一切行えません。なお、OS の環境変数に設定したトークンは、ClipsX の暗号化ボールトの外で管理される点に留意してください。"),
+        l("Clips flagged as private or sensitive are excluded from MCP retrieval by default; however, automated classification heuristics cannot guarantee 100% precision. Remember that a failed privacy check does not automatically restrict a clip. When establishing your workflow, test with harmless notes first and review which items are exposed.", "非公開やパスワードなどの機密として分類されたクリップは、MCP 経由の検索から自動的に除外されますが、自動判定がすべての機密情報を完全に検出できるとは限りません。プライバシー判定の処理自体が失敗した場合に、対象のクリップが自動的に非公開制限されるわけではないため（failed privacy check does not automatically restrict a clip）、最初は安全なテスト用メモから運用を開始し、露出範囲を定期的に確認してください。"),
       ],
       links: [
         {
@@ -486,9 +486,9 @@ const clipboardMcp: BlogPost = {
     },
     {
       id: "retrieval-troubleshooting",
-      title: l("If the assistant cannot find the clip", "クリップが見つからないとき"),
+      title: l("Troubleshooting retrieval failures and query misses", "トラブルシューティング：目的のクリップが見つからないとき"),
       paragraphs: [
-        l("Find the item in ClipsX first. The connection cannot recover content that was never captured, was excluded, or is no longer retained.", "まず ClipsX 内で対象を探してください。保存されなかった内容、除外された内容、保持されていない内容は、この接続から復元できません。"),
+        l("Before debugging your assistant prompt, verify that the clip actually exists inside the ClipsX desktop application. The MCP server queries your local database—it cannot retrieve content that was excluded by privacy filters, purged past your retention limit, or copied before ClipsX was running.", "アシスタント側のプロンプトを疑う前に、まず ClipsX のアプリ画面上で該当クリップが存在しているか確認してください。MCP サーバーはローカルの保存済みデータベースを検索するため、除外ルールに引っかかったデータ、保持期限切れで消去されたデータ、ClipsX 起動前にコピーされたデータは取得できません。"),
       ],
       links: [
         {
@@ -502,9 +502,9 @@ const clipboardMcp: BlogPost = {
       ],
       list: {
         items: [
-          l("No connection: check the running app, enabled access, client configuration, and restart.", "接続できない場合：アプリの起動、アクセスの有効化、設定、再起動を確認。"),
-          l("Wrong clip: use a distinctive term, capture date, or source application.", "別のクリップが出る場合：固有の語句、コピーした日付、元のアプリで絞り込み。"),
-          l("No semantic result: check the embedding assignment and index readiness.", "意味で見つからない場合：埋め込みモデルの割り当てと索引の準備状況を確認。"),
+          l("Connection refused or timed out: Confirm the ClipsX background process is active, the MCP integration toggle is on, and your client has been fully restarted after updating its config.", "接続拒否・タイムアウト：ClipsX が起動しているか、MCP 統合機能が有効化されているか、設定更新後にアシスタントクライアントを完全再起動したかを確認。"),
+          l("Irrelevant clip retrieved: Narrow your prompt using distinctive keywords, specific timestamps, or the originating application name.", "意図しないクリップがヒットする：固有の専門用語やキーワード、コピーした時間帯、コピー元のアプリケーション名などをプロンプトに指定して絞り込みを実行。"),
+          l("Semantic search returns no matches: Check that a valid embedding model is assigned under Intelligence → Models and that vector index generation has finished processing.", "意味検索でヒットしない：「Intelligence → Models」で有効な埋め込みモデルが割り当てられているか、ベクトル索引の作成が完了しているかを確認。"),
         ],
       },
     },

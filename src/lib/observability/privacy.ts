@@ -12,6 +12,7 @@ const PUBLIC_BLOG_SLUGS = new Set([
   'connect-your-assistant-to-clipboard-with-mcp',
   'local-first-is-a-data-boundary',
   'meaning-search-with-ollama',
+  'rewrite-work-message-local-ai-windows',
   'why-clipboard-extensions-need-boundaries',
 ])
 
