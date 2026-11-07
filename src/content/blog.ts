@@ -1,6 +1,7 @@
 import { documentationConfig } from '@/config/site';
 import type { Locale } from '@/i18n/config';
 import { l, pick, type Localized } from './marketing';
+import { localMessageRewrite } from './blog-rewrite';
 
 export type BlogLink = { label: Localized; href: string };
 export type BlogFlow = {
@@ -10,6 +11,7 @@ export type BlogFlow = {
 };
 export type BlogTable = { caption: Localized; headers: Localized[]; rows: Localized[][] };
 export type BlogImage = { src: string; width: number; height: number; alt: Localized; caption: Localized };
+export type BlogRewriteExample = { caption: Localized; before: Localized; after: Localized; note: Localized };
 export type BlogSection = {
   id: string;
   title: Localized;
@@ -17,6 +19,7 @@ export type BlogSection = {
   list?: { ordered?: boolean; items: Localized[] };
   table?: BlogTable;
   image?: BlogImage;
+  rewriteExample?: BlogRewriteExample;
   details?: { summary: Localized; paragraphs: Localized[] };
   links?: BlogLink[];
 };
@@ -522,13 +525,14 @@ const clipboardMcp: BlogPost = {
   ],
 };
 
-export const blogPosts: BlogPost[] = [localFirst, meaningSearch, extensions, clipboardMcp].sort((a, b) => b.date.localeCompare(a.date));
+export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp].sort((a, b) => b.date.localeCompare(a.date));
 
 export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway,
     ...(post.overview ? [post.overview.caption, ...post.overview.steps.flatMap(step => [step.title, step.detail]), post.overview.note] : []),
     ...post.sections.flatMap(section => [section.title, ...section.paragraphs, ...(section.list?.items ?? []),
       ...(section.image ? [section.image.caption] : []),
+      ...(section.rewriteExample ? Object.values(section.rewriteExample) : []),
       ...(section.details ? [section.details.summary, ...section.details.paragraphs] : []),
       ...(section.table ? [section.table.caption, ...section.table.headers, ...section.table.rows.flat()] : [])])]
     .map(text => pick(text, locale)).join(' ');

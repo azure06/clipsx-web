@@ -3,9 +3,20 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { blogPosts } from '@/content/blog';
 import { pick } from '@/content/marketing';
-import { BlogComparison, BlogWorkflow, BlogFigure } from './BlogVisuals';
+import { BlogComparison, BlogWorkflow, BlogFigure, BlogBeforeAfter } from './BlogVisuals';
 
 describe('article visual explanations', () => {
+  it('keeps the original and observed suggestion in English in both editions', () => {
+    const example = blogPosts.flatMap(post => post.sections).find(section => section.rewriteExample)!.rewriteExample!;
+    for (const locale of ['en', 'ja'] as const) {
+      const html = renderToStaticMarkup(createElement(BlogBeforeAfter, { example, locale }));
+      expect(html.match(/lang="en"/g)).toHaveLength(2);
+      expect(html).toContain(pick(example.after, locale));
+      expect(html).toContain(pick(example.note, locale));
+    }
+    expect(example.before.en).toBe(example.before.ja);
+    expect(example.after.en).toBe(example.after.ja);
+  });
   it('makes the retrieved image available at full size with localized context', () => {
     const image = blogPosts.flatMap(post => post.sections).find(section => section.image)!.image!;
     for (const locale of ['en', 'ja'] as const) {

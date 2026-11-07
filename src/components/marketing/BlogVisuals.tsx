@@ -1,6 +1,6 @@
 import { ClipboardList, Search, Cpu, CircleCheck } from 'lucide-react';
 import Image from 'next/image';
-import type { BlogFlow, BlogImage, BlogTable } from '@/content/blog';
+import type { BlogFlow, BlogImage, BlogTable, BlogRewriteExample } from '@/content/blog';
 import { pick } from '@/content/marketing';
 import type { Locale } from '@/i18n/config';
 import styles from './blog-visuals.module.css';
@@ -47,9 +47,26 @@ export function BlogComparison({ table, locale }: { table: BlogTable; locale: Lo
   </div>;
 }
 
+export function BlogBeforeAfter({ example, locale }: { example: BlogRewriteExample; locale: Locale }) {
+  return <figure className="my-7 overflow-hidden rounded-2xl border border-(--ui-border)">
+    <figcaption className="bg-(--ui-surface) px-5 py-4 text-sm font-semibold">{pick(example.caption, locale)}</figcaption>
+    <div className="grid md:grid-cols-2">
+      <div className="border-t border-(--ui-border) p-5 sm:p-6">
+        <p className="eyebrow">{locale === 'ja' ? '原文（英語）' : 'Original'}</p>
+        <blockquote lang="en" className="mt-4 text-base leading-8 text-(--ui-text-muted)">{pick(example.before, locale)}</blockquote>
+      </div>
+      <div className="border-t border-(--ui-border) bg-(--ui-accent-subtle) p-5 sm:p-6 md:border-l">
+        <p className="eyebrow">{locale === 'ja' ? 'ローカルモデルの実際の出力（英語）' : 'Actual local-model suggestion'}</p>
+        <blockquote lang="en" className="mt-4 text-base leading-8">{pick(example.after, locale)}</blockquote>
+      </div>
+    </div>
+    <p className="border-t border-(--ui-border) px-5 py-4 text-sm leading-7 text-(--ui-text-muted)">{pick(example.note, locale)}</p>
+  </figure>;
+}
+
 export function BlogFigure({ image, locale }: { image: BlogImage; locale: Locale }) {
   return <figure className="my-7">
-    <a href={image.src} className="focus-ring block overflow-hidden rounded-2xl border border-(--ui-border)" aria-label={locale === 'ja' ? '検証画像を原寸で開く' : 'Open the full-size test image'}>
+    <a href={image.src} className="focus-ring block overflow-hidden rounded-2xl border border-(--ui-border)" aria-label={locale === 'ja' ? '画像を原寸で開く' : 'Open the full-size image'}>
       <Image src={image.src} alt={pick(image.alt, locale)} width={image.width} height={image.height}
         sizes="(min-width: 800px) 768px, 100vw" className="h-auto w-full" />
     </a>

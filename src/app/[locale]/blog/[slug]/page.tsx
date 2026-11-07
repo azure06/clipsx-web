@@ -7,7 +7,7 @@ import { Link } from '@/i18n/routing';
 import { blogPosts } from '@/content/blog';
 import { pick } from '@/content/marketing';
 import { BlogCard, BlogDate, BlogMeta, BlogResourceLink } from '@/components/marketing/Blog';
-import { BlogWorkflow, BlogComparison, BlogFigure } from '@/components/marketing/BlogVisuals';
+import { BlogWorkflow, BlogComparison, BlogFigure, BlogBeforeAfter } from '@/components/marketing/BlogVisuals';
 import { articleMetadata, articleSchema } from '@/lib/blog-seo';
 import { jsonLd } from '@/lib/seo';
 import type { Locale } from '@/i18n/config';
@@ -66,6 +66,7 @@ export default async function Article({ params }: { params: Promise<{ locale: Lo
           <h2 id={`${section.id}-title`}>{pick(section.title, locale)}</h2>
           {section.paragraphs.map((paragraph, index) => <p key={index} className="mt-5">{pick(paragraph, locale)}</p>)}
           {section.image && <BlogFigure image={section.image} locale={locale} />}
+          {section.rewriteExample && <BlogBeforeAfter example={section.rewriteExample} locale={locale} />}
           {section.details && <details className="my-6 rounded-xl border border-(--ui-border) p-4 sm:p-5">
             <summary className="focus-ring cursor-pointer rounded-sm text-sm font-semibold">{pick(section.details.summary, locale)}</summary>
             {section.details.paragraphs.map((paragraph, index) => <p key={index} className="mt-4 text-sm leading-7 text-(--ui-text-muted)">{pick(paragraph, locale)}</p>)}
