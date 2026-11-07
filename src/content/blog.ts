@@ -68,46 +68,102 @@ const localFirst: BlogPost = {
 };
 
 const meaningSearch: BlogPost = {
-  slug: 'meaning-search-with-ollama', date: '2026-09-20', topic: l('Local AI', 'ローカル AI'),
-  title: l('Meaning Search, on your machine', '自分の端末で動く意味検索'),
-  description: l('Find a clip by the idea you remember. A practical guide to exact search, local embeddings, and Ollama setup.', '覚えている意味からクリップを探す。文字検索との使い分け、ローカル埋め込み、Ollama の設定を解説。'),
-  takeaway: l('Keep exact search for precise strings. Add Meaning Search when you remember the idea but not the wording; a local embedding model supplies the extra retrieval path.', '正確な文字列には文字検索を。表現を忘れて意味だけ覚えているときは、ローカル埋め込みモデルを使う意味検索がもうひとつの経路になります。'),
+  slug: "meaning-search-with-ollama",
+  date: "2026-09-20",
+  modifiedDate: "2026-11-07",
+  topic: l("Local AI", "ローカル AI"),
+  title: l("Search clipboard history by meaning with Ollama", "Ollama でクリップボード履歴を意味から検索する"),
+  description: l("Find saved clips when you remember the idea, not the wording. Configure an Ollama embedding preset, enable Meaning Search, and check the original result.", "正確な言葉を忘れても、覚えている意味から保存済みのクリップを探します。Ollama の埋め込み設定、意味検索の有効化、原文確認の手順を紹介します。"),
+  takeaway: l("Use exact text search for identifiers and Meaning Search for related ideas. An embedding model and a ready index add the semantic retrieval path; a generation model is not required.", "識別子には文字検索、覚えている内容には意味検索を使い分けます。埋め込みモデルと準備済みのインデックスがあれば意味による検索を追加でき、文章生成モデルは不要です。"),
   image: { src: '/images/blog/meaning-search.webp', width: 1600, height: 900,
     alt: l('A query and a clipboard card connected through a local processor, alongside an exact-match path.', 'ローカル処理を通じてつながる検索語とクリップ。別に文字一致の経路もあります。'),
     caption: l('Conceptual illustration: related wording and exact text are complementary retrieval paths.', '概念図：意味の近さと文字の一致は、互いを補う検索経路です。') },
   sections: [
-    { id: 'exact-or-meaning', title: l('The frustration of the tip-of-the-tongue search', '「思い出せない」を解決する意味検索'), paragraphs: [
-      l('Every developer and knowledge worker knows the feeling. You copied a multi-line Docker command three weeks ago to clean up hung containers and dangling volumes. Today, you urgently need it, but you search for “clean up docker space”. The original clip contained docker system prune with specific flags. Not a single keyword matches. Standard exact-string search returns nothing, and you end up scouring the web all over again.', 'エンジニアなら誰もが経験するもどかしさがあります。数週間前にコンテナの掃除コマンドをコピーしたはずなのに、検索窓に「docker 容量 削除」と打っても一件もヒットしない。元の文章にはシステムコマンドが書かれており、検索ワードと一文字も一致しないからです。完全一致検索だけでは、記憶の断片を拾い上げることができません。'),
-      l('Exact keyword search is unbeatable for unique strings—error codes, UUIDs, function names like handleWebhookCallback, or configuration keys. But human recall is conceptual: we remember what something did, not the exact phrasing we copied. ClipsX combines keyword and semantic retrieval in a unified engine, allowing you to find clips by verbatim syntax or by remembered intent without juggling separate tools.', 'エラーコード、UUID、関数名などの一意な文字列を探すなら、完全一致検索が最も高速で正確です。しかし人間の記憶は概念的であり、正確な構文ではなく「何をするものだったか」を覚えていることが大半です。ClipsX は完全一致と意味検索をハイブリッドで組み合わせ、言葉の正確さと曖昧な記憶の双方から必要なクリップを復元します。'),
-    ] },
-    { id: 'what-the-model-does', title: l('Dense embeddings: search by concept, not keywords', 'ベクトル埋め込み：言葉ではなく概念で探す'), paragraphs: [
-      l('An embedding model converts human language into high-dimensional vectors—numerical representations that capture semantic meaning. ClipsX indexes eligible clipboard text, manual notes, tags, and completed OCR extractions using local vectors. When you type a query, the model compares vector proximity. This allows “quiet spot to work” to match “café with fast Wi-Fi and power outlets”, even when zero words overlap.', '埋め込みモデルはテキストを多次元の数値ベクトルに変換し、意味的な近さを比較可能にします。ClipsX は対象クリップの本文、メモ、タグ、OCR抽出テキストをローカルでベクトル化します。検索時にベクトルの類似度を計算するため、文言が完全に異なっていても「静かに作業できる場所」と「電源とWi-Fiのあるカフェ」を結びつけることができます。'),
-      l('Meaning Search is designed for retrieval, not speculative text generation. It returns your authentic saved clips and highlights matching excerpts. It is distinct from generative features like Recall, which synthesize new paragraphs from retrieved context. You can use semantic search without configuring text generation, ensuring that you always inspect the original, unaltered snippet before executing commands or sharing code.', '意味検索の役割は「原本を探し出すこと」であり、文章を自動生成することではありません。検索結果として表示されるのは保存されたクリップそのものです。検索結果を元に要約を作成する Recall とは異なり、意味検索だけであれば文章生成モデルは不要です。常に加工されていない原本を確認できるため、コマンドの実行やコードの再利用も安全に行えます。'),
-    ] },
-    { id: 'setup', title: l('Running local embeddings with Ollama', 'Ollama によるローカル埋め込みの接続'), paragraphs: [
-      l('Ollama provides a lightweight local runtime for machine learning models. Unlike resource-heavy generative models that require gigabytes of VRAM, embedding models (such as nomic-embed-text or bge-m3) are compact, fast, and run effortlessly on consumer laptops. ClipsX connects to Ollama over a standard local loopback interface, ensuring that zero clipboard text leaves your machine.', 'Ollama は端末内でモデルを実行するための手軽な環境です。膨大なメモリを消費する会話モデルと異なり、埋め込み専用モデルは数百メガバイト程度と非常に軽量で、一般的なノートPCでも軽快に動作します。ClipsX はループバック通信経由で Ollama と連携するため、クリップボードの内容がインターネットへ送られる心配はありません。'),
-    ], list: { ordered: true, items: [
-      l('Install and start Ollama, then pull a specialized embedding model such as ollama pull nomic-embed-text.', 'Ollama を導入して起動し、テキスト埋め込みモデル（例：nomic-embed-text）をダウンロードする。'),
-      l('In ClipsX, navigate to Intelligence → Models, enter your local endpoint (http://localhost:11434), and select Connect.', 'ClipsX の Intelligence → Models を開き、通常のエンドポイント（http://localhost:11434）を入力して接続する。'),
-      l('Choose your installed embedding model and toggle on Meaning Search.', '導入済みの埋め込み対応モデルを選択し、Meaning Search（意味検索）を有効にする。'),
-      l('Allow the local background indexer to process eligible clips, then test a conceptual query to inspect matching passages.', 'バックグラウンドでの索引作成が完了したら、覚えている概念で検索し、一致したクリップを確認する。'),
-    ] }, links: [{ label: l('Meaning Search setup guide', '意味検索の設定ガイド'), href: documentationConfig.meaningSearch }] },
-    { id: 'cost-and-location', title: l('Local intelligence with zero cloud telemetry', '完全ローカルで動く知性と負荷の管理'), paragraphs: [
-      l('Embedding models take up negligible disk space (typically 200MB to 600MB), and inference takes only milliseconds per query. However, initial indexing of a massive historical backlog consumes CPU cycles and temporary compute. Start with a lightweight model optimized for your primary languages. Massive models rarely improve retrieval accuracy for short snippets and only increase indexing duration.', '埋め込みモデルが消費する容量は通常200MB〜600MB程度で、検索時の計算もわずか数ミリ秒で完了します。ただし、数千件の既存履歴を一括して初回インデックス化する際は一定の計算負荷がかかります。まずは使用言語に適した小型モデルから導入することをお勧めします。モデルサイズをむやみに大きくしても、短い断片の検索精度が劇的に上がるわけではありません。'),
-      l('Using the loopback http://localhost:11434 connection guarantees on-device inference. Fetching the initial model weights requires an internet connection, and Ollama also supports remote hosting configurations. Never assume that the label AI automatically implies offline safety. Verify your model endpoint and network activity to confirm that your clipboard vectors remain strictly on local storage.', 'ローカルのループバックアドレスを使用することで、端末内推論が保たれます。モデルの取得時には外部通信が発生するほか、Ollama にはリモート接続の構成も存在します。「AI」という言葉だけで無条件に安全だと過信せず、接続先と通信設定を確認して、クリップのベクトルが手元で処理されていることを確かめましょう。'),
-    ] },
-    { id: 'troubleshooting', title: l('Diagnosing missing results and tuning thresholds', '見つからないときの確認と類似度調整'), paragraphs: [
-      l('If Ollama stops running, ClipsX gracefully falls back to instant keyword search. Check that the Ollama service is active and that your chosen embedding model is still available. If recent clips are missing from semantic queries, check the background indexing queue. OCR-derived text becomes searchable only after local image character extraction completes.', 'Ollama が停止した場合でも、ClipsX は即座に通常の文字一致検索へ切り替わります。結果が出ない場合は、サービスの起動状態とモデルの選択を確認してください。最近コピーした内容が見つからない場合は、インデックス処理の進行状況を確認します。画像内の文字は OCR 処理が完了した段階で検索対象に含まれます。'),
-      l('Vector similarity represents distance in mathematical embedding space, not guaranteed factual correctness. An optional minimum similarity threshold filters out weak semantic candidates without affecting exact keyword matches. Setting this threshold too high can obscure useful related clips; adjust it thoughtfully using real-world query examples from your daily notes.', 'ベクトルの類似度は多次元空間上での距離を表す指標であり、回答の正しさを保証する確率ではありません。設定可能な最低類似度のしきい値は意味検索の候補だけを絞り込み、完全一致の結果には影響しません。しきい値を高く設定しすぎると関連する有用なクリップまで隠れてしまうため、実際の検索例を見ながら調整してください。'),
-    ] },
-    { id: 'index-controls', title: l('Your clips are permanent; indexes are disposable', '原本は不変、インデックスは再構築可能'), paragraphs: [
-      l('Changing your embedding model in ClipsX automatically creates a replacement index alongside the active one, ensuring uninterrupted search. An explicit Reindex All command clears and rebuilds text vectors from scratch. In all cases, your original clipboard history remains completely untouched. You can disable Meaning Search at any moment to return to pure, instant keyword search without any model dependency.', '埋め込みモデルを変更すると、現在の索引を維持したまま裏側で新しいインデックスを準備するため、検索が中断することはありません。全再構築（Reindex All）を実行するとベクトルを一から作り直しますが、原本であるクリップのデータが失われることは決してありません。必要に応じていつでも意味検索をオフにし、従来の高速な文字検索に戻せます。'),
-    ] },
+    {
+      id: "exact-or-meaning",
+      title: l("Find a clip without remembering its exact words", "正確な言葉を忘れてもクリップを探す"),
+      paragraphs: [
+        l("ClipsX can search eligible saved clipboard text by meaning with a configured embedding model. Use it when you remember what a note was about but not its exact wording. For a local setup, choose an installed Ollama embedding model and let ClipsX build its index. The model’s language support and your captured content affect what it finds.", "ClipsX は、設定した埋め込みモデルを使って、対象の保存済みテキストを意味から検索できます。メモの内容は覚えているのに、正確な言葉が思い出せないときに使います。ローカルで試すには Ollama の導入済み埋め込みモデルを選び、インデックスの作成を待ちます。見つかる内容は、モデルの対応言語や保存済みの文章によって変わります。"),
+        l("Keep exact text search for error codes, names, paths, and function identifiers. A conceptual match is approximate and may be less useful than the precise string you already know. Meaning Search adds another retrieval source; it does not replace the original clip or make a matching passage correct.", "エラーコード、名前、パス、関数名には文字検索を使います。意味による一致は近似的で、正確な文字列を知っているなら、その文字列で探す方が適している場合があります。意味検索は検索経路を追加する機能であり、保存した原文を置き換えたり、その内容の正しさを保証したりするものではありません。"),
+      ],
+    },
+    {
+      id: "what-the-model-does",
+      title: l("Embeddings retrieve text; Recall generates answers", "埋め込みは検索、Recall は回答の生成に使う"),
+      paragraphs: [
+        l("An embedding model turns text into numerical representations that can be compared for similarity. ClipsX builds a derived index from eligible searchable text. Supported clip representations and available text artifacts can contribute; completed OCR may supply text from images when available. This is not general visual image search or a search of every document on your computer.", "埋め込みモデルは、類似度を比較できる数値表現へ文章を変換します。ClipsX は検索対象のテキストから派生インデックスを作成します。対応するクリップ形式や利用可能なテキストが対象となり、対応環境で OCR が完了していれば画像内の文字も利用できます。画像そのものの類似検索や、端末内の全書類を調べる機能とは異なります。"),
+        l("Meaning Search returns saved clips for you to inspect. Recall can generate an answer from retrieved evidence and needs a separately configured generation model. You can try semantic retrieval without setting up generated answers. In either case, open the original source before using a command, relying on a specification, or sharing its contents.", "意味検索は、確認できる保存済みクリップを返します。Recall は取得した資料から回答を生成する機能で、別に設定した文章生成モデルを必要とします。回答生成を設定せずに意味検索だけを試すこともできます。どちらを使う場合も、コマンドの実行や仕様の判断、内容の共有をする前に原文を確認してください。"),
+      ],
+    },
+    {
+      id: "setup",
+      title: l("Set up a local Ollama embedding preset", "Ollama のローカル埋め込みプリセットを設定する"),
+      paragraphs: [
+        l("Install and start Ollama using its official instructions, and download an embedding-capable model suitable for your languages and hardware. ClipsX does not download models for you. Use the current setup guide for your release; an example model name alone does not establish compatibility.", "Ollama の公式手順に従って導入・起動し、使用する言語と端末に適した埋め込み対応モデルをダウンロードします。ClipsX がモデルを自動取得するわけではありません。配布版に対応する最新の手順を使い、モデル名の例だけで互換性を判断しないでください。"),
+      ],
+      list: {
+        ordered: true,
+        items: [
+          l("In Intelligence → Models, add your local Ollama connection and a text-embedding preset.", "Intelligence → Models で、ローカル Ollama の接続とテキスト埋め込みプリセットを追加します。"),
+          l("In Usage & defaults, assign that preset to Semantic search.", "Usage & defaults で、そのプリセットを Semantic search に割り当てます。"),
+          l("Open Intelligence → Indexing and check progress, eligible content, and failures.", "Intelligence → Indexing で、進行状況、対象の内容、失敗した処理を確認します。"),
+          l("Enable the Meaning Search source in the clipboard search source controls.", "クリップボード検索のソース設定で、Meaning Search を有効にします。"),
+          l("Wait for the relevant content to be indexed, then compare an exact query with a conceptual one.", "対象の内容がインデックス化されたら、固有の語句と意味を表す語句で検索結果を比べます。"),
+        ],
+      },
+      links: [
+        {
+          label: l("Current Meaning Search setup", "意味検索の最新設定手順"),
+          href: "https://docs.clipsx.app/meaning-search",
+        },
+        {
+          label: l("Local model setup and recovery", "ローカルモデルの設定と復旧"),
+          href: "https://docs.clipsx.app/local-ai",
+        },
+      ],
+    },
+    {
+      id: "cost-and-location",
+      title: l("Check the model, processing location, and workload", "モデル・処理場所・負荷を確認する"),
+      paragraphs: [
+        l("For on-device processing, use a supported loopback Ollama connection with a model that runs locally. Check the selected provider and model rather than inferring privacy from the word local in an app description. Hosted models and services have a different data path; hosted background indexing requires explicit permission to send clipboard text to that provider.", "端末内で処理するには、対応するループバック Ollama 接続と、実際にローカルで動くモデルを使います。アプリの説明に「ローカル」とあるだけで判断せず、選択中の接続先とモデルを確認してください。ホスト型モデルの処理経路は別であり、外部でのバックグラウンド索引作成には、その提供元へクリップの文章を送る明示的な許可が必要です。"),
+        l("Model downloads require connectivity. Disk space, memory use, indexing time, and query latency vary by model, hardware, and the amount of text. Start with a small representative set of your own harmless clips and evaluate useful matches. There is no universal model size or millisecond response time, and a larger model does not guarantee better retrieval.", "モデルのダウンロードには通信が必要です。容量、メモリ使用量、索引作成時間、検索の待ち時間は、モデル、端末、テキスト量で変わります。まず安全な少数のクリップで、必要な結果が得られるか確かめてください。どの環境でも同じ容量や数ミリ秒で動くという保証はなく、大きなモデルほど検索に適するとも限りません。"),
+      ],
+    },
+    {
+      id: "troubleshooting",
+      title: l("Try a harmless note, then diagnose missing results", "安全なメモで試し、見つからない原因を調べる"),
+      paragraphs: [
+        l("As a fictional exercise, copy a note about a café with upstairs seating, power outlets, and room for a group. Confirm the clip appears in History and is indexed, then try “a quiet place for our group meeting.” It may appear despite different wording. Compare with an exact café name and inspect the original text; this is not a promised ranking or a measured result.", "説明用の練習として、上階の席、電源、グループ用の席があるカフェについて安全なメモをコピーします。履歴と索引を確認してから、「グループで静かに集まれる場所」と検索してみてください。違う表現でも候補に出る場合があります。店名による文字検索と比べて原文を確認します。この例は、順位や実測結果の保証ではありません。"),
+        l("If results are missing, check the embedding assignment, enabled search sources, filters, and indexing status. A clip needs searchable text; OCR availability depends on the platform and configuration. Try fewer constraints or a simpler query. Exact text search remains available when semantic retrieval is unavailable, but it cannot recover a clip that was never captured or is no longer retained.", "見つからなければ、埋め込みモデルの割り当て、有効な検索ソース、絞り込み、索引の状態を確認します。検索可能なテキストが必要であり、OCR の利用可否は OS や設定に依存します。条件を減らすか、検索語を簡単にしてください。意味検索が使えなくても文字検索は利用できますが、保存されていない内容や保持されていないクリップは復元できません。"),
+        l("The optional minimum similarity filters semantic candidates, not exact text matches. A stricter threshold can hide useful related results. Similarity expresses closeness in the chosen model’s embedding space, not the probability that a clip is relevant or factually correct.", "任意の最低類似度は意味検索の候補を絞り込むもので、文字一致の結果には影響しません。厳しいしきい値によって、関連する候補まで隠れる場合があります。類似度は選択したモデルの空間での近さを表し、関連性や事実の正しさの確率ではありません。"),
+      ],
+    },
+    {
+      id: "index-controls",
+      title: l("Manage the index without deleting the original clips", "原本を消さずにインデックスを管理する"),
+      paragraphs: [
+        l("Use Intelligence → Indexing to index missing content, retry failures, or rebuild. Changing embedding models builds a replacement alongside the existing active index; wait for readiness before comparing results. Clearing or rebuilding the semantic index preserves original clips and exact search. Clearing the semantic-search assignment stops embedding, while removing stored index data is a separate action. Read the app’s confirmation before choosing either.", "Intelligence → Indexing で未処理の内容を索引化し、失敗した処理の再試行や再構築を行えます。埋め込みモデルの変更時は、利用中の索引を残して新しい索引を準備するため、比較は準備完了を待ってください。意味検索の索引を削除・再構築しても、原本と文字検索は保持されます。割り当ての解除と保存済み索引の削除は別の操作なので、確認画面を読んで選んでください。"),
+      ],
+    },
   ],
   resources: [
-    { label: l('ClipsX Meaning Search setup', 'ClipsX 意味検索の設定'), href: documentationConfig.meaningSearch },
-    { label: l('Ollama embeddings documentation', 'Ollama 埋め込みドキュメント'), href: 'https://docs.ollama.com/capabilities/embeddings' },
-    { label: l('Ollama local/cloud FAQ', 'Ollama ローカル・クラウド FAQ'), href: 'https://docs.ollama.com/faq' },
+    {
+      label: l("ClipsX Meaning Search setup", "ClipsX の意味検索設定"),
+      href: "https://docs.clipsx.app/meaning-search",
+    },
+    {
+      label: l("Local model setup", "ローカルモデルの設定"),
+      href: "https://docs.clipsx.app/local-ai",
+    },
+    {
+      label: l("Ollama embeddings documentation", "Ollama の埋め込みドキュメント"),
+      href: "https://docs.ollama.com/capabilities/embeddings",
+    },
+    {
+      label: l("Ollama local/cloud FAQ", "Ollama のローカル・クラウド FAQ"),
+      href: "https://docs.ollama.com/faq",
+    },
   ],
 };
 
@@ -157,45 +213,131 @@ const extensions: BlogPost = {
 };
 
 const clipboardMcp: BlogPost = {
-  slug: 'connect-your-assistant-to-clipboard-with-mcp', date: '2026-10-25',
-  topic: l('Assistant workflows', 'アシスタントの活用'),
-  title: l('Let your assistant find what you already copied', 'コピー済みの情報を、アシスタントから探す'),
-  description: l('Connect Claude Code, Codex, or any MCP client to your clipboard. Turn copied snippets into grounded engineering handoffs, coding context, and research briefs.', 'Claude Code や Codex などの MCP 対応アシスタントとクリップボードを連携。コピー済みの断片を開発引き継ぎ、参考コード、調査メモへ活用します。'),
-  takeaway: l('Connect a compatible assistant with read-only access, ask for relevant saved clips, and inspect the sources. Start with one task you would otherwise solve by hunting through tabs and pasting context again.', '対応アシスタントを読み取り専用で接続し、関連クリップを探して原文を確認します。まずはタブを探し直して資料を貼り直す作業を、一つ置き換えてみましょう。'),
+  slug: "connect-your-assistant-to-clipboard-with-mcp",
+  date: "2026-10-25",
+  modifiedDate: "2026-11-07",
+  topic: l("Assistant workflows", "アシスタントの活用"),
+  title: l("Search clipboard history from Codex and Claude Code", "Codex や Claude Code からクリップボード履歴を検索する"),
+  description: l("Find previously copied notes and errors through ClipsX MCP. Set up read-only access, check Windows client requirements, and inspect the original clips.", "ClipsX の MCP 接続で、コピー済みのメモやエラーを探します。読み取り専用の設定、Windows クライアントの注意点、原文の確認手順を紹介します。"),
+  takeaway: l("Connect your assistant to saved clipboard history with read-only access. Ask it to search, read the matching clips, and cite the evidence before using the answer.", "アシスタントを読み取り専用で履歴に接続し、検索したクリップの原文を確認させます。回答を使う前に、引用された内容が元のクリップと一致するか確かめてください。"),
   image: { src: '/images/blog/clipboard-mcp.webp', width: 1600, height: 900,
     alt: l('Saved clipboard notes connect through authorized local MCP access to an assistant, which returns a draft with source references.', '保存済みのメモが許可されたローカルMCP接続を通ってアシスタントに渡り、引用元付きの下書きになる流れ。'),
     caption: l('Conceptual workflow: saved clips → authorized retrieval → a draft you can check. These are illustrative scenarios, not customer testimonials.', '概念図：保存済みクリップ → 許可した検索 → 確認できる下書き。利用例は説明用であり、顧客の体験談ではありません。') },
   sections: [
-    { id: 'the-context-you-already-collected', title: l('The context you need is already in your clipboard', '必要な資料は、すでに履歴の中に'), paragraphs: [
-      l('You are investigating a production bug. Over twenty minutes, you copy a stack trace from monitoring, a schema snippet from GitHub, and an incident report from Slack. When you switch to your AI coding assistant, you face a tedious chore: hunting across twenty browser tabs to copy and re-paste each piece of context into the chat prompt. ClipsX eliminates this friction by exposing eligible clipboard history through the Model Context Protocol (MCP), allowing compatible assistants to search and retrieve your saved snippets directly.', '障害の調査中、エラーログ、GitHubのスキーマ定義、チャットの報告を次々とコピーしたとします。その後AIアシスタントに状況を伝える際、開いた多数のタブを行き来して同じ文章を何度も貼り直すのは非効率です。ClipsX は MCP（Model Context Protocol）を通じて保存済みクリップを公開し、対応アシスタントが必要な資料を直接検索して参照できるようにします。'),
-      l('MCP acts as an authorized local transport bridge between your assistant and ClipsX, not a second chat model embedded in your clipboard. The workflow examples detailed below are realistic developer scenarios, not observed customer results. Their purpose is to shorten the manual path from fragmented notes to reviewable drafts, without promising measured time savings or automated correctness.', 'MCP はアシスタントと ClipsX をつなぐ安全な通信プロトコルであり、クリップボード内に新たなチャットモデルを追加するものではありません。以下のシナリオは実際の開発現場を想定した活用例であり、特定の顧客における実測結果ではありません。散らばった断片から確認可能な下書きへ至る手順を示すもので、時間短縮や回答の正確性を保証するものではありません。'),
-    ], links: [{ label: l('Connect Codex, Claude Code, or another MCP client', 'Codex、Claude CodeなどのMCP接続手順'), href: documentationConfig.mcp + '#setup' }] },
-    { id: 'support-handoff', title: l('Support: hand off evidence, not vague symptoms', 'サポート：推測ではなく確固たる根拠を引き継ぐ'), paragraphs: [
-      l('Imagine a support engineer copies an alert describing concurrent checkout failures alongside an internal API note regarding database connection pooling timeouts. Instead of manually retyping the incident timeline, prompt the assistant: “Find my copied Orion incident report and API timeout notes. Draft an engineering handoff outlining observed symptoms, supporting excerpts, and open questions.” Providing a project keyword or approximate date helps the tool quickly isolate the right clips.', 'サポート担当者が、決済処理のエラー報告とタイムアウトに関するAPI仕様メモをコピーしているとします。「コピーした Orion の障害報告と API メモを検索し、発生症状、根拠となる抜粋、未解決の疑問点を整理した開発引き継ぎを作って」と指示します。案件名や時期を指定することで、アシスタントは的確に対象クリップを絞り込みます。'),
-      l('The goal is an actionable handoff another engineer can independently verify without repeating the initial discovery phase. Verify that the assistant accurately quotes the retrieved text, clearly separates customer observations from inferred causes, and leaves root causes open when evidence is inconclusive. A matching timeout parameter is a valuable clue, not definitive proof of an underlying code defect.', '目的は、別のエンジニアが最初から調べ直すことなく検証できる引き継ぎ資料を作ることです。アシスタントが原文を正確に引用しているか、顧客の報告と推測を混同していないか、根拠のない原因を断定していないかを確認してください。同一のタイムアウト値は手掛かりに過ぎず、バグの決定的な証明ではありません。'),
-    ] },
-    { id: 'coding-context', title: l('Development: retrieve API contracts without leaving the editor', '開発：エディタを離れずにAPI仕様を取り戻す'), paragraphs: [
-      l('While writing an integration, you previously copied an error message and a relevant section of third-party documentation. Rather than searching the web again, prompt your coding assistant: “Find the retry guidance and connection error I copied for Orion. Summarize what the saved notes require and identify what still needs verification before modifying the code.” The assistant brings those exact snippets into your active workspace.', 'API連携の実装中に、エラーメッセージと公式ドキュメントの再試行ルールをコピーしていたとします。「Orion 向けに保存した再試行方針と接続エラーのメモを探し、コード修正前に確認すべき条件を箇条書きでまとめて」と頼めば、ブラウザに戻ることなく手元のエディタへ必要な文脈を呼び戻せます。'),
-      l('Use exact keywords or error numbers for distinctive technical logs. For broader concepts, Meaning Search retrieves relevant clips when local embedding models are active. Always instruct your assistant to cite and inspect source candidates before recommending code refactors. Copied documentation excerpts may reflect older library versions, so confirm current upstream specifications before applying architectural changes.', '特定のエラーには固有のエラーコードを指定します。記憶が曖昧な場合は、ローカル埋め込みによる意味検索が役立ちます。修正コードを提案させる前に、アシスタントが引用した原文を確認させましょう。保存した資料が古い可能性もあるため、ライブラリのバージョンに関わる変更は最新の公式資料と照合してください。'),
-    ] },
-    { id: 'research-comparison', title: l('Research: ground comparisons in passages you selected', '調査：自分が選定した文章を正確に比較する'), paragraphs: [
-      l('During product or architecture evaluations, engineers frequently copy benchmark snippets, licensing constraints, and technical claims across different tools. Ask: “Compare my saved notes on Orion and Vega regarding offline storage support. Separate verified vendor statements, ambiguous claims, and follow-up questions.” The assistant compiles a structured brief grounded entirely in your selected clips.', 'ツールの比較評価時に、ベンチマーク結果やライセンス条項、公式発表の文章をコピーしていく場面があります。「保存した Orion と Vega のメモからオフライン対応を比較し、明確な仕様、情報不足な点、追加質問に分類して」と依頼すれば、自分が選んだ文章に基づいた客観的な比較メモを素早く整理できます。'),
-      l('This workflow transforms interrupted reading sessions into structured, reviewable decision briefs. It does not imply that the assistant has independently audited vendor claims or searched the broader internet. If a saved snippet lacks an original source URL or timestamp, require the assistant to acknowledge that gap rather than fabricating a citation. Copied text represents evidence of what you captured, not an endorsement of universal truth.', '散在するメモを確認可能な比較資料へと昇華させる手法です。アシスタントがウェブ全体を独自に検証したわけではない点に留意してください。URLや日付が残っていない場合は推測で補わせず、情報の欠落として扱わせます。保存された文章は「自分が過去に記録した事実」であり、普遍的な真実の証明ではありません。'),
-    ] },
-    { id: 'start-read-only', title: l('Start safely with read-only permissions', '安全な読み取り専用アクセスから始める'), paragraphs: [
-      l('In ClipsX, open Intelligence → Integrations, enable the local MCP server, and generate a named access token for your client. Follow the generated configuration steps for Claude Code or Codex, restart the assistant client, and run the test connection. Verify the setup by copying a harmless note containing a distinctive project name and asking your assistant to retrieve and quote it. Adding access inside ClipsX prepares the endpoint, but client-side configuration is still required.', 'ClipsX の「インテリジェンス → 連携」でローカルサーバーを有効にし、クライアント用のアクセストークンを生成します。表示される接続設定に従ってクライアントを設定・再起動し、接続をテストします。固有のキーワードを含めた安全なメモをコピーし、アシスタントがそれを検索して引用できるか確認してください。ClipsX 側の設定だけでなくクライアント側の設定も完了させる必要があります。'),
-      l('ClipsX must remain running on your computer to respond to retrieval requests. Exact keyword search operates with zero AI dependencies; semantic retrieval activates when local embeddings are configured. Remember that the external assistant uses its own cloud or local model to process answers. Always test real search queries in the assistant client, and store authentication credentials according to the documentation rather than committing secrets to shared repositories.', '検索に応答するためには ClipsX が起動している必要があります。キーワード検索なら追加のAIモデルは不要で、意味検索を行うには埋め込みモデルが必要です。外部アシスタントは独自のモデルで回答を作成します。接続テストだけでなく実際の検索動作も確認し、認証トークンを共有リポジトリに誤ってコミットしないよう注意してください。'),
-    ], links: [{ label: l('Follow the MCP setup and first-task guide', 'MCPの接続と最初の検索を試す'), href: documentationConfig.mcp }] },
-    { id: 'choose-the-boundary', title: l('Establish strict boundaries for assistant access', 'アシスタントへのアクセス権限を厳密に管理する'), paragraphs: [
-      l('Read-only access is entirely sufficient for search, citation, and draft synthesis workflows. Read-write access additionally supports clip creation and tag management, but it never grants arbitrary filesystem access, shell execution, or bulk history deletion. Configure separate tokens for each assistant client and revoke unused integrations immediately. Keep in mind that external assistants may transmit retrieved clip contents to their respective hosted AI providers.', '検索、引用、下書き作成の用途であれば、読み取り専用アクセスで完全に足ります。読み書き権限はクリップの新規作成やタグ付けを可能にしますが、任意ファイル操作やシェル実行、履歴の一括削除は許可しません。連携先ごとに個別のトークンを発行し、不要になったものは速やかに失効させましょう。外部アシスタントが取得した内容を提供元のサーバーへ送信する場合があることにも留意してください。'),
-      l('Secret and private clips are systematically excluded from assistant retrieval endpoints. However, automated privacy classification can miss sensitive patterns, and a failed privacy check does not automatically restrict a clip. Always review your classification settings before copying confidential customer information. For automated organization, decision models evaluate new copies at capture time, whereas MCP serves the distinct role of answering later queries from external assistants.', '秘密情報や非公開のクリップはアシスタントの検索対象から自動的に除外されます。ただし自動分類が機密情報を見逃す可能性があり、判定失敗だけでは制限されない場合があります。機密性の高いデータを扱う際は事前に設定を確認してください。保存時の自動タグ付けを行う判定モデルと、後からの問い合わせに応答する MCP の役割の違いを理解して運用しましょう。'),
-    ], links: [{ label: l('Understand decision rules and failed privacy checks', '判定ルールとプライバシー判定の失敗を理解する'), href: documentationConfig.decisionModels + '#failed-checks' }] },
+    {
+      id: "the-context-you-already-collected",
+      title: l("Search saved copies without pasting them again", "同じ資料を貼り直さず、保存済みのコピーを探す"),
+      paragraphs: [
+        l("Codex and Claude Code can search eligible saved clipboard history through ClipsX’s local MCP server after you configure the client and grant access. That lets you ask for a copied API note or error message while working on code. ClipsX must be running, and the material must already have been captured and retained.", "クライアントの設定とアクセス許可を済ませると、Codex や Claude Code は ClipsX のローカル MCP サーバーを通じて、対象の保存済み履歴を検索できます。コードを書きながら、コピーした API メモやエラーを探す用途です。ClipsX が起動しており、対象の内容が事前に保存・保持されている必要があります。"),
+        l("Saved clipboard history is different from the current system clipboard and from an assistant’s conversation history. A tool that reads only your latest copy cannot necessarily find yesterday’s notes. ClipsX exposes search and source-reading tools for its saved clips; it does not automatically inspect every browser tab, application, or file on your computer.", "保存済みのクリップボード履歴、現在のクリップボード、アシスタントの会話履歴は別のものです。直前のコピーを読むだけのツールでは、昨日のメモまで探せるとは限りません。ClipsX は保存したクリップの検索と原文の読み取りを提供し、ブラウザの全タブやアプリ、ファイルを自動で調べるわけではありません。"),
+      ],
+    },
+    {
+      id: "start-read-only",
+      title: l("Connect a client with read-only access", "読み取り専用でクライアントを接続する"),
+      paragraphs: [
+        l("You need ClipsX, a compatible local assistant client, and access to that client’s own model. Keyword search needs no AI model inside ClipsX. Optional meaning-based retrieval needs an embedding model and a ready index; a ClipsX generation model is not required just to share saved context through MCP.", "ClipsX、対応するローカルのアシスタントクライアント、そのクライアントが使うモデルを用意します。ClipsX 内の AI モデルはキーワード検索には不要です。意味による検索には埋め込みモデルと準備済みのインデックスが必要ですが、MCP で履歴を渡すだけなら ClipsX の文章生成モデルは使いません。"),
+      ],
+      list: {
+        ordered: true,
+        items: [
+          l("Open Intelligence → Integrations in ClipsX and enable the local MCP server.", "ClipsX の Intelligence → Integrations を開き、ローカル MCP サーバーを有効にします。"),
+          l("Choose Add assistant, select your client template, and create separate named, read-only access for that client.", "Add assistant でクライアントのテンプレートを選び、そのクライアント専用の名前付き読み取りアクセスを作成します。"),
+          l("Follow the generated setup instructions for your operating system and client. Keep tokens and completed setup commands out of screenshots and shared project files.", "OS とクライアントに合わせて表示される設定手順に従います。トークンや入力済みの設定コマンドを、画像や共有ファイルに含めないでください。"),
+          l("Restart the client as instructed, use Test access, then try an actual search. Test access checks authentication and tool discovery, not the whole client workflow.", "指示に従ってクライアントを再起動し、Test access の後に実際の検索を試します。接続テストは認証とツール一覧の確認であり、クライアント全体の動作確認とは異なります。"),
+        ],
+      },
+      links: [
+        {
+          label: l("Client setup and first retrieval", "クライアント設定と最初の検索"),
+          href: "https://docs.clipsx.app/assistant-setup",
+        },
+      ],
+    },
+    {
+      id: "support-handoff",
+      title: l("Try two harmless notes and inspect the evidence", "安全な二つのメモで原文まで確認する"),
+      paragraphs: [
+        l("Use the following fictional notes as a reader exercise. They are not observed customer results, and the matching timeout is not a diagnosis. Copy each note separately with ClipsX running, then confirm both appear in History before asking your assistant to retrieve them.", "次の架空のメモを、動作を試すための例として使います。顧客の実測結果ではなく、タイムアウトの値が一致しても原因の診断にはなりません。ClipsX を起動して一つずつコピーし、アシスタントに尋ねる前に、両方が履歴にあることを確かめてください。"),
+      ],
+      list: {
+        items: [
+          l("Orion support report: two concurrent checkout requests time out after 30 seconds.", "Orion サポート報告：決済リクエストを同時に二つ送ると、30 秒後にタイムアウトする。"),
+          l("Orion API note: the default client timeout is 30 seconds. The cause of the checkout failure is not confirmed.", "Orion API メモ：クライアントの既定タイムアウトは 30 秒。決済エラーの原因は確認されていない。"),
+        ],
+      },
+      links: [
+
+      ],
+    },
+    {
+      id: "coding-context",
+      title: l("Ask for the source, then draft the handoff", "原文を確認してから引き継ぎを作る"),
+      paragraphs: [
+        l("Ask: “Find my copied Orion support report and API note. Read both clips, quote the relevant evidence, and draft a short engineering handoff with observations and open questions.” A distinctive project name gives keyword search a useful starting point. Add a capture date or application when you need to narrow similar results.", "「コピーした Orion のサポート報告と API メモを探して。両方のクリップを読み、関連する原文を引用して、観測された症状と未解決の疑問を短い開発引き継ぎにまとめて」と依頼します。固有の案件名はキーワード検索の手掛かりになります。似た結果が多ければ、コピーした時期やアプリも伝えてください。"),
+        l("Check that the assistant uses search_clips and read_clip before treating a snippet as evidence. Compare its quotations with the original clips in ClipsX. Both sample notes mention 30 seconds, but neither proves the failure’s cause. A useful handoff preserves that uncertainty instead of inventing an explanation or a source URL.", "アシスタントが検索結果の抜粋だけで判断せず、search_clips と read_clip を使っているか確認します。引用を ClipsX の原文と照合してください。例のメモはどちらも 30 秒に触れていますが、障害原因は証明していません。原因や出典 URL を補ってしまわず、不明点を残した引き継ぎが必要です。"),
+      ],
+    },
+    {
+      id: "research-comparison",
+      title: l("Windows, Codex desktop, and Claude Code setup", "Windows・Codex デスクトップ・Claude Code の設定"),
+      paragraphs: [
+        l("For Codex desktop on Windows, follow the generated persistent user-environment instructions, then fully quit and reopen Codex, including background processes. Opening another chat alone does not refresh its environment. That persistent token value lives outside ClipsX’s protected credential storage. Keep it private, and use the setup view’s troubleshooting before recreating access.", "Windows の Codex デスクトップでは、表示されるユーザー環境変数の設定に従い、バックグラウンドのプロセスも含めて Codex を完全終了してから起動し直します。新しいチャットを開くだけでは環境変数は更新されません。このトークンは ClipsX の保護された認証情報ストレージの外に保存されるため、共有せず、問題があればアクセスを作り直す前に設定画面の案内を確認してください。"),
+        l("For Claude Code, use its generated HTTP configuration and authorization instructions. Native Windows, WSL, and cloud-hosted clients are different environments; do not assume one configuration works everywhere. A remotely hosted assistant cannot directly reach your computer’s loopback endpoint. ClipsX does not create a public tunnel.", "Claude Code では、専用に生成される HTTP 接続と認証の手順を使います。Windows ネイティブ、WSL、クラウド上のクライアントは異なる環境であり、同じ設定で動くとは限りません。別のコンピューター上のアシスタントから、手元のループバック接続先へ直接接続することはできません。ClipsX は公開トンネルを作成しません。"),
+      ],
+      links: [
+        {
+          label: l("Current Windows and client-specific instructions", "Windows と各クライアントの最新手順"),
+          href: "https://docs.clipsx.app/assistant-setup",
+        },
+      ],
+    },
+    {
+      id: "choose-the-boundary",
+      title: l("Know what the connection shares", "接続で渡る情報と権限を確認する"),
+      paragraphs: [
+        l("Read-only access supports retrieval without permission to create or organize clips. Keep a separate access entry for each assistant and revoke access you no longer use. The MCP connection is local, but the external assistant may send retrieved text to its hosted model provider. Local transport does not make that model processing local.", "読み取り専用であれば、クリップの作成や整理を許可せずに検索できます。アシスタントごとにアクセスを分け、不要になったものは失効させてください。MCP 接続自体がローカルでも、外部アシスタントは取得した文章をモデルの提供元へ送信する場合があります。通信の入口がローカルであることと、モデルの処理が端末内で完結することは別です。"),
+        l("Secret and private clips are excluded from assistant retrieval, but detection can miss sensitive material: a failed privacy check does not automatically restrict a clip. Start with harmless content and review your capture and classification choices. A missing source, an old copied specification, or an assistant’s confident wording still needs your judgment.", "秘密情報や非公開と分類されたクリップは外部アシスタントの検索対象から除外されます。ただし検出は完全ではなく、プライバシー判定の失敗だけで内容が制限されるわけではありません。安全な内容で試し、保存・分類の設定を確認してください。出典がない文章、古い仕様、断定的な回答も、そのまま正しいとは判断できません。"),
+      ],
+      links: [
+        {
+          label: l("Privacy checks and failure behavior", "プライバシー判定と失敗時の動作"),
+          href: "https://docs.clipsx.app/decision-models#failed-checks",
+        },
+      ],
+    },
+    {
+      id: "retrieval-troubleshooting",
+      title: l("If the assistant cannot find the clip", "クリップが見つからないとき"),
+      paragraphs: [
+        l("First find the item in ClipsX itself. If it was never captured, was excluded, or is no longer retained, this connection cannot recover it. For connection failures, check that ClipsX is running, access is enabled, and the client has restarted with the right configuration. Try a distinctive exact term before a broad conceptual request.", "まず ClipsX 自体で対象が見つかるか確かめます。保存されていない内容、保存対象から除外された内容、保持されていない内容を、この接続から復元することはできません。接続できない場合は ClipsX の起動、アクセスの有効化、設定後のクライアント再起動を確認し、曖昧な依頼より先に固有の語句で検索してください。"),
+        l("If keyword search works but meaning-based retrieval does not, check the embedding assignment and index readiness. Search results are leads, not proof that the assistant chose the right clip. Start free with ClipsX, save one useful note, and verify one retrieval before building a larger workflow around it.", "文字検索は動くのに意味で探せない場合は、埋め込みモデルの割り当てとインデックスの準備状況を確認します。候補が返っても、正しいクリップが選ばれた証明にはなりません。無料の ClipsX で一つのメモを保存し、一回の検索と原文確認を試してから、用途を広げてください。"),
+      ],
+      links: [
+        {
+          label: l("Download ClipsX", "ClipsX をダウンロード"),
+          href: "/download",
+        },
+        {
+          label: l("Meaning Search setup", "意味検索の設定"),
+          href: "https://docs.clipsx.app/meaning-search",
+        },
+      ],
+    },
   ],
   resources: [
-    { label: l('MCP setup, permissions, and troubleshooting', 'MCPの接続、権限、トラブル対応'), href: documentationConfig.mcp },
-    { label: l('Set up Meaning Search', '意味検索を設定する'), href: documentationConfig.meaningSearch },
-    { label: l('Conditional extension automation', '拡張機能の条件付き自動実行'), href: documentationConfig.automation },
-    { label: l('ClipsX MCP implementation and protocol reference', 'ClipsXのMCP実装とプロトコル仕様（英語）'), href: 'https://github.com/azure06/clipsx/blob/main/docs/MCP.md' },
+    {
+      label: l("MCP setup, permissions, and troubleshooting", "MCP の設定・権限・トラブル対応"),
+      href: "https://docs.clipsx.app/assistant-setup",
+    },
+    {
+      label: l("Meaning Search setup", "意味検索の設定"),
+      href: "https://docs.clipsx.app/meaning-search",
+    },
+    {
+      label: l("Privacy and external connections", "プライバシーと外部接続"),
+      href: "https://docs.clipsx.app/privacy",
+    },
   ],
 };
 

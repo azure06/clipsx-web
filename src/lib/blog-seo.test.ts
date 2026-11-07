@@ -14,13 +14,14 @@ describe('article search and sharing metadata', () => {
       expect(metadata.openGraph.images).toEqual([expect.objectContaining({ url: expect.stringContaining(post.image.src), width: 1600, height: 900, alt: pick(post.image.alt, locale) })]);
       expect(metadata.twitter?.images).toEqual([expect.objectContaining({ url: schema.image, alt: pick(post.image.alt, locale) })]);
       expect(schema).toMatchObject({ datePublished: post.date, headline: pick(post.title, locale), inLanguage: locale, mainEntityOfPage: metadata.alternates?.canonical });
-      expect(schema.dateModified).toBeUndefined();
+      expect(schema.dateModified).toBe(post.modifiedDate);
+      expect(metadata.openGraph.modifiedTime).toBe(post.modifiedDate);
     }
   });
 
   it('adds a real modification date without replacing publication history', () => {
-    const post = { ...blogPosts[0], modifiedDate: '2026-10-10' };
-    expect(articleSchema(post, 'en')).toMatchObject({ datePublished: post.date, dateModified: '2026-10-10' });
-    expect(articleMetadata(post, 'en').openGraph).toMatchObject({ publishedTime: post.date, modifiedTime: '2026-10-10' });
+    const post = { ...blogPosts[0], modifiedDate: '2026-11-07' };
+    expect(articleSchema(post, 'en')).toMatchObject({ datePublished: post.date, dateModified: '2026-11-07' });
+    expect(articleMetadata(post, 'en').openGraph).toMatchObject({ publishedTime: post.date, modifiedTime: '2026-11-07' });
   });
 });

@@ -20,7 +20,7 @@ describe('published blog content', () => {
   it('connects MCP use cases to setup and makes the evidence limits explicit', () => {
     const post = blogPosts.find(post => post.slug === 'connect-your-assistant-to-clipboard-with-mcp')!;
     expect(post.sections.map(section => section.id)).toEqual(expect.arrayContaining(['support-handoff', 'coding-context', 'research-comparison', 'start-read-only']));
-    expect(post.sections.flatMap(section => section.links ?? []).map(link => link.href)).toContain('https://docs.clipsx.app/assistant-setup#setup');
+    expect(post.sections.flatMap(section => section.links ?? []).map(link => link.href)).toContain('https://docs.clipsx.app/assistant-setup');
     expect(blogText(post, 'en')).toContain('not observed customer results');
     expect(blogText(post, 'en')).toContain('failed privacy check does not automatically restrict a clip');
   });
