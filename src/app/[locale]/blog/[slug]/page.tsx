@@ -7,6 +7,7 @@ import { Link } from '@/i18n/routing';
 import { blogPosts } from '@/content/blog';
 import { pick } from '@/content/marketing';
 import { BlogCard, BlogDate, BlogMeta, BlogResourceLink } from '@/components/marketing/Blog';
+import { BlogWorkflow, BlogComparison } from '@/components/marketing/BlogVisuals';
 import { articleMetadata, articleSchema } from '@/lib/blog-seo';
 import { jsonLd } from '@/lib/seo';
 import type { Locale } from '@/i18n/config';
@@ -43,25 +44,28 @@ export default async function Article({ params }: { params: Promise<{ locale: Lo
         {locale === 'ja' ? '執筆：ClipsX' : 'By ClipsX'}
         {post.modifiedDate && <> · {locale === 'ja' ? '更新：' : 'Updated '}<BlogDate date={post.modifiedDate} locale={locale} /></>}
       </p>
-      <figure className="mt-8">
+      {post.overview ? <BlogWorkflow flow={post.overview} locale={locale} /> : <figure className="mt-8">
         <Image src={post.image.src} alt={pick(post.image.alt, locale)} width={post.image.width} height={post.image.height}
           sizes="(min-width: 800px) 768px, 100vw" className="h-auto w-full rounded-2xl border border-(--ui-border)" />
         <figcaption className="mt-3 text-xs leading-6 text-(--ui-text-muted)">{pick(post.image.caption, locale)}</figcaption>
-      </figure>
+      </figure>}
       <aside aria-labelledby="takeaway" className="mt-8 rounded-xl border border-(--ui-border) bg-(--ui-accent-subtle) p-5 sm:p-6">
         <h2 id="takeaway" className="eyebrow">{locale === 'ja' ? 'この記事のポイント' : 'The takeaway'}</h2>
         <p className="mt-3 leading-8">{pick(post.takeaway, locale)}</p>
       </aside>
-      <nav aria-label={locale === 'ja' ? 'この記事の目次' : 'On this page'} className="mt-8 border-y border-(--ui-border) py-6">
-        <p className="eyebrow mb-3">{locale === 'ja' ? '目次' : 'On this page'}</p>
+      <details className="mt-8 border-y border-(--ui-border) py-4">
+        <summary className="focus-ring cursor-pointer rounded-sm text-sm font-semibold text-(--ui-text-muted)">{locale === 'ja' ? 'この記事の目次' : 'On this page'}</summary>
+      <nav aria-label={locale === 'ja' ? 'この記事の目次' : 'On this page'} className="mt-3">
         <ul className="grid gap-x-6 gap-y-1 sm:grid-cols-2">{post.sections.map(section => <li key={section.id}>
           <a href={`#${section.id}`} className="focus-ring inline-flex min-h-11 items-center rounded-sm text-sm leading-6 text-(--ui-text-muted) hover:text-(--ui-violet)">{pick(section.title, locale)}</a>
         </li>)}</ul>
       </nav>
+      </details>
       <div className="prose-clipsx mt-8 text-base sm:text-[17px]">
         {post.sections.map(section => <section key={section.id} id={section.id} aria-labelledby={`${section.id}-title`} className="scroll-mt-24">
           <h2 id={`${section.id}-title`}>{pick(section.title, locale)}</h2>
           {section.paragraphs.map((paragraph, index) => <p key={index} className="mt-5">{pick(paragraph, locale)}</p>)}
+          {section.table && <BlogComparison table={section.table} locale={locale} />}
           {section.list && (section.list.ordered
             ? <ol className="my-5 list-decimal space-y-3 pl-6">{section.list.items.map((item, index) => <li key={index} className="pl-1">{pick(item, locale)}</li>)}</ol>
             : <ul className="space-y-3">{section.list.items.map((item, index) => <li key={index}>{pick(item, locale)}</li>)}</ul>)}

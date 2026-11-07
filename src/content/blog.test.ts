@@ -31,12 +31,26 @@ describe('published blog content', () => {
       expect(new Set(ids).size).toBe(ids.length);
       expect(ids.every(id => /^[a-z][a-z0-9-]+$/.test(id))).toBe(true);
       expect(post.sections.length).toBeGreaterThanOrEqual(5);
-      expect(blogText(post, 'en').split(/\s+/).length).toBeGreaterThanOrEqual(600);
-      expect(blogText(post, 'en').split(/\s+/).length).toBeLessThanOrEqual(900);
       for (const locale of ['en', 'ja'] as const) {
         for (const section of post.sections) {
           expect(pick(section.title, locale)).toBeTruthy();
           expect(section.paragraphs.every(paragraph => pick(paragraph, locale).length > 30)).toBe(true);
+          if (section.table) {
+            expect(pick(section.table.caption, locale)).toBeTruthy();
+            expect(section.table.rows.length).toBeGreaterThan(0);
+            for (const row of section.table.rows) {
+              expect(row).toHaveLength(section.table.headers.length);
+              expect(row.every(cell => pick(cell, locale).length > 0)).toBe(true);
+            }
+          }
+        }
+        if (post.overview) {
+          expect(pick(post.overview.caption, locale)).toBeTruthy();
+          expect(post.overview.steps).toHaveLength(3);
+          for (const step of post.overview.steps) {
+            expect(blogText(post, locale)).toContain(pick(step.title, locale));
+            expect(blogText(post, locale)).toContain(pick(step.detail, locale));
+          }
         }
         expect(pick(post.takeaway, locale)).toBeTruthy();
         const units = locale === 'ja' ? Array.from(blogText(post, locale).replace(/\s/g, '')).length : blogText(post, locale).split(/\s+/).length;
