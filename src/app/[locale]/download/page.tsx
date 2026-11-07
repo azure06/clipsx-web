@@ -23,6 +23,19 @@ const text = {
       "Download the free clipboard manager for Windows, macOS, or Linux/X11. No account or subscription required.",
     ],
     available: "Download",
+    choose: "Choose your download",
+    chooseHelp: "Match your operating system and processor. Linux packages require X11.",
+    packageHelp: {
+      'windows-x64': 'Installer for 64-bit Intel or AMD Windows PCs.',
+      'macos-arm64': 'For Macs with an Apple M-series chip. Check About This Mac if unsure.',
+      'macos-x64': 'For Macs with an Intel processor. Check About This Mac if unsure.',
+      'linux-appimage-x64': 'AppImage for 64-bit Intel or AMD Linux systems using X11.',
+      'linux-deb-x64': 'Debian package for 64-bit Intel or AMD Debian/Ubuntu systems using X11.',
+    },
+    nextTitle: "After your first clip",
+    nextBody: "These setups are optional. Try saving and finding a harmless note first.",
+    assistant: "Use clips in Codex or Claude Code",
+    meaning: "Set up search by meaning",
     soon: "Downloads unavailable",
     windows: "Windows",
     linux: "Linux",
@@ -48,6 +61,19 @@ const text = {
       "Windows、macOS、Linux/X11 向けの無料クリップボードマネージャー。アカウントもサブスクリプションも不要です。",
     ],
     available: "ダウンロード",
+    choose: "端末に合うダウンロードを選ぶ",
+    chooseHelp: "OS とプロセッサに合わせて選んでください。Linux は X11 が必要です。",
+    packageHelp: {
+      'windows-x64': 'Intel または AMD の 64 ビット Windows PC 向けインストーラー。',
+      'macos-arm64': 'Apple M シリーズのチップを搭載した Mac 向け。「この Mac について」で確認できます。',
+      'macos-x64': 'Intel プロセッサ搭載の Mac 向け。「この Mac について」で確認できます。',
+      'linux-appimage-x64': 'X11 を使う Intel または AMD の 64 ビット Linux 向け AppImage。',
+      'linux-deb-x64': 'X11 を使う Intel または AMD の 64 ビット Debian/Ubuntu 向けパッケージ。',
+    },
+    nextTitle: "最初のクリップを試したら",
+    nextBody: "以下の設定は任意です。まず安全なメモを保存し、探してみてください。",
+    assistant: "Codex や Claude Code でクリップを使う",
+    meaning: "意味で探す検索を設定する",
     soon: "現在ダウンロードできません",
     windows: "Windows",
     linux: "Linux",
@@ -110,6 +136,9 @@ export default async function Download({
           </a>
         </section>
       )}
+      <section aria-labelledby="choose-download">
+      <h2 id="choose-download" className="font-heading text-2xl font-bold">{c.choose}</h2>
+      <p className="mt-3 mb-6 text-sm leading-7 text-(--ui-text-muted)">{c.chooseHelp}</p>
       <div className="grid gap-4 lg:grid-cols-2">
         {downloadTargets.map((target) => {
           const Icon = icons[target.platform];
@@ -139,6 +168,7 @@ export default async function Download({
                       : c.published
                     : c.soon}
                 </p>
+                <p className="mt-2 text-sm leading-6 text-(--ui-text-muted)">{c.packageHelp[target.id as keyof typeof c.packageHelp]}</p>
               </div>
               {target.status === "available" && target.url ? (
                 <a
@@ -158,6 +188,7 @@ export default async function Download({
           );
         })}
       </div>
+      </section>
       {snapStore.enabled && (
         <section aria-labelledby="snap-store-title" className="marketing-card mt-4 grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
@@ -180,6 +211,14 @@ export default async function Download({
         </ol>
         <p className="mt-6 text-sm leading-7 text-(--ui-text-muted)">{c.optional}</p>
         <div className="mt-6 flex flex-wrap gap-3"><a href={documentationConfig.gettingStarted} className="button-secondary px-5 py-3">{c.guide}</a><Link href="/changelog" className="button-secondary px-5 py-3">{c.changelog}</Link></div>
+        <aside className="mt-10 rounded-2xl border border-(--ui-border) bg-(--ui-surface) p-6" aria-labelledby="after-first-clip">
+          <h3 id="after-first-clip" className="font-heading text-lg font-semibold">{c.nextTitle}</h3>
+          <p className="mt-2 text-sm leading-7 text-(--ui-text-muted)">{c.nextBody}</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.mcp}>{c.assistant}</a>
+            <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.meaningSearch}>{c.meaning}</a>
+          </div>
+        </aside>
       </section>
 
     </div>
