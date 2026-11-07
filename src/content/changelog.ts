@@ -33,6 +33,58 @@ const compatibleUpgrade = [l(
 // Published stable releases only. Dates are GitHub publication timestamps (UTC).
 export const releases = [
   {
+    version: '0.1.13',
+    publishedAt: '2026-11-07T14:07:36Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.13',
+    title: l('More reliable search indexing.', '検索インデックスの安定性を改善。'),
+    description: l('Keep completed search indexing work when settings refresh.', '設定の更新時に完了済みの検索インデックスを保持します。'),
+    highlights: [
+      l('Avoid requeueing completed image indexing when unchanged settings synchronize.', '変更のない設定の同期時に、完了済みの画像インデックスを再処理しないように改善。'),
+      l('Preserve search updates when OCR settings change, including across restarts.', 'OCR設定の変更に伴う検索更新を、再起動後も保持。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
+    version: '0.1.12',
+    publishedAt: '2026-11-06T05:04:24Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.12',
+    title: l('Pinned previews and clearer diagnostics.', 'ピン留めプレビューと診断を改善。'),
+    description: l('Open older pinned clips more reliably and understand extension failures.', '古いピン留めクリップのプレビューと拡張機能のエラー表示を改善しました。'),
+    highlights: [
+      l('Preview older pinned clips without first loading their history pages.', '履歴ページを読み込まずに古いピン留めクリップをプレビュー。'),
+      l('Show the operation stage and a readable reason for extension failures without exposing copied content.', 'コピー内容を公開せずに、拡張機能のエラーの発生段階と理由を表示。'),
+      l('Wait for IME composition to finish before applying Recall search edits, and update security dependencies.', 'Recallの検索編集をIME入力の確定後に適用し、セキュリティ依存関係を更新。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
+    version: '0.1.11',
+    publishedAt: '2026-10-27T11:40:20Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.11',
+    title: l('Pinned clips and a richer preview.', 'ピン留めクリップとプレビューを改善。'),
+    description: l('Keep frequent clips close and work with transformations from the preview.', 'よく使うクリップをピン留めし、プレビューから変換を利用できます。'),
+    highlights: [
+      l('Keep frequent clips in a compact pinned section and save their order across restarts.', 'よく使うクリップをコンパクトにピン留めし、並び順を再起動後も保持。'),
+      l('Browse Preview and Results separately, run compatible transformations, compare results, and copy selected output.', 'プレビューと結果を分けて表示し、対応する変換の実行、比較、選択した結果のコピーに対応。'),
+      l('Manage preview defaults, edit tags, and remove an incorrect Secret classification.', 'プレビューの既定設定やタグを管理し、誤った秘密情報の分類を解除。'),
+      l('Preserve completed OCR and pending search updates across restart.', '完了したOCRと保留中の検索更新を再起動後も保持。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
+    version: '0.1.10',
+    publishedAt: '2026-10-25T15:32:41Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.10',
+    title: l('Find and manage tags.', 'タグの検索と管理を改善。'),
+    description: l('Filter history by tag and manage tags directly in the preview.', 'タグで履歴を絞り込み、プレビューから直接タグを管理できます。'),
+    highlights: [
+      l('Find tags in a searchable picker and combine them with the current view and text search.', '検索可能なタグ選択から、現在の表示やテキスト検索と組み合わせて絞り込み。'),
+      l('See readable tags in history and add or remove tags from the preview.', '履歴でタグ名を確認し、プレビューからタグを追加・削除。'),
+      l('Show tags created by decision rules immediately and confirm before deleting a tag from all clips.', '判定ルールで作成したタグをすぐに表示し、全クリップからタグを削除する前に確認。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
     version: '0.1.9',
     publishedAt: '2026-10-25T00:39:04Z',
     url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.9',
