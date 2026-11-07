@@ -35,6 +35,10 @@ describe('published blog content', () => {
         for (const section of post.sections) {
           expect(pick(section.title, locale)).toBeTruthy();
           expect(section.paragraphs.every(paragraph => pick(paragraph, locale).length > 30)).toBe(true);
+          if (section.details) {
+            expect(pick(section.details.summary, locale)).toBeTruthy();
+            expect(section.details.paragraphs.every(paragraph => pick(paragraph, locale).length > 30)).toBe(true);
+          }
           if (section.table) {
             expect(pick(section.table.caption, locale)).toBeTruthy();
             expect(section.table.rows.length).toBeGreaterThan(0);
@@ -74,6 +78,18 @@ describe('published blog content', () => {
         expect(pick(post.image.alt, locale)).toBeTruthy();
         expect(pick(post.image.caption, locale)).toBeTruthy();
       }
+    }
+  });
+
+  it('ships the saved-image example with its actual dimensions and bilingual explanation', async () => {
+    const post = blogPosts.find(post => post.slug === 'connect-your-assistant-to-clipboard-with-mcp')!;
+    const image = post.sections.find(section => section.id === 'saved-image-context')!.image!;
+    const bytes = readFileSync(join(process.cwd(), 'public', image.src));
+    expect(bytes.length).toBeLessThan(600000);
+    expect(await sharp(bytes).metadata()).toMatchObject({ width: image.width, height: image.height, format: 'webp' });
+    for (const locale of ['en', 'ja'] as const) {
+      expect(pick(image.alt, locale)).toBeTruthy();
+      expect(blogText(post, locale)).toContain(pick(image.caption, locale));
     }
   });
 });

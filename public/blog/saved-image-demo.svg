@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Orion image-context demo</title>
+  <desc id="desc">Illustrative checkout screen. A purple Continue button overlaps the email field. A green circle sits at the upper right, and three orange bars sit at the lower left.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#151329"/><stop offset="1" stop-color="#302157"/></linearGradient>
+    <linearGradient id="button" x2="1" y2="1"><stop stop-color="#9180ff"/><stop offset="1" stop-color="#ba65ec"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dy="18" stdDeviation="25" flood-color="#000" flood-opacity=".25"/></filter>
+  </defs>
+  <rect width="1200" height="760" rx="32" fill="url(#bg)"/>
+  <circle cx="1050" cy="110" r="170" fill="#8c65e8" opacity=".1"/>
+  <g font-family="Segoe UI, sans-serif">
+    <text x="74" y="89" fill="#c6b9f2" font-size="19" letter-spacing="4">ORION / IMAGE CONTEXT DEMO</text>
+    <text x="74" y="143" fill="#fff" font-size="40" font-weight="700">Find the visual problem.</text>
+    <text x="74" y="185" fill="#b3aeca" font-size="22">Harmless test image · invented interface</text>
+    <g filter="url(#shadow)">
+      <rect x="190" y="244" width="820" height="410" rx="22" fill="#f7f8fc"/>
+      <path d="M212 244h776a22 22 0 0 1 22 22v34H190v-34a22 22 0 0 1 22-22Z" fill="#e7e8f0"/>
+      <circle cx="222" cy="272" r="6" fill="#b5b7c8"/><circle cx="243" cy="272" r="6" fill="#b5b7c8"/><circle cx="264" cy="272" r="6" fill="#b5b7c8"/>
+      <text x="303" y="279" font-size="16" fill="#686a82">Orion checkout · QA-47</text>
+      <circle cx="946" cy="347" r="17" fill="#21ad7b"/>
+      <text x="247" y="366" fill="#272442" font-size="29" font-weight="700">Finish your order</text>
+      <text x="247" y="411" fill="#68667d" font-size="18">Email address</text>
+      <rect x="247" y="430" width="597" height="67" rx="10" fill="#fff" stroke="#c6c8d7" stroke-width="2"/>
+      <text x="269" y="471" fill="#868498" font-size="21">name@example.test</text>
+      <rect x="620" y="451" width="260" height="72" rx="12" fill="url(#button)"/>
+      <text x="750" y="496" text-anchor="middle" fill="#fff" font-size="23" font-weight="700">Continue →</text>
+      <rect x="247" y="564" width="18" height="24" rx="4" fill="#ed9b53"/>
+      <rect x="276" y="545" width="18" height="43" rx="4" fill="#ed9b53"/>
+      <rect x="305" y="525" width="18" height="63" rx="4" fill="#ed9b53"/>
+      <text x="350" y="578" fill="#868498" font-size="16">Test data only</text>
+    </g>
+    <text x="74" y="714" fill="#b3aeca" font-size="17">ILLUSTRATION · NOT A CLIPSX PRODUCT CAPTURE</text>
+  </g>
+</svg>

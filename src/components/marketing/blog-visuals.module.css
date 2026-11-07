@@ -1,0 +1,12 @@
+@media (prefers-reduced-motion: no-preference) {
+  .step {
+    animation: trace-step 800ms ease-out;
+  }
+}
+
+@keyframes trace-step {
+  45% {
+    transform: translateY(-2px);
+    box-shadow: 0 0 0 6px var(--ui-accent-subtle);
+  }
+}

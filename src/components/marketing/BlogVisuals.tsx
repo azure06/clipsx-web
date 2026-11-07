@@ -1,7 +1,9 @@
 import { ClipboardList, Search, Cpu, CircleCheck } from 'lucide-react';
-import type { BlogFlow, BlogTable } from '@/content/blog';
+import Image from 'next/image';
+import type { BlogFlow, BlogImage, BlogTable } from '@/content/blog';
 import { pick } from '@/content/marketing';
 import type { Locale } from '@/i18n/config';
+import styles from './blog-visuals.module.css';
 
 const icons = { clipboard: ClipboardList, search: Search, model: Cpu, check: CircleCheck };
 
@@ -12,7 +14,7 @@ export function BlogWorkflow({ flow, locale }: { flow: BlogFlow; locale: Locale 
       {flow.steps.map((step, index) => {
         const Icon = icons[step.icon];
         return <li key={step.icon + index} className="relative flex min-w-0 gap-3 md:flex-col">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-(--ui-accent-subtle) text-(--ui-violet)">
+          <span style={{ animationDelay: `${index * 500}ms` }} className={`${styles.step} flex size-10 shrink-0 items-center justify-center rounded-xl bg-(--ui-accent-subtle) text-(--ui-violet)`}>
             <Icon size={21} aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -43,4 +45,14 @@ export function BlogComparison({ table, locale }: { table: BlogTable; locale: Lo
       </tr>)}</tbody>
     </table>
   </div>;
+}
+
+export function BlogFigure({ image, locale }: { image: BlogImage; locale: Locale }) {
+  return <figure className="my-7">
+    <a href={image.src} className="focus-ring block overflow-hidden rounded-2xl border border-(--ui-border)" aria-label={locale === 'ja' ? '検証画像を原寸で開く' : 'Open the full-size test image'}>
+      <Image src={image.src} alt={pick(image.alt, locale)} width={image.width} height={image.height}
+        sizes="(min-width: 800px) 768px, 100vw" className="h-auto w-full" />
+    </a>
+    <figcaption className="mt-3 text-sm leading-6 text-(--ui-text-muted)">{pick(image.caption, locale)}</figcaption>
+  </figure>;
 }

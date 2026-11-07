@@ -3,9 +3,19 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { blogPosts } from '@/content/blog';
 import { pick } from '@/content/marketing';
-import { BlogComparison, BlogWorkflow } from './BlogVisuals';
+import { BlogComparison, BlogWorkflow, BlogFigure } from './BlogVisuals';
 
 describe('article visual explanations', () => {
+  it('makes the retrieved image available at full size with localized context', () => {
+    const image = blogPosts.flatMap(post => post.sections).find(section => section.image)!.image!;
+    for (const locale of ['en', 'ja'] as const) {
+      const html = renderToStaticMarkup(createElement(BlogFigure, { image, locale }));
+      expect(html).toContain(`href="${image.src}"`);
+      expect(html).toContain(pick(image.alt, locale));
+      expect(html).toContain(pick(image.caption, locale));
+      expect(html).toContain('loading="lazy"');
+    }
+  });
   it('keeps workflow meaning in visible localized text without relying on SVG icons', () => {
     const flow = blogPosts.find(post => post.overview)!.overview!;
     for (const locale of ['en', 'ja'] as const) {

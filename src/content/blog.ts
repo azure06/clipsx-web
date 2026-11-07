@@ -9,12 +9,15 @@ export type BlogFlow = {
   note: Localized;
 };
 export type BlogTable = { caption: Localized; headers: Localized[]; rows: Localized[][] };
+export type BlogImage = { src: string; width: number; height: number; alt: Localized; caption: Localized };
 export type BlogSection = {
   id: string;
   title: Localized;
   paragraphs: Localized[];
   list?: { ordered?: boolean; items: Localized[] };
   table?: BlogTable;
+  image?: BlogImage;
+  details?: { summary: Localized; paragraphs: Localized[] };
   links?: BlogLink[];
 };
 export type BlogPost = {
@@ -26,7 +29,7 @@ export type BlogPost = {
   modifiedDate?: string;
   takeaway: Localized;
   overview?: BlogFlow;
-  image: { src: string; width: number; height: number; alt: Localized; caption: Localized };
+  image: BlogImage;
   sections: BlogSection[];
   resources: BlogLink[];
 };
@@ -395,6 +398,38 @@ const clipboardMcp: BlogPost = {
       ],
     },
     {
+      id: "saved-image-context",
+      title: l("Retrieve a saved screenshot or image", "保存済みのスクリーンショットや画像を取得する"),
+      paragraphs: [
+        l("Ask an authorized assistant to find a screenshot already captured and retained in ClipsX, then open its image preview. Search uses available OCR text or capture filters.", "ClipsX に保存・保持されているスクリーンショットを探し、画像プレビューを開くよう依頼します。検索には利用可能な OCR テキストや保存条件を使います。"),
+      ],
+      image: {
+        src: '/blog/saved-image-retrieved.webp', width: 2048, height: 1297,
+        alt: l('Invented checkout interface: a purple Continue button overlaps the email input, with a green circle at upper right and three orange bars at lower left.', '架空の決済画面。紫の Continue ボタンがメール入力欄に重なり、右上に緑の丸、左下に三本のオレンジの棒があります。'),
+        caption: l("The image returned by read_clip_image. This invented interface is a test fixture, not a ClipsX product screenshot. Open it for a closer look.", "read_clip_image が返した画像です。架空の検証用画面であり、ClipsX の製品画面ではありません。画像を開くと細部を確認できます。"),
+      },
+      details: {
+        summary: l("Tested environment and result", "確認した環境と結果"),
+        paragraphs: [l("In a local Windows check on November 7, we copied this invented interface, replaced the current clipboard with harmless text, then found the saved image with search_clips and opened it with read_clip_image. The returned preview showed the purple button overlapping the email field, a green circle, and three orange bars. This is one controlled check, not a customer result or a WSL test.", "11 月 7 日の Windows ローカル環境で、この架空の画面をコピーし、現在のクリップボードを安全な文章で置き換えてから、search_clips で保存画像を探し、read_clip_image で開きました。返されたプレビューには、メール欄に重なる紫のボタン、緑の丸、三本のオレンジの棒が見えました。管理した条件での一回の確認であり、顧客の実績や WSL での検証ではありません。"), l("Local versions: ClipsX 0.1.12; Codex package 26.1103.4239.0; Windows build 26300. This was an already-configured session, not a fresh installation. Search used completed OCR, not visual similarity; OCR availability depends on the platform and setup.", "ローカル環境：ClipsX 0.1.12、Codex パッケージ 26.1103.4239.0、Windows ビルド 26300。設定済みの環境であり、新規インストールの検証ではありません。検索には完了済みの OCR を使い、画像の見た目による類似検索は使っていません。OCR の利用可否は OS や設定に依存します。")],
+      },
+      list: { ordered: true, items: [
+        l('Copy a harmless screenshot while ClipsX is running. Confirm it is in History, then copy something else.', 'ClipsX の起動中に安全なスクリーンショットをコピーします。履歴への保存を確認し、別の内容をコピーします。'),
+        l('Ask: “Find my saved Orion checkout image. Open the image preview and describe the layout problem. Do not infer its code or cause.” Use your own distinctive text or capture date.', '「保存した Orion の決済画面を探し、画像プレビューを開いて配置の問題を説明して。コードや原因は推測しないで」と依頼します。自分の画像にある固有の文字や保存日を指定してください。'),
+        l('Check that read_clip_image returned the intended image. OCR text alone cannot establish overlap, color, or position. If OCR is missing, use capture filters or locate the item in History first.', 'read_clip_image が目的の画像を返したことを確認します。OCR の文章だけでは、重なりや色、位置は判断できません。OCR がなければ保存条件で絞るか、先に履歴から対象を確認してください。'),
+      ] },
+      table: {
+        caption: l('Choose the shortest route to image context', '画像を渡す方法を選ぶ'),
+        headers: [l('What you have', '手元の状態'), l('Use', '使う方法'), l('Why', '選ぶ理由')],
+        rows: [
+          [l('An image ready to attach', '今すぐ添付できる画像'), l('Native image input', '標準の画像入力'), l('No history integration needed', '履歴との連携は不要')],
+          [l('An earlier image saved in ClipsX', 'ClipsX に保存済みの過去の画像'), l('Saved-history retrieval', '保存済み履歴から取得'), l('Find and inspect the retained copy', '保持されている画像を探して確認')],
+          [l('A saved image file for Codex CLI', 'Codex CLI に渡す画像ファイル'), l('The --image option', '--image オプション'), l('Documented native file input', '公式に案内されているファイル入力')],
+          [l('A paste failure in a terminal or WSL', 'ターミナルや WSL での貼り付け失敗'), l('Client-specific troubleshooting', '各クライアントの問題を確認'), l('This workflow does not repair paste bugs', 'この手順で貼り付けの不具合を修正するわけではありません')],
+        ],
+      },
+      links: [{ label: l('Official image-input options', '公式の画像入力方法'), href: 'https://learn.chatgpt.com/docs/image-inputs' }],
+    },
+    {
       id: "research-comparison",
       title: l("Check your client environment", "クライアントの環境を確認する"),
       paragraphs: [
@@ -493,6 +528,8 @@ export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway,
     ...(post.overview ? [post.overview.caption, ...post.overview.steps.flatMap(step => [step.title, step.detail]), post.overview.note] : []),
     ...post.sections.flatMap(section => [section.title, ...section.paragraphs, ...(section.list?.items ?? []),
+      ...(section.image ? [section.image.caption] : []),
+      ...(section.details ? [section.details.summary, ...section.details.paragraphs] : []),
       ...(section.table ? [section.table.caption, ...section.table.headers, ...section.table.rows.flat()] : [])])]
     .map(text => pick(text, locale)).join(' ');
 }
