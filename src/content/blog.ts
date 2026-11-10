@@ -525,7 +525,96 @@ const clipboardMcp: BlogPost = {
   ],
 };
 
-export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp].sort((a, b) => b.date.localeCompare(a.date));
+const windowsClipboardLimit: BlogPost = {
+  slug: "windows-clipboard-history-limit",
+  date: "2026-11-10",
+  topic: l("Windows", "Windows"),
+  title: l("Windows 11 clipboard history: the 25-item limit, and what to use when you hit it", "Windows 11 のクリップボード履歴は 25 件まで。その上限に達したときの対処法"),
+  description: l("Windows 11 clipboard history keeps only 25 items, drops anything over 4 MB, and clears unpinned items on restart — and there is no setting to raise it. Here is what to do when you hit the limit.", "Windows 11 のクリップボード履歴は最大 25 件まで、4 MB を超えるものは保存されず、ピン留めしていない項目は再起動で消えます。上限を上げる設定もありません。その上限にぶつかったときの対処法をまとめました。"),
+  takeaway: l("Win+V is a good short-term scratchpad: 25 items, and pinned items survive a restart. When your clipboard works as your memory, you need history that does not quietly rotate away.", "Win+V は短期的なメモ代わりとしては十分で、ピン留めした項目は再起動後も残ります。ただし、クリップボードを自分の記憶のように使うなら、静かに入れ替わってしまう履歴では足りません。"),
+  image: { src: "/images/blog/windows-clipboard-limit.webp", width: 1600, height: 900,
+    alt: l("A clipboard history panel whose oldest items dissolve into particles at the bottom, with a restart arrow at the top.", "クリップボード履歴のパネル。古い項目が下部で粒子のように消えていき、上部には再起動を表す矢印があります。"),
+    caption: l("Conceptual illustration: in Windows clipboard history, older unpinned items disappear as new ones arrive and at every restart.", "概念図：Windows のクリップボード履歴では、古い未ピンの項目は新しいコピーのたび、そして再起動のたびに消えていきます。") },
+  sections: [
+    {
+      id: "the-moment-it-bites",
+      title: l("The moment it bites", "その制限に気づく瞬間"),
+      paragraphs: [
+        l("You copied something important this morning. Then you copied thirty other things, restarted your PC, opened clipboard history with Win+V — and it was gone. Nothing you pinned, nothing from before the restart, just the last few copies you made.", "今朝、大事なものをコピーしました。その後も 30 件ほどコピーを重ね、PC を再起動してから Win+V でクリップボード履歴を開くと、もう残っていません。ピン留めしたものはなく、再起動前のものもなく、直近のコピー数件だけが残っています。"),
+        l("That is not a bug, and you did not switch anything off by accident. It is Windows working exactly as designed. The built-in clipboard history has hard limits, and once you know what they are, you can decide whether they are fine for the way you work — or whether you need something more.", "これは不具合ではなく、誤って何かをオフにしたわけでもありません。Windows が仕様どおりに動いているだけです。標準のクリップボード履歴には明確な上限があり、それを知れば、自分の使い方に合っているのか、それとも別の道具が必要なのかを判断できます。"),
+      ],
+    },
+    {
+      id: "the-limits",
+      title: l("The limits, plainly", "制限の一覧"),
+      paragraphs: [
+        l("Four limits matter in everyday use. They come from Microsoft's own documentation of the clipboard, and they apply to every Windows 11 PC, no matter the edition or the hardware it runs on.", "日常的に効いてくる制限は 4 つあります。いずれも Microsoft の公式ドキュメントに基づくもので、エディションやハードウェアを問わず、すべての Windows 11 PC に当てはまります。"),
+        l("Notice what is missing from that list: any way to change the numbers. There is no slider in Settings, no registry value, and no group policy that raises the 25-item cap or the 4 MB per-item limit. What ships is what you get.", "この一覧にないものにも注目してください。数字を変える方法がどこにもありません。設定画面のスライダーでも、レジストリでも、グループポリシーでも、25 件の上限や 1 件 4 MB の制限を引き上げることはできません。出荷時の仕様がそのまま上限です。"),
+      ],
+      table: {
+        caption: l("Windows 11 clipboard history limits", "Windows 11 クリップボード履歴の制限"),
+        headers: [l("Limit", "制限"), l("What it means", "実際の意味")],
+        rows: [
+          [l("25 items, maximum", "最大 25 件"), l("Copy a 26th item and the oldest unpinned item is deleted to make room.", "26 件目をコピーすると、ピン留めしていない最も古い項目が場所を空けるために削除されます。")],
+          [l("4 MB per item", "1 件あたり 4 MB"), l("Anything larger than 4 MB is not saved to history at all.", "4 MB を超えるものは、履歴に保存されません。")],
+          [l("Unpinned items cleared on restart", "再起動で未ピン項目が消去"), l("Restart or shut down, and every unpinned item is gone.", "再起動やシャットダウンをすると、ピン留めしていない項目はすべて消えます。")],
+          [l("No way to raise the cap", "上限を上げる方法なし"), l("No setting, registry value, or policy increases these limits.", "設定・レジストリ・ポリシーのいずれでも、これらの上限を引き上げることはできません。")],
+        ],
+      },
+    },
+    {
+      id: "turn-it-on-and-pin",
+      title: l("Turn it on, and pin what matters", "有効化とピン留めの手順"),
+      paragraphs: [
+        l("Clipboard history is off by default, so many people meet these limits before they even know the feature exists. Turning it on takes less than a minute, and pinning is the one tool Windows gives you to protect an item from the rotation and from restarts.", "クリップボード履歴は既定でオフになっているため、この機能の存在を知る前に制限にぶつかる人も少なくありません。有効化は 1 分もかからず、ピン留めは入れ替わりと再起動から項目を守るために Windows が用意した唯一の手段です。"),
+        l("Pinned items also survive the Clear all button, which makes them the safest place the built-in history offers. Keep the list short: an address you paste every week, a standard reply, a reference number you need during a project.", "ピン留めした項目は「すべてクリア」を押しても残るため、標準履歴の中では最も安全な保管場所です。毎週貼る住所、定型の返信文、プロジェクト中に必要な参照番号など、数は絞って使うのが向いています。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Win+V. If clipboard history is off, Windows shows a Turn on button — click it. You can also enable it under Settings, then System, then Clipboard.", "Win+V を押します。履歴がオフの場合は「オンにする」ボタンが表示されるのでクリックしてください。設定の「システム」→「クリップボード」からも有効化できます。"),
+        l("Copy text, images, and files as usual. Each copy now lands in the history panel instead of replacing the one before it.", "通常どおりテキストや画像、ファイルをコピーします。各コピーが前のものを置き換えず、履歴パネルに蓄積されるようになります。"),
+        l("Open Win+V, find an item you want to keep, and click its pin icon. Pinned items survive restarts and Clear all.", "Win+V を開き、残したい項目のピンアイコンをクリックします。ピン留めした項目は再起動や「すべてクリア」でも残ります。"),
+      ] },
+    },
+    {
+      id: "where-pinning-falls-short",
+      title: l("Where pinning falls short", "ピン留めだけでは足りない場面"),
+      paragraphs: [
+        l("Pinning works for the handful of things you already know are important. It fails for everything else, because you usually learn that a copy mattered later — when a colleague asks for the link again, when the error message comes back, when you need the exact wording from yesterday's draft.", "ピン留めは、重要だと最初から分かっている数件には有効です。しかし、それ以外には対応できません。コピーの価値に気づくのはたいてい後になってからだからです。同僚にリンクをもう一度聞かれたとき、同じエラーメッセージが再発したとき、昨日の下書きの正確な文面が必要になったときです。"),
+        l("There are two more traps. First, pinned items are not permanent: turn clipboard history off, even briefly, and pinned items are lost with everything else. Second, finding an old item means scrolling and recognising it — the panel has no real search, and no way to look for something by what it meant when you have forgotten its exact words.", "落とし穴がもう 2 つあります。1 つ目は、ピン留めは永続ではないことです。クリップボード履歴をオフにすると、たとえ一瞬でも、ピン留めした項目もろとも消えます。2 つ目は、古い項目を探すにはスクロールして目で見つけるしかないことです。パネルには実用的な検索がなく、正確な文言を忘れたものを「意味」から探す方法もありません。"),
+        l("Sync deserves a honest note as well: history can follow you between devices, but only when you sign in with the same Microsoft account and enable sync in Clipboard settings. On a local account, or a work PC you cannot sign into, every machine starts from an empty history.", "同期についても正直に触れておきます。履歴をデバイス間で引き継ぐことは可能ですが、同じ Microsoft アカウントでサインインし、クリップボード設定で同期を有効にした場合に限ります。ローカルアカウントや、サインインできない職場の PC では、どのマシンでも履歴は空から始まります。"),
+      ],
+    },
+    {
+      id: "when-you-need-more",
+      title: l("When the built-in history is not enough", "標準の履歴では足りなくなったら"),
+      paragraphs: [
+        l("The built-in tool is fine while your clipboard is a short-term scratchpad. It stops being fine when your clipboard works as memory: when losing yesterday's copies means redoing work, re-asking colleagues, or digging through chat and email for something you definitely copied once.", "クリップボードが短期的な下書き置き場であるうちは、標準の道具で十分です。足りなくなるのは、クリップボードが記憶の役割を果たし始めたときです。昨日のコピーを失うことが、作業のやり直しや同僚への再確認、確かに一度コピーしたはずのものをチャットやメールから掘り起こす手間につながる場合です。"),
+        l("That is the point where a dedicated clipboard manager earns its place, and it is why I built ClipsX. It keeps your clipboard history on your own device — text, images, links, files and more — without the 25-item rotation, and lets you search it properly. If you remember what something was about but not its exact wording, its optional Meaning Search can find it by meaning, using a local AI model you choose. There is no account, your history does not leave your machine, and it is free and open source for Windows, macOS and Linux.", "専用のクリップボードマネージャーが意味を持つのはその時点であり、それが ClipsX を作った理由です。ClipsX はクリップボード履歴を自分の端末の中に保持し、テキスト、画像、リンク、ファイルなどを 25 件の入れ替わりなしに蓄積し、きちんと検索できます。正確な文言ではなく内容だけを覚えている場合は、任意の意味検索で、自分の選んだローカル AI モデルを使って意味から探せます。アカウントは不要で、履歴が端末の外に出ることはなく、Windows、macOS、Linux 向けに無料でオープンソースとして公開しています。"),
+      ],
+      links: [
+        { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+        { label: l("How Meaning Search works", "意味検索の仕組み"), href: "https://docs.clipsx.app/meaning-search" },
+      ],
+    },
+    {
+      id: "faq",
+      title: l("Questions people actually search for", "よく検索される質問"),
+      paragraphs: [
+        l("How many items does Windows clipboard history keep? At most 25. When you copy something new beyond that, the oldest unpinned item is removed to make room — there is no warning when it happens.", "Windows のクリップボード履歴は何件まで保持できますか？ 最大 25 件です。それを超えてコピーすると、ピン留めしていない最も古い項目が警告なしに削除され、新しい項目の場所が空きます。"),
+        l("Why did my clipboard history disappear after a restart? Because unpinned items are cleared when Windows restarts — that is the designed behaviour, not a malfunction. Only pinned items survive a restart, and only while clipboard history stays turned on.", "再起動したらクリップボード履歴が消えたのはなぜですか？ ピン留めしていない項目は Windows の再起動時に消去される仕様であり、不具合ではありません。再起動後も残るのはピン留めした項目だけで、履歴機能がオンのままであることも条件です。"),
+        l("Can I increase the Windows clipboard history limit? No. Microsoft offers no setting to raise the 25-item cap or the 4 MB per-item limit. Your options are to pin the items that matter, or to use a clipboard manager that does not have these caps.", "Windows のクリップボード履歴の上限を増やすことはできますか？ できません。25 件の上限も 1 件 4 MB の制限も、引き上げる設定は Microsoft から提供されていません。選択肢は、大事な項目をピン留めするか、この上限のないクリップボードマネージャーを使うかです。"),
+        l("Is Windows clipboard history safe for passwords and other sensitive data? Be careful with it: anything you copy sits in a list that anyone with access to your unlocked PC can open with Win+V. If you copy secrets, clear the history afterwards — and remember that pinned items survive Clear all, so unpin anything sensitive first.", "パスワードなどの機密情報をコピーしても大丈夫ですか？ 注意が必要です。コピーした内容は、ロックされていない PC に触れる人なら誰でも Win+V で開ける一覧に残ります。秘密情報をコピーした場合は後で履歴をクリアし、ピン留めした項目は「すべてクリア」でも残るため、先にピンを外すことを忘れないでください。"),
+      ],
+    },
+  ],
+  resources: [
+    { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+    { label: l("Meaning Search setup", "意味検索の設定"), href: "https://docs.clipsx.app/meaning-search" },
+    { label: l("ClipsX on GitHub", "GitHub の ClipsX"), href: "https://github.com/azure06/clipsx" },
+  ],
+};
+
+export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp, windowsClipboardLimit].sort((a, b) => b.date.localeCompare(a.date));
 
 export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway,
