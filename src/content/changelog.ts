@@ -7,7 +7,7 @@ const firstRelease = {
   url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.0',
   title: l('The first public release.', '初めての公開リリース。'),
   description: l(
-    'Your clipboard history, local search, and programmable workflows—available on Windows, macOS, and Linux/X11.',
+    'Your clipboard history, local search, and programmable workflows across Windows, macOS, and Linux/X11.',
     'クリップボード履歴、ローカル検索、拡張可能なワークフローを Windows、macOS、Linux/X11 で利用できます。',
   ),
   highlights: [

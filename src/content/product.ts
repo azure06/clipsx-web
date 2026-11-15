@@ -1,6 +1,6 @@
 export const productContent = {
 en: {
-metaTitle: "Product — ClipsX capabilities and privacy", description: "A practical guide to supported clipboard content, search, reuse, extensions, and local data.",
+metaTitle: "Product: ClipsX capabilities and privacy", description: "A practical guide to supported clipboard content, search, reuse, extensions, and local data.",
 eyebrow: "CLIPSX / PRODUCT GUIDE", title: "Know what your clipboard can do.", intro: "What ClipsX keeps, how you find it again, and what stays on your device.",
 get: "Get ClipsX", docs: "Getting started", contents: "On this page",
 nav: ["Content & formats", "Search & organization", "Preview & reuse", "Extensions", "Privacy & sync", "Common questions"],
@@ -20,7 +20,7 @@ questions: [["Do I need an account?", "No. The core local clipboard experience d
 closeTitle: "Ready to set up ClipsX?", closeBody: "Check the available desktop builds, then follow the getting started guide."
 },
 ja: {
-metaTitle: "製品 — ClipsXの機能とプライバシー", description: "対応コンテンツ、検索、再利用、拡張機能、ローカルデータについての実用ガイド。",
+metaTitle: "製品: ClipsXの機能とプライバシー", description: "対応コンテンツ、検索、再利用、拡張機能、ローカルデータについての実用ガイド。",
 eyebrow: "CLIPSX / 製品ガイド", title: "クリップボードで、できること。", intro: "何を保存できるのか。どう探し直せるのか。どのデータが端末に残るのか。",
 get: "ClipsXを入手", docs: "スタートガイド", contents: "このページの内容",
 nav: ["コンテンツと形式", "検索と整理", "確認と再利用", "拡張機能", "プライバシーと同期", "よくある質問"],

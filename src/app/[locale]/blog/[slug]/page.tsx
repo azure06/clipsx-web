@@ -44,11 +44,12 @@ export default async function Article({ params }: { params: Promise<{ locale: Lo
         {locale === 'ja' ? '執筆：ClipsX' : 'By ClipsX'}
         {post.modifiedDate && <> · {locale === 'ja' ? '更新：' : 'Updated '}<BlogDate date={post.modifiedDate} locale={locale} /></>}
       </p>
-      {post.overview ? <BlogWorkflow flow={post.overview} locale={locale} /> : <figure className="mt-8">
+      <figure className="mt-8">
         <Image src={post.image.src} alt={pick(post.image.alt, locale)} width={post.image.width} height={post.image.height}
           sizes="(min-width: 800px) 768px, 100vw" className="h-auto w-full rounded-2xl border border-(--ui-border)" />
         <figcaption className="mt-3 text-xs leading-6 text-(--ui-text-muted)">{pick(post.image.caption, locale)}</figcaption>
-      </figure>}
+      </figure>
+      {post.overview && <BlogWorkflow flow={post.overview} locale={locale} />}
       <aside aria-labelledby="takeaway" className="mt-8 rounded-xl border border-(--ui-border) bg-(--ui-accent-subtle) p-5 sm:p-6">
         <h2 id="takeaway" className="eyebrow">{locale === 'ja' ? 'この記事のポイント' : 'The takeaway'}</h2>
         <p className="mt-3 leading-8">{pick(post.takeaway, locale)}</p>

@@ -48,7 +48,7 @@ const localFirst: BlogPost = {
     caption: l('Conceptual illustration: local history and optional services are different data paths.', '概念図：端末内の履歴と任意サービスは、別々のデータ経路です。') },
   sections: [
     { id: 'why-the-boundary-matters', title: l('Your clipboard is your working memory', 'クリップボードは作業中の記憶そのもの'), paragraphs: [
-      l('Every single day, your clipboard handles high-velocity secrets. You copy production database credentials, customer support conversations containing personal addresses, private API tokens, and sensitive internal Slack messages. Keeping this material easily retrievable accelerates your daily workflow, but it also creates a repository of high-value data. The question is not whether this history is useful—it is where that history lives, and who has access to it.', 'クリップボードには日々、極めて機密性の高い情報が集まります。DBの接続パスワード、顧客の問い合わせ、APIトークン、社内のプライベートなやり取り。これらを後から探せる利便性は作業効率を劇的に高めますが、同時に重要なデータ資産の集積場所にもなります。問題は履歴の有用性ではなく、それがどこに保存され、誰が閲覧できるのかという点です。'),
+      l('Every single day, your clipboard handles high-velocity secrets. You copy production database credentials, customer support conversations containing personal addresses, private API tokens, and sensitive internal Slack messages. Keeping this material easily retrievable accelerates your daily workflow, but it also creates a repository of high-value data. The question is not whether this history is useful, but where that history lives and who has access to it.', 'クリップボードには日々、極めて機密性の高い情報が集まります。DBの接続パスワード、顧客の問い合わせ、APIトークン、社内のプライベートなやり取り。これらを後から探せる利便性は作業効率を劇的に高めますが、同時に重要なデータ資産の集積場所にもなります。問題は履歴の有用性ではなく、それがどこに保存され、誰が閲覧できるのかという点です。'),
       l('In ClipsX, “local-first” is an architectural boundary, not a marketing slogan. Your clipboard history is owned and stored entirely on your local machine by the desktop application. You do not need to create an account, enter an email, or connect to a cloud service to capture, search, or reuse clips. The core workflow operates completely offline from day one, ensuring your working memory stays on your hardware.', 'ClipsX において「ローカルファースト」はマーケティングの標語ではなく、明確なデータ境界の設計です。クリップボード履歴はデスクトップアプリが端末内だけで保持・管理します。保存、検索、再利用にアカウント登録やメールアドレス、クラウド連携は一切不要です。最も重要な作業の記憶を、物理的に自分の端末内に留めます。'),
     ] },
     { id: 'what-stays-local', title: l('What stays strictly on your machine', '端末内に留まるデータとその境界'), paragraphs: [
@@ -397,7 +397,7 @@ const clipboardMcp: BlogPost = {
       title: l("Prompt for citations and draft an engineering handoff", "原文を引用させ、確認可能な引き継ぎメモを作成する"),
       paragraphs: [
         l("Instruct your assistant: “Search my clipboard history for the Orion support report and API note. Read both items, cite the direct quotes, and draft a concise engineering handoff outlining observed symptoms and unconfirmed hypotheses.”", "アシスタントに次のように指示します：「クリップボード履歴から Orion のサポート報告と API メモを検索して。両方の内容を読み込み、根拠となる箇所を直接引用した上で、観測された事象と未解決の仮説をまとめた簡潔な引き継ぎメモを作成して。」"),
-        l("Inspect your assistant's tool-call trace to confirm that it executed search_clips followed by read_clip. Compare the generated quotes directly against your original clipboard clips. Notice that while both notes reference 30-second thresholds, this coincidence alone does not establish causation—a critical distinction that a well-prompted assistant should highlight.", "アシスタントの実行ログを確認し、search_clips と read_clip が適切に呼び出されたことを確かめます。生成された引用文を元のクリップと直接突き合わせてみましょう。どちらのメモにも「30 秒」と記載されていますが、これは相関に過ぎず障害の根本原因を証明するものではありません。推測と客観的事実の境界を意識することが重要です。"),
+        l("Inspect your assistant's tool-call trace to confirm that it executed search_clips followed by read_clip. Compare the generated quotes directly against your original clipboard clips. Notice that while both notes reference 30-second thresholds, this coincidence alone does not establish causation, which is a critical distinction that a well-prompted assistant should highlight.", "アシスタントの実行ログを確認し、search_clips と read_clip が適切に呼び出されたことを確かめます。生成された引用文を元のクリップと直接突き合わせてみましょう。どちらのメモにも「30 秒」と記載されていますが、これは相関に過ぎず障害の根本原因を証明するものではありません。推測と客観的事実の境界を意識することが重要です。"),
       ],
     },
     {
@@ -488,7 +488,7 @@ const clipboardMcp: BlogPost = {
       id: "retrieval-troubleshooting",
       title: l("Troubleshooting retrieval failures and query misses", "トラブルシューティング：目的のクリップが見つからないとき"),
       paragraphs: [
-        l("Before debugging your assistant prompt, verify that the clip actually exists inside the ClipsX desktop application. The MCP server queries your local database—it cannot retrieve content that was excluded by privacy filters, purged past your retention limit, or copied before ClipsX was running.", "アシスタント側のプロンプトを疑う前に、まず ClipsX のアプリ画面上で該当クリップが存在しているか確認してください。MCP サーバーはローカルの保存済みデータベースを検索するため、除外ルールに引っかかったデータ、保持期限切れで消去されたデータ、ClipsX 起動前にコピーされたデータは取得できません。"),
+        l("Before debugging your assistant prompt, verify that the clip actually exists inside the ClipsX desktop application. The MCP server queries your local database directly; it cannot retrieve content that was excluded by privacy filters, purged past your retention limit, or copied before ClipsX was running.", "アシスタント側のプロンプトを疑う前に、まず ClipsX のアプリ画面上で該当クリップが存在しているか確認してください。MCP サーバーはローカルの保存済みデータベースを検索するため、除外ルールに引っかかったデータ、保持期限切れで消去されたデータ、ClipsX 起動前にコピーされたデータは取得できません。"),
       ],
       links: [
         {
@@ -530,38 +530,17 @@ const windowsClipboardLimit: BlogPost = {
   date: "2026-11-10",
   topic: l("Windows workflows", "Windows 活用"),
   title: l("Windows 11 clipboard history: the 25-item limit and how to overcome it", "Windows 11 クリップボード履歴の「25件制限」：消える原因と容量不足の解決策"),
-  description: l("Windows 11 clipboard history caps out at 25 items, ignores clips over 4 MB, and purges unpinned entries on reboot—with no registry setting to raise the ceiling. Here is how the limit works and what to use when you outgrow it.", "Windows 11 のクリップボード履歴は最大25件で頭打ちになり、4MB超のデータは保存されず、再起動で未ピン留めの項目がすべて消去されます。レジストリや設定で上限を増やす裏技もありません。その仕組みと、制限を気にせず作業するための現実的な解決策を解説します。"),
+  description: l("Windows 11 clipboard history caps out at 25 items, ignores clips over 4 MB, and purges unpinned entries on reboot, with no registry setting to raise the ceiling. Here is how the limit works and what to use when you outgrow it.", "Windows 11 のクリップボード履歴は最大25件で頭打ちになり、4MB超のデータは保存されず、再起動で未ピン留めの項目がすべて消去されます。レジストリや設定で上限を増やす裏技もありません。その仕組みと、制限を気にせず作業するための現実的な解決策を解説します。"),
   takeaway: l("Win+V is a reliable scratchpad for quick copy-pasting, but the 25-item FIFO queue silently drops older clips. When your clipboard serves as an extension of your memory, you need persistent history that survives restarts and offers instant search.", "Win+V は一時的なメモとしては手軽ですが、25件を超えると古いコピーが予告なく押し出されて消えます。過去のコードや参考資料を確実に記憶させておくなら、再起動で消えず、検索も可能な永続的クリップボード管理が必要です。"),
   image: { src: "/images/blog/windows-clipboard-limit.webp", width: 1600, height: 900,
     alt: l("Conceptual architecture diagram comparing the Windows 11 25-item FIFO clipboard buffer against the ClipsX persistent local vault.", "Windows 11 の 25 件 FIFO クリップボードバッファと、ClipsX の永続的ローカル保管庫を対比した概念アーキテクチャ図。"),
     caption: l("Architecture comparison: Windows 11 built-in clipboard history purges older unpinned clips via a 25-item FIFO queue, whereas ClipsX stores complete history locally.", "アーキテクチャ比較：Windows 11 標準のクリップボード履歴は 25 件の FIFO キューで古い項目を自動消去しますが、ClipsX は全履歴をローカルに永続保持します。") },
-  overview: {
-    caption: l("The lifecycle of a clip in Windows 11 vs. true persistent history", "Windows 11 クリップボード履歴のライフサイクルと消滅の仕組み"),
-    steps: [
-      {
-        icon: "clipboard",
-        title: l("Copy to 25-slot buffer", "25件の枠に一時保存"),
-        detail: l("Windows captures small text and images into volatile RAM.", "テキストや小さな画像を揮発性メモリへ一時的に記録。"),
-      },
-      {
-        icon: "check",
-        title: l("Silent FIFO eviction", "26件目で最古が自動削除"),
-        detail: l("Every 26th copy quietly deletes the oldest unpinned clip to free space.", "新しいコピーが入ると、ピン留めしていない古いクリップが警告なく消滅。"),
-      },
-      {
-        icon: "search",
-        title: l("Reboot wipeout", "再起動で一括消去"),
-        detail: l("Restarting or updating Windows clears every unpinned item permanently.", "PC の再起動や Windows Update で、ピン留め以外の全履歴が消滅。"),
-      },
-    ],
-    note: l("Pinned items survive reboots, but cannot be categorized, filtered, or searched semantically. Pinned clips also vanish if clipboard history is toggled off.", "ピン留めした項目は再起動後も残りますが、キーワード検索や意味検索はできず、履歴機能を一度オフにするとピン留めも全消去されます。"),
-  },
   sections: [
     {
       id: "the-moment-it-bites",
       title: l("The moment you realize your copied data is gone", "「コピーしたはずの重要データがない」その瞬間の原因"),
       paragraphs: [
-        l("It starts with a familiar moment of frustration: you copied a critical SQL query, API response, or server config snippet early this morning. A few hours later—after copying dozens of error logs, Slack messages, and documentation links—you reboot your workstation. You hit Win+V expecting to paste that morning snippet, only to find an empty list or just the few clips you took after restarting.", "「さっきコピーしたはずの重要な SQL クエリや API のレスポンスが見当たらない」――そんな経験はないでしょうか。朝のうちにコピーしたテキストも、その後に何十件ものログや Slack のメッセージ、ドキュメントの URL をコピーし、PC を再起動してから Win+V を押すと、きれいに消え去っています。"),
+        l("It starts with a familiar moment of frustration: you copied a critical SQL query, API response, or server config snippet early this morning. A few hours later, after copying dozens of error logs, Slack messages, and documentation links, you reboot your workstation. You hit Win+V expecting to paste that morning snippet, only to find an empty list or just the few clips you took after restarting.", "「さっきコピーしたはずの重要な SQL クエリや API のレスポンスが見当たらない」という経験はないでしょうか。朝のうちにコピーしたテキストも、その後に何十件ものログや Slack のメッセージ、ドキュメントの URL をコピーし、PC を再起動してから Win+V を押すと、きれいに消え去っています。"),
         l("This isn't a glitch, and you didn't accidentally toggle a hidden switch. This is Windows 11 clipboard history functioning precisely as Microsoft architected it. The native feature operates on a rigid FIFO (First-In, First-Out) rotation buffer with severe storage ceilings. Once you understand these boundaries, you can stop losing work and decide whether the default scratchpad suits your workflow or if you require dedicated clipboard memory.", "これは Windows のバグでも、誤って設定をオフにしたわけでもありません。Microsoft の設計どおりに動いている結果です。Windows 11 標準のクリップボード履歴は、厳格な「先入れ先出し（FIFO）」バッファと厳しい容量制限のもとで動作しています。その仕様を正しく理解すれば、大事なコピーを二度と失わずに済むようになり、標準機能のままで十分か、専用のツールを導入すべきかを明確に判断できます。"),
       ],
     },
@@ -600,7 +579,7 @@ const windowsClipboardLimit: BlogPost = {
       id: "where-pinning-falls-short",
       title: l("Why manual pinning fails for real-world workflows", "ピン留めだけでは実務の壁を越えられない理由"),
       paragraphs: [
-        l("Pinning works well when you know with 100% certainty that a piece of information will matter in the future. In practice, you rarely know a snippet was essential until hours or days later—when a teammate asks for that specific link, when a build breaks with the same stack trace, or when you need exact wording from an earlier draft.", "ピン留めが機能するのは、「後で確実に使う」とコピーした瞬間に分かっている一部の情報だけです。しかし実際の業務では、コピーした情報の重要性に気づくのは大抵数時間後や数日後です。同僚にリンクを再送する際や、同じビルドエラーが再発した際、以前の下書きの言い回しが必要になったときには、すでに 25 件の枠から押し出されています。"),
+        l("Pinning works well when you know with 100% certainty that a piece of information will matter in the future. In practice, you rarely know a snippet was essential until hours or days later: when a teammate asks for that specific link, when a build breaks with the same stack trace, or when you need exact wording from an earlier draft.", "ピン留めが機能するのは、「後で確実に使う」とコピーした瞬間に分かっている一部の情報だけです。しかし実際の業務では、コピーした情報の重要性に気づくのは大抵数時間後や数日後です。同僚にリンクを再送する際や、同じビルドエラーが再発した際、以前の下書きの言い回しが必要になったときには、すでに 25 件の枠から押し出されています。"),
         l("Furthermore, the native Win+V interface does not scale. It lacks text search, tags, and date filtering; finding a pinned item requires slow, manual scrolling through an unindexed visual feed. If you accidentally toggle clipboard history off in Settings, every pinned item is permanently erased with zero recovery option.", "さらに、Win+V の画面は大量の項目を扱うように作られていません。キーワード検索も、タグ付けも、日付による絞り込みも存在せず、目的の項目を目視でスクロールして探す必要があります。また、設定でクリップボード履歴を一度オフにしてしまうと、ピン留めしていた項目も含めてすべて復元不能で消滅します。"),
         l("Cloud clipboard sync also presents major compliance hurdles. While Windows allows cross-device clipboard sync via a personal Microsoft Account, enterprise IT policies frequently disable cloud clipboard synchronization to prevent sensitive credentials and PII from syncing across external servers.", "Microsoft アカウントによるクラウド同期にも注意が必要です。複数デバイス間での同期機能は用意されていますが、データが Microsoft のクラウドサーバーを経由するため、企業のセキュリティポリシーやプライバシー要件によって制限されているケースが少なくありません。"),
       ],
@@ -609,8 +588,8 @@ const windowsClipboardLimit: BlogPost = {
       id: "when-you-need-more",
       title: l("Upgrading from a volatile buffer to durable working memory", "一時バッファから、永続的な「作業の記憶」へアップグレードする"),
       paragraphs: [
-        l("The built-in Windows clipboard is adequate as a temporary buffer for immediate copy-pasting across adjacent windows. It breaks down the moment your clipboard becomes an archive of your daily work—when losing earlier copies forces you to re-run queries, re-read documentation, or ask colleagues for files you already had.", "Windows 標準のクリップボードは、直前のデータを隣のウィンドウへ移すだけの一時バッファとしては十分です。しかし、クリップボードが日々の作業の文脈や記憶の役割を持ち始めた途端に破綻します。過去のコピーが消えるたびに、SQL を再実行したり、ドキュメントを探し直したり、一度手元にあった資料を他人に聞き直す無駄が発生します。"),
-        l("This is where a dedicated local-first clipboard manager becomes indispensable, and why we created ClipsX. Built with an encrypted local SQLite engine, ClipsX retains your complete clipboard history—code snippets, high-resolution screenshots, files, and formatted text—without arbitrary 25-item limits. When you forget exact words, its on-device Meaning Search uses local AI models to retrieve clips by conceptual meaning without cloud leakage. It is 100% free and open-source for Windows, macOS, and Linux.", "そこで真価を発揮するのが、専用のローカルファースト型クリップボードマネージャーであり、ClipsX が生まれた理由です。ClipsX は暗号化されたローカル SQLite を備え、25件の制限なしにコード、高解像度画像、ファイル、テキストを端末内に永続保存します。正確な文言を忘れても、端末内のローカル AI を用いた「意味検索（Meaning Search）」で内容から瞬時に発掘可能。外部送信のない安全設計で、Windows、macOS、Linux に完全対応したオープンソースソフトウェアです。"),
+        l("The built-in Windows clipboard is adequate as a temporary buffer for immediate copy-pasting across adjacent windows. It breaks down the moment your clipboard becomes an archive of your daily work, especially when losing earlier copies forces you to re-run queries, re-read documentation, or ask colleagues for files you already had.", "Windows 標準のクリップボードは、直前のデータを隣のウィンドウへ移すだけの一時バッファとしては十分です。しかし、クリップボードが日々の作業の文脈や記憶の役割を持ち始めた途端に破綻します。過去のコピーが消えるたびに、SQL を再実行したり、ドキュメントを探し直したり、一度手元にあった資料を他人に聞き直す無駄が発生します。"),
+        l("This is where a dedicated local-first clipboard manager becomes indispensable, and why we created ClipsX. Built with an encrypted local SQLite engine, ClipsX retains your complete clipboard history (including code snippets, high-resolution screenshots, files, and formatted text) without arbitrary 25-item limits. When you forget exact words, its on-device Meaning Search uses local AI models to retrieve clips by conceptual meaning without cloud leakage. It is 100% free and open-source for Windows, macOS, and Linux.", "そこで真価を発揮するのが、専用のローカルファースト型クリップボードマネージャーであり、ClipsX が生まれた理由です。ClipsX は暗号化されたローカル SQLite を備え、25件の制限なしにコード、高解像度画像、ファイル、テキストを端末内に永続保存します。正確な文言を忘れても、端末内のローカル AI を用いた「意味検索（Meaning Search）」で内容から瞬時に発掘可能。外部送信のない安全設計で、Windows、macOS、Linux に完全対応したオープンソースソフトウェアです。"),
       ],
       table: {
         caption: l("Feature comparison: Windows 11 Win+V vs. ClipsX", "機能比較：Windows 11 標準（Win+V） vs ClipsX"),
