@@ -532,9 +532,9 @@ const windowsClipboardLimit: BlogPost = {
   title: l("Windows 11 clipboard history: the 25-item limit and how to overcome it", "Windows 11 クリップボード履歴の「25件制限」：消える原因と容量不足の解決策"),
   description: l("Windows 11 clipboard history caps out at 25 items, ignores clips over 4 MB, and purges unpinned entries on reboot, with no registry setting to raise the ceiling. Here is how the limit works and what to use when you outgrow it.", "Windows 11 のクリップボード履歴は最大25件で頭打ちになり、4MB超のデータは保存されず、再起動で未ピン留めの項目がすべて消去されます。レジストリや設定で上限を増やす裏技もありません。その仕組みと、制限を気にせず作業するための現実的な解決策を解説します。"),
   takeaway: l("Win+V is a reliable scratchpad for quick copy-pasting, but the 25-item FIFO queue silently drops older clips. When your clipboard serves as an extension of your memory, you need persistent history that survives restarts and offers instant search.", "Win+V は一時的なメモとしては手軽ですが、25件を超えると古いコピーが予告なく押し出されて消えます。過去のコードや参考資料を確実に記憶させておくなら、再起動で消えず、検索も可能な永続的クリップボード管理が必要です。"),
-  image: { src: "/images/blog/windows-clipboard-limit.webp", width: 1600, height: 900,
-    alt: l("Conceptual architecture diagram comparing the Windows 11 25-item FIFO clipboard buffer against the ClipsX persistent local vault.", "Windows 11 の 25 件 FIFO クリップボードバッファと、ClipsX の永続的ローカル保管庫を対比した概念アーキテクチャ図。"),
-    caption: l("Architecture comparison: Windows 11 built-in clipboard history purges older unpinned clips via a 25-item FIFO queue, whereas ClipsX stores complete history locally.", "アーキテクチャ比較：Windows 11 標準のクリップボード履歴は 25 件の FIFO キューで古い項目を自動消去しますが、ClipsX は全履歴をローカルに永続保持します。") },
+  image: { src: "/images/blog/windows-clipboard-overflow.webp", width: 1600, height: 900,
+    alt: l("A cute yellow clipboard character with a 25 badge holds a stack of pastel cards as older cards slip away.", "「25」のバッジを付けた黄色いクリップボードのキャラクターが、こぼれ落ちるパステルカラーのカードを抱えているイラスト。"),
+    caption: l("A clipboard with its hands full illustrates the 25-item limit: new copies push older unpinned clips out of Windows clipboard history.", "カードを抱えきれないクリップボードで表した 25 件の上限。新しいコピーが加わると、ピン留めしていない古い項目が Windows の履歴から押し出されます。") },
   sections: [
     {
       id: "the-moment-it-bites",
