@@ -20,8 +20,8 @@ describe('persistent release cache policy in Next.js', () => {
       set: vi.fn(async (_key: string, value: typeof entry) => { entry = value; stale = false; }),
     };
     const fetcher = vi.fn().mockResolvedValue(releaseFixture());
-    const firstLoader = unstable_cache(fetcher, ['release-policy-test'], { revalidate: 30 });
-    const secondLoader = unstable_cache(fetcher, ['release-policy-test'], { revalidate: 30 });
+    const firstLoader = unstable_cache(fetcher, ['release-policy-test'], { revalidate: 86_400 });
+    const secondLoader = unstable_cache(fetcher, ['release-policy-test'], { revalidate: 86_400 });
     async function render(load: typeof firstLoader) {
       const store = { incrementalCache: backend, isDraftMode: false, isStaticGeneration: false,
         pendingRevalidates: {} as Record<string, Promise<unknown>> };
@@ -32,7 +32,7 @@ describe('persistent release cache policy in Next.js', () => {
     expect((await render(firstLoader)).version).toBe('0.1.0');
     expect((await render(secondLoader)).version).toBe('0.1.0');
     expect(fetcher).toHaveBeenCalledOnce();
-    expect(entry?.revalidate).toBe(30);
+    expect(entry?.revalidate).toBe(86_400);
 
     stale = true;
     fetcher.mockRejectedValueOnce(new Error('invalid manifest'));

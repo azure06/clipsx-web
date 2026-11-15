@@ -1,15 +1,13 @@
 import { assertLocale } from '@/i18n/validate';
 import type { Metadata } from "next";
-import { Apple, ArrowUpRight, Clock3, Monitor, Terminal } from "lucide-react";
+import { Apple, Monitor, Terminal } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { snapStore, unavailableTargets } from "@/config/download";
-import { getPublishedRelease } from "@/lib/releases";
-import { getDocumentationConfig, siteConfig } from "@/config/site";
+import { getDocumentationConfig } from "@/config/site";
 import { Link } from '@/i18n/routing';
 import { pageMetadata } from '@/lib/seo';
 import { PageIntro } from "@/components/marketing/Marketing";
 import type { Locale } from "@/i18n/config";
-export const revalidate = 30;
 export async function generateMetadata({ params }: { params: Promise<{ locale: Locale }> }): Promise<Metadata> {
   const { locale } = await params; assertLocale(locale);
   return pageMetadata(locale, '/download', locale === 'ja' ? 'ClipsX をダウンロード' : 'Download ClipsX for Windows, macOS & Linux', text[locale].intro[2]);
@@ -36,16 +34,9 @@ const text = {
     nextBody: "These setups are optional. Try saving and finding a harmless note first.",
     assistant: "Use clips in Codex or Claude Code",
     meaning: "Set up search by meaning",
-    soon: "Downloads unavailable",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
-    notice: "Downloads temporarily unavailable",
-    noticeBody:
-      "We could not verify the latest download list. Check the published release on GitHub for installers and platform details, or try this page again shortly.",
-    releases: "Open GitHub Releases",
-    verified: "Signed installer",
-    published: "Published package",
     snapDescription: "Prefer Snap? View the available package and installation instructions in the Snap Store.",
     snapBadge: "Get it from the Snap Store",
     quickTitle: "From your first copy to your next paste.",
@@ -74,16 +65,9 @@ const text = {
     nextBody: "以下の設定は任意です。まず安全なメモを保存し、探してみてください。",
     assistant: "Codex や Claude Code でクリップを使う",
     meaning: "意味で探す検索を設定する",
-    soon: "現在ダウンロードできません",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
-    notice: "ダウンロードを一時的に利用できません",
-    noticeBody:
-      "最新のダウンロード一覧を確認できませんでした。GitHub の公開リリースでインストーラーと対応環境を確認するか、しばらくしてから再度お試しください。",
-    releases: "GitHub Releases を開く",
-    verified: "署名済みインストーラー",
-    published: "公開済みパッケージ",
     snapDescription: "Snap を使う方は、Snap Store でパッケージとインストール手順を確認できます。",
     snapBadge: "Snap Store から入手",
     quickTitle: "最初のコピーから、次の貼り付けへ。",
@@ -102,8 +86,6 @@ export default async function Download({
   setRequestLocale(locale);
   const documentationConfig = getDocumentationConfig(locale);
   const c = text[locale];
-  const release = await getPublishedRelease();
-  const downloadTargets = release?.targets ?? unavailableTargets;
   const architectureLabel = (architecture: string) =>
     architecture === "arm64"
       ? "Apple Silicon"
@@ -113,34 +95,15 @@ export default async function Download({
   return (
     <div className="marketing-shell pb-24">
       <PageIntro
-        eyebrow={release ? `${c.intro[0]} · v${release.version}` : c.intro[0]}
+        eyebrow={c.intro[0]}
         title={c.intro[1]}
         description={c.intro[2]}
       />
-      {!release && (
-        <section className="mx-auto mb-10 max-w-3xl rounded-2xl border border-amber-500/20 bg-amber-50 p-7 dark:bg-amber-400/5">
-          <h2 className="font-heading text-xl font-bold text-slate-950 dark:text-white">
-            {c.notice}
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
-            {c.noticeBody}
-          </p>
-          <a
-            className="mt-5 inline-flex items-center text-sm font-bold text-violet-700 dark:text-violet-300"
-            href={siteConfig.releases}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {c.releases}
-            <ArrowUpRight className="ml-2" size={15} />
-          </a>
-        </section>
-      )}
       <section aria-labelledby="choose-download">
       <h2 id="choose-download" className="font-heading text-2xl font-bold">{c.choose}</h2>
       <p className="mt-3 mb-6 text-sm leading-7 text-(--ui-text-muted)">{c.chooseHelp}</p>
       <div className="grid gap-4 lg:grid-cols-2">
-        {downloadTargets.map((target) => {
+        {unavailableTargets.map((target) => {
           const Icon = icons[target.platform];
           const name = c[target.platform];
           return (
@@ -161,29 +124,17 @@ export default async function Download({
                   </span>
                 </h2>
                 <p className="mt-1 text-xs text-slate-500">
-                  {target.format} ·{" "}
-                  {target.status === "available"
-                    ? target.signed || target.notarized
-                      ? c.verified
-                      : c.published
-                    : c.soon}
+                  {target.format}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-(--ui-text-muted)">{c.packageHelp[target.id as keyof typeof c.packageHelp]}</p>
               </div>
-              {target.status === "available" && target.url ? (
-                <a
-                  href={target.url}
-                  aria-label={`${c.available} · ${name} ${architectureLabel(target.architecture)} · ${target.format}`}
-                  className="button-primary col-span-2 px-4 py-2 text-sm sm:col-span-1"
-                >
-                  {c.available}
-                </a>
-              ) : (
-                <span className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-500 sm:col-span-1 dark:bg-white/5">
-                  <Clock3 size={14} />
-                  {c.soon}
-                </span>
-              )}
+              <a
+                href={`/api/download/${target.id}`}
+                aria-label={`${c.available} · ${name} ${architectureLabel(target.architecture)} · ${target.format}`}
+                className="button-primary col-span-2 px-4 py-2 text-sm sm:col-span-1"
+              >
+                {c.available}
+              </a>
             </article>
           );
         })}

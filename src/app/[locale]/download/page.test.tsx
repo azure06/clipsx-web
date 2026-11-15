@@ -1,7 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { parsePublishedRelease } from "@/config/download";
-import { releaseFixture } from "@/test/release-fixture";
+import { unavailableTargets } from "@/config/download";
 import { getPublishedRelease } from "@/lib/releases";
 import Download from "./page";
 
@@ -20,7 +19,6 @@ vi.mock('@/i18n/routing', () => ({ Link: ({ href, children, ...props }: React.Co
 
 describe("download page", () => {
   it.each(['en', 'ja'] as const)('shows the localized, theme-aware Snap card only when enabled in %s', async (locale) => {
-    vi.mocked(getPublishedRelease).mockResolvedValue(null);
     const params = Promise.resolve({ locale });
     expect(renderToStaticMarkup(await Download({ params }))).not.toContain('https://snapcraft.io/clipsx');
     storeState.enabled = true;
@@ -31,27 +29,19 @@ describe("download page", () => {
     expect(html).toContain(locale === 'ja' ? 'Snap Store から入手' : 'Get it from the Snap Store');
     expect(html).not.toContain('releases/download/');
   });
-  it("shows both Mac architectures and removes the first-release notice", async () => {
-    vi.mocked(getPublishedRelease).mockResolvedValue(
-      parsePublishedRelease(releaseFixture()),
-    );
+  it.each(['en', 'ja'] as const)("renders download actions without loading release metadata in %s", async (locale) => {
+    vi.mocked(getPublishedRelease).mockClear();
     const html = renderToStaticMarkup(
-      await Download({ params: Promise.resolve({ locale: "en" }) }),
+      await Download({ params: Promise.resolve({ locale }) }),
     );
     expect(html).toContain("Apple Silicon");
     expect(html).toContain("Intel / x64");
     expect(html).not.toContain("Downloads temporarily unavailable");
-    expect(html).toContain('Copy something');
-    expect(html).toContain('Open the setup guide');
-    expect(html.match(/releases\/download\/v0.1.0\//g)).toHaveLength(5);
-  });
-  it("exposes no installer links when published metadata is unavailable", async () => {
-    vi.mocked(getPublishedRelease).mockResolvedValue(null);
-    const html = renderToStaticMarkup(
-      await Download({ params: Promise.resolve({ locale: "en" }) }),
-    );
-    expect(html).toContain("Downloads temporarily unavailable");
-    expect(html).toContain("Downloads unavailable");
+    for (const target of unavailableTargets) {
+      expect(html).toContain(`href="/api/download/${target.id}"`);
+    }
+    expect(html.match(/href="\/api\/download\//g)).toHaveLength(5);
     expect(html).not.toContain("releases/download/");
+    expect(getPublishedRelease).not.toHaveBeenCalled();
   });
 });

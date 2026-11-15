@@ -48,8 +48,8 @@ export function createReleaseLoader(fetcher: typeof fetch = fetch) {
   };
 }
 
-const getCachedRelease = unstable_cache(createReleaseLoader(), ['published-release-v1', manifestUrl], {
-  revalidate: 30,
+const getCachedRelease = unstable_cache(createReleaseLoader(), ['published-release-v2', manifestUrl], {
+  revalidate: 86_400,
 });
 
 export async function getPublishedRelease(): Promise<PublishedRelease | null> {
