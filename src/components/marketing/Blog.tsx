@@ -25,7 +25,7 @@ export function BlogCard({ post, locale, featured = false }: { post: BlogPost; l
       {featured
         ? <Image src={post.image.src} fill alt={pick(post.image.alt, locale)}
           sizes="(min-width: 1280px) 624px, (min-width: 1024px) 50vw, 100vw"
-          preload className="object-contain" />
+          preload className="object-cover" />
         : <Image src={post.image.src} width={post.image.width} height={post.image.height} alt={pick(post.image.alt, locale)}
           sizes="(min-width: 1280px) 624px, (min-width: 768px) 50vw, 100vw" className="h-auto w-full" />}
     </div>
