@@ -15,6 +15,7 @@ const PUBLIC_BLOG_SLUGS = new Set([
   'rewrite-work-message-local-ai-windows',
   'why-clipboard-extensions-need-boundaries',
   'windows-clipboard-history-limit',
+  'mac-clipboard-history-limit',
 ])
 
 export function cleanPathname(value: string): string {
