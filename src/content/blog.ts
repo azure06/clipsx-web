@@ -634,7 +634,7 @@ const macClipboardHistory: BlogPost = {
   description: l("Mac clipboard history in Spotlight deletes your copies after 7 days, and older macOS has none. Here is the limit — and a free app that keeps everything.", "Spotlight のクリップボード履歴は、コピーが最大7日で消えてしまいます。古い macOS には履歴自体がありません。その制限と、すべて残せる無料アプリを紹介します。"),
   takeaway: l("Spotlight finally gives the Mac a clipboard history, but everything in it expires — 7 days at most, with no way to pin the one item that matters. If your clipboard is part of your memory, you need history that doesn't run on a calendar.", "Spotlight で Mac にもクリップボード履歴が付きましたが、中身は最大7日で期限切れになり、大事な1件だけを残す方法もありません。クリップボードを「記憶」として使うなら、カレンダーで消えない履歴が必要です。"),
   image: { src: "/images/blog/mac-clipboard-spotlight.webp", width: 1600, height: 900,
-    alt: l("A cute clipboard character watches a calendar page flip as older copied cards fade away after seven days.", "7日が過ぎて古いコピーが消えていく様子を、カレンダーを見つめるクリップボードのキャラクターで表したイラスト。"),
+    alt: l("The yellow clipboard mascot points at a Mac laptop screen showing a Spotlight clipboard panel, where one copied card dissolves into sparkles beside a small calendar page.", "Mac の画面に表示された Spotlight のクリップボードパネルを指さす黄色いクリップボードのキャラクター。コピーしたカードの1枚が、カレンダーの横でキラキラと消えていくイラスト。"),
     caption: l("Spotlight's clipboard history runs on a calendar: whatever you copied is gone at most 7 days later, pinned or not.", "Spotlight のクリップボード履歴はカレンダーで管理されます。コピーした内容は、長くても7日後には消えてしまいます。") },
   sections: [
     {
