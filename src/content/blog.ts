@@ -626,7 +626,123 @@ const windowsClipboardLimit: BlogPost = {
   ],
 };
 
-export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp, windowsClipboardLimit].sort((a, b) => b.date.localeCompare(a.date));
+const macClipboardHistory: BlogPost = {
+  slug: "mac-clipboard-history-limit",
+  date: "2026-11-17",
+  topic: l("macOS workflows", "Mac 活用"),
+  title: l("Mac clipboard history: the 7-day Spotlight limit, and free tools that keep more", "Mac クリップボード履歴：Spotlight の「7日間」制限と、もっと長く残せる無料ツール"),
+  description: l("Mac clipboard history in Spotlight deletes your copies after 7 days, and older macOS has none. Here is the limit, and a free app that keeps everything.", "Spotlight のクリップボード履歴は、コピーが最大7日で消えてしまいます。古い macOS には履歴自体がありません。その制限と、すべて残せる無料アプリを紹介します。"),
+  takeaway: l("Spotlight finally gives the Mac a clipboard history, but everything in it expires. Seven days is the maximum, and there is no way to pin the one item that matters. If your clipboard is part of your memory, you need history that doesn't run on a calendar.", "Spotlight で Mac にもクリップボード履歴が付きましたが、中身は最大7日で期限切れになり、大事な1件だけを残す方法もありません。クリップボードを「記憶」として使うなら、カレンダーで消えない履歴が必要です。"),
+  image: { src: "/images/blog/mac-clipboard-spotlight.webp", width: 1600, height: 900,
+    alt: l("The yellow clipboard mascot points at a Mac laptop screen showing a Spotlight clipboard panel, where one copied card dissolves into sparkles beside a small calendar page.", "Mac の画面に表示された Spotlight のクリップボードパネルを指さす黄色いクリップボードのキャラクター。コピーしたカードの1枚が、カレンダーの横でキラキラと消えていくイラスト。"),
+    caption: l("Spotlight's clipboard history runs on a calendar: whatever you copied is gone at most 7 days later, pinned or not.", "Spotlight のクリップボード履歴はカレンダーで管理されます。コピーした内容は、長くても7日後には消えてしまいます。") },
+  sections: [
+    {
+      id: "the-moment-it-bites",
+      title: l("The week-old copy that isn't there anymore", "1週間前のコピーが、もうそこにない"),
+      paragraphs: [
+        l("You copied something useful last week: a link, an address, a tracking number. Today you open Spotlight, press Command-4 to check your clipboard history, and it's not there. Not because you cleared it. Because a week passed.", "先週、リンクや住所、追跡番号など、あとで使うつもりのものをコピーしました。今日 Spotlight を開いて Command-4 を押し、クリップボード履歴を確認すると、それがありません。自分で消したわけではありません。1週間が過ぎたからです。"),
+        l("That's not a bug, and you didn't turn anything off by accident. macOS Tahoe finally gave the Mac a built-in clipboard history, but it comes with an expiry date, and on older Macs there is no history at all. Once you know the limits, you can decide whether they're fine for you or whether you need something more.", "これはバグでも、誤って設定をオフにした結果でもありません。macOS Tahoe で Mac にも標準のクリップボード履歴が付きましたが、それには「有効期限」があります。そして古い Mac には、履歴自体が存在しません。制限を正しく理解すれば、標準機能のままで十分か、専用ツールが必要かを判断できます。"),
+      ],
+    },
+    {
+      id: "the-limits",
+      title: l("The limits, plainly", "制限を、はっきりと"),
+      paragraphs: [
+        l("Mac clipboard history lives inside Spotlight. Press Command-Space, then Command-4. It has four limits that matter, and unlike Windows, the one that bites is time, not the number of items.", "Mac のクリップボード履歴は Spotlight の中にあります（Command-スペースを押してから Command-4）。重要な制限は4つあり、Windows と違って実際に効いてくるのは件数ではなく「時間」の制限です。"),
+        l("A few more things worth knowing: it covers the text, images, links and files you copy, and you search it from the same Spotlight field. Apple doesn't publish a maximum number of items. The limit that actually bites is time, not count.", "知っておくとよい点もあります。対象はコピーしたテキスト、画像、リンク、ファイルで、検索も同じ Spotlight の入力欄から行います。Apple は最大件数を公表していません。実際に効く制限は件数ではなく時間です。"),
+        l("Apple also warns that sensitive information may appear on the Clipboard, and anyone who can open Spotlight on your unlocked Mac can see the list. You can erase it from the same view with Clear History, or with the Clear Clipboard History button in System Settings → Spotlight, and you can turn the feature off at any time under Results from Clipboard.", "Apple 自身、クリップボードに機密情報が表示される場合があると注意しています。ロックされていない Mac で Spotlight を開ける人なら、履歴の一覧を見られてしまいます。消去は同じ画面の「履歴を消去」か、「システム設定」→「Spotlight」の「クリップボード履歴を消去」ボタンから行えます。機能自体は「クリップボードからの結果」でいつでもオフにできます。"),
+      ],
+      table: {
+        caption: l("The limits of Spotlight clipboard history on Mac", "Mac の Spotlight クリップボード履歴の制限"),
+        headers: [l("Limit", "制限"), l("What it means", "どういうことか")],
+        rows: [
+          [l("7 days, maximum", "最大7日間"), l("In System Settings → Spotlight you choose how long history stays available: 30 minutes, 8 hours or 7 days. 7 days is the ceiling. There is no 'keep forever' option.", "「システム設定」→「Spotlight」で、履歴を保持する期間を30分、8時間、7日間から選びます。7日間が上限で、「ずっと残す」設定はありません。")],
+          [l("No pinning", "ピン留め不可"), l("There is no way to pin or favourite an item to keep it past the limit. When its time is up, it's gone.", "期限を超えて残すためのピン留めやお気に入りはありません。時間が来れば消えます。")],
+          [l("Tahoe only", "Tahoe のみ"), l("Clipboard history arrived with macOS 26 Tahoe. On macOS 15 Sequoia and earlier, there is no built-in history at all. The clipboard holds a single item.", "クリップボード履歴は macOS 26 Tahoe で追加されました。macOS 15 Sequoia 以前には標準の履歴はなく、クリップボードは最後の1件だけを保持します。")],
+          [l("Off until you allow it", "許可するまで無効"), l("The first time you open it, macOS asks whether to allow Clipboard results. Nothing you copied before that moment was recorded.", "初めて開くとき、クリップボードの結果を表示してよいか確認されます。それ以前にコピーした内容は記録されていません。")],
+        ],
+      },
+    },
+    {
+      id: "open-it-and-set-7-days",
+      title: l("How to open it, and set it to the full 7 days (30 seconds)", "開き方と、保持期間を7日間に設定する方法（30秒）"),
+      paragraphs: [
+        l("If you have never opened it, your history may be sitting on the shortest setting, or not recording at all. Setting it up takes half a minute:", "一度も開いたことがない場合、履歴は最短の設定になっているか、そもそも記録されていないかもしれません。設定は30秒で終わります。"),
+        l("One catch: setting it to 7 days only helps from now on. Anything that has already expired can't be brought back. That is exactly the moment most people discover this feature exists.", "注意点がひとつあります。7日間に設定しても、効くのはこれからのコピーだけです。すでに期限切れになったものは戻せません。この機能の存在に気づくのは、大抵まさにその瞬間です。"),
+        l("When Tahoe first shipped, items lasted up to 8 hours with no choice; the 30 minutes / 8 hours / 7 days options arrived in macOS 26.1. If you don't see the choice, update your Mac.", "Tahoe の最初のリリースでは保持期間は最大8時間で、選択肢はありませんでした。30分／8時間／7日間の選択肢は macOS 26.1 で追加されました。選択肢が見当たらない場合は、Mac をアップデートしてください。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Command-Space, then Command-4, or click the Clipboard button to the right of the Spotlight search field. The first time, click Allow when macOS asks about Clipboard results.", "Command-スペースを押してから Command-4 を押します。Spotlight の検索欄の右にあるクリップボードボタンでも開けます。初回は、クリップボードの結果について確認されたら「許可」をクリックしてください。"),
+        l("Type in the search field to search your history. Click the copy icon next to an item (or select it and press Command-C), then press Command-V where you want it.", "検索欄に入力すると履歴内を検索できます。項目の横のコピーアイコンをクリックするか、選択して Command-C を押し、貼り付けたい場所で Command-V を押します。"),
+        l("Open System Settings → Spotlight, make sure Results from Clipboard is on, and under 'Clipboard history is available in Spotlight' choose 7 days.", "「システム設定」→「Spotlight」を開き、「クリップボードからの結果」がオンになっていることを確認して、「Spotlight でクリップボード履歴を利用可能」の期間で「7日間」を選びます。"),
+      ] },
+    },
+    {
+      id: "sequoia-and-earlier",
+      title: l("On Sequoia and earlier, there is no history to open", "Sequoia 以前では、開く履歴自体がない"),
+      paragraphs: [
+        l("If your Mac runs macOS 15 Sequoia or anything older, none of the above exists. The clipboard holds exactly one item, the last thing you copied, and each new copy replaces it. Finder → Edit → Show Clipboard shows you that one current item, and nothing before it.", "お使いの Mac が macOS 15 Sequoia 以前の場合は、上記の機能は一切ありません。クリップボードが保持するのは最後にコピーした1件だけで、新しくコピーするたびに置き換わります。Finder の「編集」→「クリップボードを表示」で見られるのも、その1件だけです。"),
+        l("There's no setting to turn history on, because the feature isn't there. On those Macs, a clipboard manager app isn't an upgrade; it's the only way to have a history at all.", "機能自体が存在しないため、有効化する設定もありません。そうした Mac では、クリップボードマネージャーは「アップグレード」ではなく、履歴を持つための唯一の方法です。"),
+      ],
+    },
+    {
+      id: "when-built-in-isnt-enough",
+      title: l("When the built-in history isn't enough", "標準の履歴では足りなくなる場面"),
+      paragraphs: [
+        l("The built-in tool is fine if your clipboard is a short-term scratchpad. It becomes a problem when you treat your clipboard as memory:", "クリップボードが短期的なメモ代わりなら、標準機能で十分です。問題になるのは、クリップボードを「記憶」として使い始めたときです。"),
+        l("Windows users hit a different wall: a 25-item cap instead of a time limit, covered in the Windows clipboard history limits article. On a Mac, the wall is the calendar.", "Windows ユーザーがぶつかる壁は別で、時間ではなく25件という件数の上限です（Windows の制限については別記事で解説しています）。Mac の壁は、カレンダーです。"),
+      ],
+      list: { items: [
+        l("The thing you need is from last week, or from eight days ago, which to Spotlight is the same as never.", "必要なものが先週のコピーだったとき。8日前のコピーは、Spotlight にとって「最初からなかった」のと同じです。"),
+        l("You can't protect the one important item. There's no pin, so everything expires on the same schedule.", "大事な1件だけを守れません。ピン留めがないため、すべて同じスケジュールで期限切れになります。"),
+        l("You're on an older macOS, where there is nothing to expire because there is nothing at all.", "古い macOS では、期限切れになる以前に、履歴そのものがありません。"),
+      ] },
+      links: [
+        { label: l("Windows 11 clipboard history: the 25-item limit", "Windows 11 クリップボード履歴の「25件制限」"), href: "/blog/windows-clipboard-history-limit" },
+      ],
+    },
+    {
+      id: "keep-more-with-clipsx",
+      title: l("A free, open-source Mac clipboard history app that keeps more", "もっと長く残せる、無料でオープンソースの Mac クリップボード履歴アプリ"),
+      paragraphs: [
+        l("That's the point where a dedicated clipboard manager earns its place. It's why I built ClipsX: it keeps your clipboard history on your own device (text, images, links, files and more) with no 7-day expiry, and lets you search it properly.", "ここで専用のクリップボードマネージャーの出番です。ClipsX はそのために作りました。コピー履歴を自分のデバイス内に保持し（テキスト、画像、リンク、ファイルなど）、7日間の期限切れはなく、きちんと検索できます。"),
+        l("If you remember what something was about but not its exact wording, its optional Meaning Search can find it by meaning, using a local AI model you choose. There's no account, your history doesn't leave your machine, and it's free and open source for macOS, Windows and Linux.", "正確な文言は忘れても「何についての内容だったか」を覚えているなら、任意で使える「意味検索（Meaning Search）」が、選んだローカル AI モデルを使って意味から探し出します。アカウントは不要で、履歴がデバイスの外に出ることもありません。macOS、Windows、Linux 対応の無料・オープンソースです。"),
+      ],
+      links: [
+        { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+        { label: l("ClipsX on GitHub", "GitHub の ClipsX"), href: "https://github.com/azure06/clipsx" },
+      ],
+    },
+    {
+      id: "faq",
+      title: l("Frequently asked questions", "よくある質問（FAQ）"),
+      paragraphs: [
+        l("What is the Mac clipboard history shortcut?", "Mac のクリップボード履歴を開くショートカットキーは何ですか？"),
+        l("Press Command-Space, then Command-4. The first opens Spotlight; the second switches it to your Clipboard history. You can also click the Clipboard button to the right of the search field instead of pressing Command-4.", "Command-スペースを押してから Command-4 を押します。前者で Spotlight が開き、後者でクリップボード履歴に切り替わります。Command-4 の代わりに、検索欄の右にあるクリップボードボタンをクリックしても開けます。"),
+        l("How long does Mac clipboard history keep items?", "Mac のクリップボード履歴は、最大で何日間残すことができますか？"),
+        l("Up to 7 days, depending on the setting you choose in System Settings → Spotlight: 30 minutes, 8 hours or 7 days. On the first release of Tahoe the limit was up to 8 hours; the choice arrived with macOS 26.1. There is no setting to keep items longer than 7 days.", "「システム設定」→「Spotlight」で選んだ設定により、30分、8時間、最大7日間です。Tahoe の最初のリリースでは最大8時間で、選択肢は macOS 26.1 で追加されました。7日間より長く残す設定はありません。"),
+        l("Why is my Mac clipboard history not working?", "Mac でクリップボード履歴がうまく動かないときの原因は何ですか？"),
+        l("Work through these, in order: (1) You need macOS 26 Tahoe or later. Sequoia and earlier don't have the feature. (2) Clipboard results may be off, or you clicked Don't Allow the first time; turn on Results from Clipboard in System Settings → Spotlight. (3) History only starts once you allow it, so copies from before that moment were never recorded. (4) The item may simply be older than the retention window you set. Check whether it's set to 30 minutes or 8 hours instead of 7 days.", "順に確認してください。（1）macOS 26 Tahoe 以降が必要です。Sequoia 以前には機能がありません。（2）クリップボードの結果がオフになっているか、初回に「許可しない」を選んだ可能性があります。「システム設定」→「Spotlight」で「クリップボードからの結果」をオンにしてください。（3）記録は許可した時点から始まるため、それ以前のコピーは残っていません。（4）単に保持期間を過ぎている場合があります。30分や8時間ではなく7日間に設定されているか確認してください。"),
+        l("Does macOS Sequoia have clipboard history?", "macOS Sequoia にクリップボード履歴の機能はありますか？"),
+        l("No. macOS 15 Sequoia and earlier keep only the last thing you copied; Finder → Edit → Show Clipboard shows that single item. Built-in history arrived with macOS 26 Tahoe. On Sequoia, a clipboard manager app is the only way to keep a history.", "ありません。macOS 15 Sequoia 以前は最後にコピーした1件だけを保持し、Finder の「編集」→「クリップボードを表示」で見られるのもその1件です。標準の履歴は macOS 26 Tahoe で追加されました。Sequoia で履歴を持つには、クリップボードマネージャーのアプリが必要です。"),
+        l("Is there a Mac clipboard history like Windows?", "Windows のようなクリップボード履歴は Mac にもありますか？"),
+        l("Spotlight's clipboard history is the Mac equivalent of Windows' Win+V panel, but the trade-offs are reversed: Windows caps you at 25 items and lets you pin; the Mac has no item cap to hit, but everything expires after at most 7 days and nothing can be pinned.", "Spotlight のクリップボード履歴が、Windows の Win+V パネルに相当します。ただしトレードオフは逆です。Windows は25件が上限でピン留めができ、Mac は件数の上限を気にする必要がない代わりに、すべて最大7日で期限切れになり、ピン留めもできません。"),
+        l("Can I keep one item longer than 7 days?", "コピーした項目のうち1件だけを、7日間より長く残すことはできますか？"),
+        l("Not inside Spotlight. There's no pin or favourite. Your options are to copy the item into an app like Notes before it expires, or use a clipboard manager that doesn't expire your history.", "Spotlight 内ではできません。ピン留めもお気に入りもないためです。期限切れの前にメモなどのアプリへコピーしておくか、履歴が期限切れにならないクリップボードマネージャーを使う方法があります。"),
+        l("Is Mac clipboard history safe for passwords and sensitive data?", "Mac のクリップボード履歴にパスワードなどの機密情報をコピーしても安全ですか？"),
+        l("Be careful with it: Apple itself warns that sensitive information may appear on the Clipboard, and the list is one shortcut away on an unlocked Mac. If you copy secrets, use the shortest retention window (30 minutes) and clear the history afterwards. Use Clear History in the Spotlight clipboard view, or Clear Clipboard History in System Settings → Spotlight.", "注意が必要です。Apple 自身、クリップボードに機密情報が表示される場合があるとしていますし、ロックされていない Mac ではショートカットひとつで一覧が見えてしまいます。機密情報をコピーする場合は、保持期間を最短の30分にし、使用後は履歴を消去してください（Spotlight のクリップボード画面の「履歴を消去」、または「システム設定」→「Spotlight」の「クリップボード履歴を消去」）。"),
+      ],
+    },
+  ],
+  resources: [
+    { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+    { label: l("Windows clipboard history limits", "Windows のクリップボード履歴の制限"), href: "/blog/windows-clipboard-history-limit" },
+    { label: l("ClipsX on GitHub", "GitHub の ClipsX"), href: "https://github.com/azure06/clipsx" },
+  ],
+};
+
+export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp, windowsClipboardLimit, macClipboardHistory].sort((a, b) => b.date.localeCompare(a.date));
 
 export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway,
