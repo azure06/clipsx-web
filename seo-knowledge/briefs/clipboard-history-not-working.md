@@ -114,3 +114,101 @@ manager pitch lands as the last fix, not the first paragraph.
   ("some of them take over Win+V"). Our desktop-wide fallback pitch must
   answer that directly: ClipsX does not take over Win+V or clear the
   clipboard — it records alongside it.
+
+## UPDATE 2026-11-20 (collect run ~22:30 JST) — the query turned over completely + single-cause guides
+- The plain query's entire top 5 turned over in one run (clipboardman,
+  fixtechissues, techdows, cloudhouse, itigic ALL OUT). New #1 is
+  helpdeskgeek.com "How to restart the Clipboard User Service (cbdhsvc)
+  without rebooting Windows" (upd 17 days ago) — a SINGLE-CAUSE deep
+  guide, not a fix list. Format devices to match: (a) a symptom-to-
+  "try first" quick-reference table at the top; (b) the per-user service
+  nuance (cbdhsvc_ plus a random suffix per signed-in user — do not type
+  the example suffix literally); (c) an "Expected result" line after
+  every fix, so the reader can tell whether it worked; (d) honest
+  caveats ("Microsoft doesn't document this", "treat as
+  community-suggested") instead of fake certainty; (e) three ways to do
+  the same restart (Services console / Task Manager / PowerShell) so the
+  reader picks their tool. ADD the cbdhsvc restart as a named fix in the
+  brief's symptom table, with the per-user suffix nuance and the
+  TextInputHost.exe follow-up for a blank panel. A dedicated single-cause
+  page can take #1 in this query — the article should cover the service
+  restart in this depth, not as one bullet among ten.
+- HelpDeskGeek now holds TWO slots in this query (#1 cbdhsvc guide + #4
+  copy-and-paste guide) and #1 in the best-free-windows roundup query —
+  it is building a clipboard cluster like Clipster and Edge Drop. Its
+  Fix #6 names clipboard managers as a conflict source AGAIN ("Quit
+  tools like Ditto from the system tray and test again") — the second
+  site after fixtechissues. The fallback pitch must answer that.
+- TRUST OBJECTION, from unstuckguide.com's "What NOT to do" section
+  (reddit-flavoured variant, Oct 28, 2026): "Do not install a random
+  clipboard manager from a pop-up ad... extra tools can collect what
+  you copy." Our article's fallback section must answer this directly:
+  ClipsX is open source (the code is inspectable) and local-only (no
+  cloud, no telemetry) — the opposite of the pop-up-ad tool the warning
+  is about. Say it in one line, do not bury it.
+- Real user threads in the reddit-flavoured variant (MS Q&A): "Win+V
+  shows nothing though history is on" and "text fails to paste from
+  history while images store fine". The symptom table should name the
+  text-only failure as its own row (images work, text does not) — none
+  of the current top 5 leads with it.
+
+## UPDATE 2026-11-21 (collect run ~04:30 JST) — new name in the reddit variant + named conflicts
+- windowstechit.com is NEW at #3 in the reddit-flavoured variant ("15 Easy
+  Fixes for Windows 11 Clipboard Problem That Work!" — 24H2 bug framing,
+  15 fixes). Two things to take from it: (a) the FORUM-CITATION device —
+  an "Insights from Reddit and Microsoft Forums" section quoting Reddit
+  users by handle (@TechFixer, @WinHelpPro, @RemoteWorker) and MS Answers
+  users; our article can cite the same real threads the same way (the
+  MS Q&A threads already in this brief); (b) a NEW CAUSE for the symptom
+  table — rdpclip.exe: clipboard sync failing during remote-desktop
+  sessions (restart rdpclip as the fix). Add an rdpclip row. Do NOT copy
+  its registry-delete or Get-AppXPackage re-register fixes — they are
+  unverified and risky.
+- The conflict objection is now NAMED, not generic: windowstechit's Fix 15
+  says "Reddit users have pointed out that apps like Ditto and
+  ClipboardFusion can cause conflicts if not updated" — and guidingtech
+  (reddit variant #1) also names third-party clipboard managers as a
+  conflict source in its Quick Tips, the THIRD site after fixtechissues
+  and helpdeskgeek. The fallback section must answer the named objection:
+  ClipsX does not take over Win+V or clear the clipboard, and it is open
+  source + local-only, so there is no hidden background hook to go stale
+  the way the warning describes. One line, up front in the fallback.
+
+## UPDATE 2026-11-21 (collect run ~10:30 JST), the query turned over completely again + three pages, two new causes
+- The plain query turned over COMPLETELY for the second time in about 12
+  hours (helpdeskgeek cbdhsvc #1, clipboardman, fixtechissues, techdows,
+  cloudhouse, itigic ALL OUT). New top 4: windowsforum #1 (pub
+  2026-02-24, upd 2026-09-26), makeuseof #2 (its 2022 8-fix list, back),
+  helpdeskgeek #3 (a NEW third page, "7 Ways to Fix Copy and Paste Not
+  Working in Windows 11", upd 22 days ago), amarbhattarai #4 (rose from
+  the reddit variant). The top 5 has now turned over completely twice in
+  12 hours, so a fresh article can enter fast. The article should ship
+  while the top 5 is this unstable.
+- FORMAT DEVICES to match: (a) windowsforum's difficulty/time stamp
+  ("Difficulty: Intermediate | Time Required: 15 minutes") and its
+  prerequisites block (admin access, save work, know your Windows
+  version) before the fixes; (b) helpdeskgeek's "Quick Diagnosis"
+  opening (a Notepad test with an expected result after every fix) and
+  its symptom-to-"what it means"-to-"what to do" error table, plus a
+  "Getting Help" section (bring winver and the SFC result to support);
+  (c) windowsforum's "works right after boot but empties later equals
+  an automated cleaner" tip, which belongs in the symptom table.
+- HelpDeskGeek now holds THREE pages in this cluster, and its new page
+  names clipboard managers as a suspect for a FOURTH time in the niche
+  ("if the problem returns after every restart, a startup app,
+  clipboard manager, or security policy deserves a closer look", plus
+  "avoid running several clipboard tools at once"). The fallback must
+  answer the named objection in one line up front, as already noted.
+- TWO NEW CAUSES, from a fresh Medium guide (Nov 2026,
+  medium.com/@rageeditzzz, #4 in the reddit-flavoured variant): (a) a
+  SHORTCUT CONFLICT, where other software, game overlays or remote
+  desktop tools grab Win+V before Windows does (test the shortcut in
+  plain Notepad to isolate it); (b) ADMIN-RIGHTS APPS, whose copies can
+  stay out of the normal clipboard flow (test by copying the same text
+  from Notepad; if it appears there but not from the other app, the app
+  is the cause). Add both rows to the symptom table.
+- DISTRIBUTION WARNING: the same Medium guide ends with "When to try a
+  different tool" and names Pastidy as the fallback. A competitor is
+  now being named as the fallback in a fresh fix guide, in the exact
+  slot the ClipsX article would pitch ClipsX. Ship the article before
+  more fix guides name a competitor there.
