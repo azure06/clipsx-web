@@ -49,7 +49,9 @@ describe('article visual explanations', () => {
       expect(html).toContain(pick(table.caption, locale));
       expect(html.match(/scope="col"/g)).toHaveLength(table.headers.length);
       expect(html.match(/scope="row"/g)).toHaveLength(table.rows.length);
-      for (const cell of [...table.headers, ...table.rows.flat()]) expect(html).toContain(pick(cell, locale));
+      for (const cell of [...table.headers, ...table.rows.flat()]) {
+        expect(html).toContain(renderToStaticMarkup(pick(cell, locale)));
+      }
     }
   });
 });
