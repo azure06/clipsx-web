@@ -8,10 +8,12 @@ Meaning Search helps when you remember an idea but not its wording. Use exact te
 
 ## Connect and enable {#setup}
 
-1. Add a connection and text-embedding preset in **Intelligence → Models**. For a local setup, follow [the Ollama guide](/local-ai#starting-setup).
-2. Select the preset for **Semantic search** in **Usage & defaults**. Hosted background indexing requires explicit permission to send clipboard text to that provider.
+1. For Ollama, open **Intelligence → Overview → Set up local AI** and choose a model for **Meaning Search**. See [the local AI guide](/local-ai#starting-setup).
+2. For manual setup, create a text-embedding preset in **Intelligence → Models** and assign it to **Semantic search** in **Usage & defaults**. Hosted background indexing requires explicit permission to send clipboard text to that provider.
 3. Check **Intelligence → Indexing** for progress. Validation and indexing take time; exact search stays available.
 4. Enable the Meaning Search source using the clipboard search source controls.
+
+Keyword matches appear while Meaning Search runs in the background. Editing the query cancels the previous background search.
 
 Eligible text comes from search projections of supported representations and available text artifacts. This is not general image similarity or a search of every file on your computer. Eligibility depends on captured content, artifacts, and configured sources.
 
@@ -40,6 +42,8 @@ Ordering depends on the model, threshold, and other clips. This exercise does no
 ## Manage the derived index {#manage-index}
 
 Use **Intelligence → Indexing** to index missing content, retry failed jobs, or rebuild. Clearing or rebuilding the semantic index preserves original clips and exact text search.
+
+If clips time out, open **Advanced indexing settings → Indexing request timeout** and choose **1, 2, or 5 minutes**. The default is **2 minutes** per embedding request during setup and indexing. Then select **Retry failed clips**. **Index missing** also queues eligible clips without a job. Both actions can resume a failed build and keep completed work.
 
 Changing embedding models builds a replacement index while the existing active index remains available. Wait for readiness before comparing retrieval. Clearing the semantic-search assignment stops embedding; removing stored index data is separate. Read the app's confirmation and diagnostic before choosing an action.
 

@@ -8,7 +8,7 @@ Recall retrieves supporting clips from your selected history scope and uses a ge
 
 ## Prepare Recall {#setup}
 
-1. Add a connection and chat preset in **Intelligence → Models**. In **Usage & defaults**, select the preset for **Recall assistant**. You can use Ollama or a supported hosted provider; see [model setup](/local-ai).
+1. For Ollama, use [Set up local AI](/local-ai#starting-setup) and choose a Recall model. For manual setup or a supported hosted provider, add a chat preset in **Intelligence → Models** and assign it to **Recall assistant** in **Usage & defaults**.
 2. Optionally [enable Meaning Search](/meaning-search) for semantic retrieval. Recall uses available enabled retrieval sources; embeddings and generation have separate roles.
 3. Select the relevant history scope and filters.
 4. Open Recall from the sidebar, or ask from clipboard search using **Recall** or its displayed shortcut. Choose a model in the chat header. If no model is configured, open Intelligence to set one up.
@@ -46,6 +46,8 @@ Secret and private clips are excluded from Recall evidence. There is no Recall o
 - **Interrupted answer:** reopen the saved chat and retry deliberately. Restarting the app does not replay unfinished tool actions.
 
 ## Stop and reuse deliberately {#controls}
+
+Recall keeps generating a reply while you switch views. Return to the conversation to see its progress or stop the reply.
 
 Cancel an active answer when needed. Review before copying a reply or applying an action. Supported clipboard changes have an Undo action; available tools depend on the selected model and permissions.
 

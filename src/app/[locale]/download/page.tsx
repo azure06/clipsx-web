@@ -33,7 +33,7 @@ const text = {
     nextTitle: "After your first clip",
     nextBody: "These setups are optional. Try saving and finding a harmless note first.",
     assistant: "Use clips in Codex or Claude Code",
-    meaning: "Set up search by meaning",
+    localAi: "Set up local AI and choose models",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
@@ -64,7 +64,7 @@ const text = {
     nextTitle: "最初のクリップを試したら",
     nextBody: "以下の設定は任意です。まず安全なメモを保存し、探してみてください。",
     assistant: "Codex や Claude Code でクリップを使う",
-    meaning: "意味で探す検索を設定する",
+    localAi: "ローカル AI を設定してモデルを選ぶ",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
@@ -167,7 +167,7 @@ export default async function Download({
           <p className="mt-2 text-sm leading-7 text-(--ui-text-muted)">{c.nextBody}</p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.mcp}>{c.assistant}</a>
-            <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.meaningSearch}>{c.meaning}</a>
+            <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.localAi}>{c.localAi}</a>
           </div>
         </aside>
       </section>

@@ -33,6 +33,33 @@ const compatibleUpgrade = [l(
 // Published stable releases only. Dates are GitHub publication timestamps (UTC).
 export const releases = [
   {
+    version: '0.1.16',
+    publishedAt: '2026-11-24T07:09:12Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.16',
+    title: l('Guided local AI and easier search recovery.', 'ローカル AI の設定と検索の復旧を改善。'),
+    description: l('Set up local models, recover failed indexing, and see keyword results while Meaning Search runs.', 'ローカルモデルの設定と索引の復旧が簡単になり、意味検索の実行中もキーワード検索の結果を確認できます。'),
+    highlights: [
+      l('Choose local models for Recall, Meaning Search, and Decision rules in the setup guide.', '設定ガイドで Recall、意味検索、判定ルール用のローカルモデルを選択。'),
+      l('Set the embedding timeout to 1, 2, or 5 minutes and retry failed clips while keeping completed indexing work.', '埋め込みのタイムアウトを 1、2、5 分から選択。完了済みの索引を保持したまま、失敗したクリップを再試行できます。'),
+      l('See keyword results first in History and Recall. Editing the query cancels the previous Meaning Search request.', '履歴と Recall でキーワード検索の結果を先に表示。検索語を編集すると前の意味検索を中止します。'),
+      l('Keep Recall replies running across views, find tags with @, and preserve the capitalization of tag names.', '画面を切り替えても Recall の回答を継続。@ でタグを検索でき、タグ名の大文字と小文字も保持します。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
+    version: '0.1.14',
+    publishedAt: '2026-11-19T09:25:46Z',
+    url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.14',
+    title: l('Clearer Recall and automation feedback.', 'Recall と自動実行の案内を改善。'),
+    description: l('Choose a chat model while drafting and see what happened when capture rules ran.', '下書きの途中でチャットモデルを選び、保存時のルールの実行結果を確認できます。'),
+    highlights: [
+      l('Keep editing your Recall draft while choosing or setting up a chat model.', 'チャットモデルの選択や設定中も Recall の下書きを編集できます。'),
+      l('Run applicable capture automation rules independently and show skipped or failed attempts in clip details.', '該当する自動実行ルールを個別に実行し、スキップや失敗をクリップ詳細に表示します。'),
+      l('Mask detected secrets in history while preserving the original clipboard content for copy.', '履歴で検出された秘密情報を隠し、コピーには元の内容を使います。'),
+    ],
+    limits: compatibleUpgrade,
+  },
+  {
     version: '0.1.13',
     publishedAt: '2026-11-07T14:07:36Z',
     url: 'https://github.com/azure06/clipsx/releases/tag/v0.1.13',
