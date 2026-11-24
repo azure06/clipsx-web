@@ -1,82 +1,35 @@
 ---
 title: "OllamaでローカルAIを設定"
 description: "モデルを選び、Ollamaを接続して、ClipsXの任意のAI機能を使い始めます。"
-keywords: ["Ollama", "ローカルAI", "埋め込みモデル", "BGE-M3", "Gemma"]
+keywords: ["Ollama", "ローカルAI", "埋め込みモデル", "Recall", "Meaning Search"]
 ---
 
-ClipsXはAIなしでも使えます。**埋め込みモデル**は意味からクリップを検索し、**生成モデル**はRecallの回答や対応するAI拡張機能の文章を生成します。チャットモデルが埋め込みにも対応するとは限りません。Ollamaのインストールとモデルのダウンロードは利用者が行います。
+ClipsX は AI なしでも使えます。使いたい機能ごとにモデルを選びます。
 
-## 開発者の構成から始める {#starting-setup}
+## ClipsX でローカル AI を設定する {#starting-setup}
 
-開発者は意味検索に **`bge-m3:latest`**、生成に **`gemma3:4b`** を使っています。具体的な出発点であり、すべての端末での性能を保証するものではありません。
+1. ClipsX 0.1.15 以降で **インテリジェンス → 概要 → ローカル AI を設定** を開きます。
+2. Ollama が未導入なら、[公式ページ](https://ollama.com/download)からインストールして起動し、ClipsX に戻ります。ガイドの接続先は `http://127.0.0.1:11434` です。
+3. **Recall**、**意味検索**、**判定ルール**に使うモデルを選びます。不要な用途はスキップできます。プライバシー判定は別途有効にします。
+4. 内容を確認して実行します。ClipsX は選択した未導入のモデルをダウンロードして動作を確認し、割り当てを保存します。
 
-<Steps>
-  <Step title="Ollamaをインストールして起動">
-    [公式ダウンロード](https://ollama.com/download)のOS別手順に従って起動してください。既定のローカル接続先は `http://localhost:11434` です。すでにサービスが動作している場合、二重に起動しないでください。
-  </Step>
-  <Step title="モデルをダウンロード">
-    ClipsXと同じ端末のターミナルで実行します。
-    ```shell
-    ollama pull bge-m3:latest
-    ollama pull gemma3:4b
-    ollama list
-    ```
-    一覧にモデル名があることを確認します。検索だけならGemmaは不要です。ダウンロードにはインターネットが必要ですが、ローカル推論にはインストール済みのモデルを使います。
-  </Step>
-  <Step title="ClipsXを接続">
-    **インテリジェンス → モデル**で新しい接続を作り、Ollamaと `http://localhost:11434` を指定します。保存して接続テストとモデルの検出を行います。モデルを追加したら接続情報を更新してください。
-  </Step>
-  <Step title="必要な機能を有効化">
-    `bge-m3:latest` のテキスト埋め込み用プリセットと、`gemma3:4b` のチャット用プリセットを追加します。用途と既定値の画面で、意味検索、Recall、拡張機能の文章生成にそれぞれ割り当てます。埋め込み設定の検証後、対象クリップをバックグラウンドで索引化します。
-  </Step>
-</Steps>
-
-次は[意味検索の練習](/ja/meaning-search#first-result)、[Recallの練習](/ja/recall#first-answer)、[Rewriteの変換](/ja/extensions#rewrite)を試してください。意味検索の索引作成中も通常のテキスト検索は使えます。
+既存の接続や任意の接続先、別のモデルを使うには **インテリジェンス → モデル** を開きます。用途に合うプリセットを作成し、**用途と既定値**で割り当てます。拡張機能の文章生成には別の割り当てがあります。
 
 ## 埋め込みモデルを選ぶ {#embedding-models}
 
-検索用のベクトルを作るモデルです。回答の文章は生成しません。ClipsXはOllamaが埋め込み対応と報告するモデルを表示し、有効化時に出力を検証します。
-
-| 例 | 検討する理由 | 確認する点 |
-| --- | --- | --- |
-| [BGE-M3](https://ollama.com/library/bge-m3) — `bge-m3:latest` | 開発者が使う多言語検索の構成 | 約1.2 GBのダウンロード。自分の言語と質問で試す |
-| [EmbeddingGemma](https://ollama.com/library/embeddinggemma) — `embeddinggemma` | パラメータ数が小さい多言語候補 | Ollama 0.11.10以降が必要。検索結果を評価 |
-| [Qwen3 Embedding](https://ollama.com/library/qwen3-embedding:0.6b) — `qwen3-embedding:0.6b` | 別の多言語検索候補 | 現在のサイズと索引の動作 |
-
-代替モデルは**評価する候補**であり、ClipsXで独立した性能比較を済ませた構成ではありません。いずれかをダウンロードし、モデル一覧を更新して選びます。
-
-```shell
-ollama pull embeddinggemma
-# 別の候補を選ぶ場合:
-ollama pull qwen3-embedding:0.6b
-```
-
-埋め込みモデルを変えるとベクトル空間も変わります。ClipsXは代わりの索引を作成します。作成中は既存の有効な索引が使われる場合があります。比較は置き換えが完了してから行ってください。
+埋め込みは[意味検索](/ja/meaning-search)に使います。ダウンロード容量を抑えるなら [EmbeddingGemma](https://ollama.com/library/embeddinggemma)（`embeddinggemma:latest`）から始めます。多言語の文章やコードでは [Qwen3 Embedding 0.6B](https://ollama.com/library/qwen3-embedding:0.6b) も試せます。容量に余裕があれば [Qwen3 Embedding 4B](https://ollama.com/library/qwen3-embedding:4b) と比較してください。普段使う言語で実際のクリップを検索して比べます。モデルを変更すると新しい索引が作成されます。
 
 ## 生成モデルを選ぶ {#generation-models}
 
-文章を生成するモデルです。Recallは選択したモデルとプロバイダーが対応していれば、画像コンテキストやツールを使えます。拡張機能の文章生成は別に割り当てます。モデル名だけでは対応能力は判断できません。
+[Recall](/ja/recall) では、メモリに余裕が少なければ [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b)、余裕があれば [Qwen 3.5 4B](https://ollama.com/library/qwen3.5:4b) から試します。ツール呼び出しを試す場合は、より大きな [LFM2.5 8B](https://ollama.com/library/lfm2.5:8b) も選べます。Recall に既知のクリップを探させ、引用元を確認します。拡張機能の文章生成は、拡張機能で短い例を試してください。結果はタスクと端末によって異なります。
 
-| 例 | このガイドでの位置づけ |
-| --- | --- |
-| [Gemma 3 4B](https://ollama.com/library/gemma3:4b) — `gemma3:4b` | 開発者の構成。約3.3 GBのダウンロード。Ollama 0.6以降が必要 |
-| [Gemma 3 1B](https://ollama.com/library/gemma3:1b) — `gemma3:1b` | 小さいパラメータ数の候補。指示への応答を評価 |
-| [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b) / [4B](https://ollama.com/library/qwen3.5:4b) — `qwen3.5:2b` / `qwen3.5:4b` | 新しい世代の候補。必要な資源と出力を比較 |
-| [Gemma 4 E4B](https://ollama.com/library/gemma4:e4b) — `gemma4:e4b` | 新しい候補。現在のOllamaで機能の検出を確認 |
+## 判定モデルを選ぶ {#decision-models}
 
-例:
-
-```shell
-ollama pull gemma3:1b
-```
-
-接続情報を更新し、チャット用プリセットを追加・更新して、用途と既定値の画面で割り当てます。引用付きのRecallと短いRewriteを試し、内容、誤り、待ち時間、資源使用量を比較してください。チャット用プリセットの変更に意味検索の再索引化は不要です。
-
-公式一覧の確認日: **2026年10月8日**。タグや要件は変わることがあります。各リンクでサイズ、必要なOllamaバージョン、ライセンスを確認してください。モデルのライセンスはClipsXのApache 2.0とは別です。問題報告には正確なタグと `ollama list` の識別子を添えてください。
+[判定ルール](/ja/decision-models#setup)では、ガイドでダウンロード容量が最も小さい [TEv1 0.8B](https://ollama.com/library/tev1:0.8b) から試せます。より大きな候補は [d1 3B](https://ollama.com/library/d1:3b) と [PPLX Decider Flash 4B](https://ollama.com/library/pplx-decider-flash:4b) です。保存を制限するルールを使う前に、条件に一致する例と一致しない例の両方で試してください。
 
 ## 資源の使用量を理解する {#resources}
 
-各モデルのライセンスと提供元の条件を確認してください：[BGE-M3](https://ollama.com/library/bge-m3:latest/blobs/a406579cd136), [Gemma 3](https://ollama.com/library/gemma3:4b/blobs/dd084c7d92a3), [EmbeddingGemma](https://ollama.com/library/embeddinggemma:latest/blobs/1adbfec9dcf0), [Gemma 4](https://ollama.com/library/gemma4:e4b/blobs/7339fa418c9a), [Qwen 3.5](https://ollama.com/library/qwen3.5:2b), [Qwen3 Embedding upstream](https://github.com/QwenLM/Qwen3-Embedding)。Qwenモデルは公式ページのライセンスやモデルカードへのリンクを確認します。同じOllama APIを使っていても、ライセンスは同じとは限りません。
+モデルのライセンスと動作要件は、上の Ollama 公式ページで確認できます。
 
 ダウンロードサイズやパラメータ数はRAM・VRAM要件ではありません。量子化、コンテキスト、読み込んだモデル数でも使用量は変わります。CPU処理は遅くなる場合があり、長いコンテキストはメモリを多く使います。一定の端末仕様や速度は保証していません。
 

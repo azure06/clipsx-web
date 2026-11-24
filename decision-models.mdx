@@ -1,7 +1,7 @@
 ---
 title: "Decision models and capture rules"
 description: "Classify new copied text, organize matching clips, and choose what stays out of history."
-keywords: ["decision model", "privacy checks", "secret detection", "capture rules", "Laya"]
+keywords: ["decision model", "privacy checks", "secret detection", "capture rules"]
 ---
 
 A decision model answers a yes/no question about copied text. You choose what a matching answer does: add a tag, favorite, pin, mark private, mark secret, or skip saving. A generation model writes a result; a decision model decides whether a condition matches.
@@ -20,13 +20,8 @@ Privacy is evaluated before general organization. Successfully classified secret
 
 ## Set up a decision model {#setup}
 
-1. Open **Intelligence → Models** and add or select a connection. Decision presets support Ollama and OpenRouter; an ordinary chat model is not automatically a decision model.
-2. For local Ollama, install a compatible System One decision model. The app offers Laya as an example:
-
-   ```shell
-   ollama pull laya
-   ```
-
+1. In ClipsX 0.1.15 or later, open **Intelligence → Overview → Set up local AI** to choose a [local decision model](/local-ai#decision-models). The guide assigns it to **General decisions**; enable **Privacy checks** separately if needed.
+2. For manual setup, add or select an Ollama or OpenRouter connection in **Intelligence → Models** and choose a model that supports the **Decision** purpose.
 3. Refresh the connection's models and create a preset with the **Decision** purpose. Select the installed model and use **Test decision** to check the connection and response.
 4. In **Usage & defaults**, assign the preset to **General decisions**, **Privacy checks**, or both. The assignments are separate so you can choose different providers for each.
 

@@ -1,82 +1,35 @@
 ---
 title: "Local AI with Ollama"
 description: "Connect Ollama, assign models to features, and understand hosted-provider options."
-keywords: ["Ollama setup", "embedding model", "BGE-M3", "Gemma"]
+keywords: ["Ollama setup", "embedding model", "Recall", "Meaning Search"]
 ---
 
-ClipsX works without AI. An **embedding model** finds clips by meaning; a **generation model** writes Recall answers or runs compatible AI extensions. A chat model is not automatically an embedding model. ClipsX does not install Ollama or download models for you.
+ClipsX works without AI. Choose a model for each feature you want to use.
 
-## Start with the developer's setup {#starting-setup}
+## Set up local AI in ClipsX {#starting-setup}
 
-The developer reports using **`bge-m3:latest` for Meaning Search** and **`gemma3:4b` for generation**. This is a starting example, not a performance guarantee for your device.
+1. In ClipsX 0.1.15 or later, open **Intelligence → Overview → Set up local AI**.
+2. If Ollama is missing, open its [official installer page](https://ollama.com/download). Install and start Ollama, then return to ClipsX. The guide connects to `http://127.0.0.1:11434`.
+3. Choose a model for **Recall**, **Meaning Search**, or **Decision rules**. You can skip any role. Privacy checks are a separate opt-in.
+4. Review the plan and confirm. ClipsX downloads the selected missing models, verifies them, and saves their assignments.
 
-<Steps>
-  <Step title="Install and start Ollama">
-    Follow the [official installation instructions](https://ollama.com/download) for your OS. Start Ollama. Its default local endpoint is `http://localhost:11434`. If the service is already running, do not start a second copy.
-  </Step>
-  <Step title="Download the models">
-    Open a terminal on the same device as ClipsX:
-    ```shell
-    ollama pull bge-m3:latest
-    ollama pull gemma3:4b
-    ollama list
-    ```
-    The list should contain the downloaded names. For search only, skip Gemma. Downloads need internet access; local inference uses the installed model.
-  </Step>
-  <Step title="Connect ClipsX">
-    Open **Intelligence → Models → New connection**, choose Ollama, and enter `http://localhost:11434`. Save the connection and select **Test and discover models**. Refresh after downloading another model.
-  </Step>
-  <Step title="Enable the capabilities you want">
-    Add a text-embedding preset for `bge-m3:latest` and a chat preset for `gemma3:4b`. In **Usage & defaults**, assign the embedding preset to **Semantic search** and the chat preset to **Recall assistant** or **Extension text generation**. Each feature has its own selection. Search validates the embedding configuration and indexes eligible clips in the background.
-  </Step>
-</Steps>
-
-Continue with [your first Meaning Search](/meaning-search#first-result), [your first Recall answer](/recall#first-answer), or [a Rewrite transformation](/extensions#rewrite). Exact text search remains available during semantic indexing.
+For an existing connection, a custom endpoint, or another model, use **Intelligence → Models**. Create a preset for the model's purpose and assign it in **Usage & defaults**. Extension text generation has a separate assignment.
 
 ## Choose an embedding model {#embedding-models}
 
-Embedding models produce vectors for retrieval; they do not write answers. ClipsX lists embedding-capable models reported by Ollama and validates their output when enabled.
-
-| Example | Why consider it | What to check |
-| --- | --- | --- |
-| [BGE-M3](https://ollama.com/library/bge-m3) — `bge-m3:latest` | Developer's multilingual search example | About 1.2 GB download; test your languages and queries |
-| [EmbeddingGemma](https://ollama.com/library/embeddinggemma) — `embeddinggemma` | Smaller-parameter multilingual candidate | Requires Ollama 0.11.10 or later; evaluate retrieval quality |
-| [Qwen3 Embedding](https://ollama.com/library/qwen3-embedding:0.6b) — `qwen3-embedding:0.6b` | Another multilingual candidate | Current package size and index behavior |
-
-Alternatives are **candidates to evaluate**, not configurations independently benchmarked in ClipsX. Download one, refresh Models, and choose it under Meaning Search:
-
-```shell
-ollama pull embeddinggemma
-# Or choose this alternative instead:
-ollama pull qwen3-embedding:0.6b
-```
-
-Changing embedding models changes the vector space. ClipsX builds a replacement index; during rebuilding, results can use the existing active index. Wait until the replacement is ready before comparing models.
+Embeddings power [Meaning Search](/meaning-search). Start with [EmbeddingGemma](https://ollama.com/library/embeddinggemma) (`embeddinggemma:latest`) for a compact download. Compare [Qwen3 Embedding 0.6B](https://ollama.com/library/qwen3-embedding:0.6b) for multilingual text and code, or [Qwen3 Embedding 4B](https://ollama.com/library/qwen3-embedding:4b) if you can afford the larger download and want to evaluate retrieval quality. Test with clips and queries in the languages you use. Changing the embedding model builds a replacement index.
 
 ## Choose a generation model {#generation-models}
 
-Generation writes text. Recall can use image context and tools when the selected model and provider support them. Extension generation has its own capabilities and assignment; a model name alone does not establish support.
+For [Recall](/recall), start with [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b) on a device with limited memory, or [Qwen 3.5 4B](https://ollama.com/library/qwen3.5:4b) if you can spare more memory. [LFM2.5 8B](https://ollama.com/library/lfm2.5:8b) is a larger option to try for tool calling. Ask Recall to find a known clip and verify its citation. For **Extension text generation**, test a short example with the extension itself. These are the guide's choices, and their quality depends on the task and your hardware.
 
-| Example | Role in this guide |
-| --- | --- |
-| [Gemma 3 4B](https://ollama.com/library/gemma3:4b) — `gemma3:4b` | Developer's starting setup; about 3.3 GB download; Ollama 0.6 or later |
-| [Gemma 3 1B](https://ollama.com/library/gemma3:1b) — `gemma3:1b` | Smaller-parameter candidate; evaluate instruction following |
-| [Qwen 3.5 2B](https://ollama.com/library/qwen3.5:2b) / [4B](https://ollama.com/library/qwen3.5:4b) — `qwen3.5:2b` / `qwen3.5:4b` | Newer generation candidates with different resource and output tradeoffs |
-| [Gemma 4 E4B](https://ollama.com/library/gemma4:e4b) — `gemma4:e4b` | Newer candidate; use current Ollama and verify capability detection |
+## Choose a decision model {#decision-models}
 
-For example:
-
-```shell
-ollama pull gemma3:1b
-```
-
-Refresh the connection, add or update its chat preset, and assign it in **Usage & defaults**. Compare a Recall question with citations and a short Rewrite task. Assess usefulness, errors, waiting time, and resources—not only whether text appears. Changing a chat preset does not require rebuilding the semantic index.
-
-Listings reviewed **October 8, 2026**. Tags and requirements can change. Check linked official listings for sizes, minimum Ollama versions, and model licenses. Model licenses are separate from ClipsX's Apache 2.0 license. When reporting a problem, record the exact tag and identifier shown by `ollama list`.
+For [Decision rules](/decision-models#setup), start with [TEv1 0.8B](https://ollama.com/library/tev1:0.8b), the smallest download in the guide for this role. [d1 3B](https://ollama.com/library/d1:3b) and [PPLX Decider Flash 4B](https://ollama.com/library/pplx-decider-flash:4b) are larger alternatives. Test examples that should match and examples that should fail before using a rule that restricts capture.
 
 ## Understand resource costs {#resources}
 
-Review each model's license and upstream terms: [BGE-M3](https://ollama.com/library/bge-m3:latest/blobs/a406579cd136), [Gemma 3](https://ollama.com/library/gemma3:4b/blobs/dd084c7d92a3), [EmbeddingGemma](https://ollama.com/library/embeddinggemma:latest/blobs/1adbfec9dcf0), [Gemma 4](https://ollama.com/library/gemma4:e4b/blobs/7339fa418c9a), [Qwen 3.5](https://ollama.com/library/qwen3.5:2b), [Qwen3 Embedding upstream](https://github.com/QwenLM/Qwen3-Embedding). For Qwen models, follow the license or model-card links on those official pages. Sharing the Ollama API does not make model licenses identical.
+Check the Ollama listings above for model licenses and runtime requirements.
 
 Download size and parameter count are not RAM or VRAM requirements. Runtime memory depends on quantization, context, and loaded models. CPU inference may be slower; larger contexts can require more memory. No fixed hardware tier or speed is promised.
 

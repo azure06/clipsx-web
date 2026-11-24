@@ -16,7 +16,7 @@ describe('verified release metadata', () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(releaseFixture()));
     expect((await createReleaseLoader(fetcher)()).version).toBe('0.1.0');
     expect(fetcher.mock.calls[0][1]).toMatchObject({ cache: 'no-store', signal: expect.any(AbortSignal) });
-    expect(cache.options).toEqual({ revalidate: 86_400 });
+    expect(cache.options).toEqual({ revalidate: 300 });
   });
 
   it.each([
