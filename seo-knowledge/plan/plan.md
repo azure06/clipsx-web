@@ -4,7 +4,23 @@ Ranking criteria (Gabriele, 2026-11-10): proven search demand → winnability
 for a low-authority site → conversion intent. Every item cites its evidence.
 Re-ranked weekly (Monday scan) and whenever collection data changes something.
 
-Last updated: 2026-11-22 (collect run ~16:30 JST: the JA Windows limit article itself now ranks #4 in the JA limit query, the first ranking for that article; the JA slide-master query is now served by three guides after writers-hub dropped out, so the widest opening is filling fast; the EN limit query churns again with two new generic entrants and the CoPanda guide out after one run; Soluslide is back at #1 in the file-size query and thedroidguy dropped after one run; the Mac top 5 is unchanged for a fifth check; no new roundup site, tally stays 26.)
+Last updated: 2026-11-26 (collect run ~16:30 JST: both JA articles are BACK after one-run drops, the JA limit article at #3 and the XKey JA file-size article at #3, so both 10:30 drops were churn, not demotions, and the comparison page (item #9) can lean on a JA hold again; the EN limit article stays OUT for a sixth consecutive check while itechguides still holds FOUR slots, so the freshness/internal-link push stays on the table for EN; the JA slide-master fuller variant shows only assist-all for a second run, so the #2 hold is now in doubt, a third miss calls it broken; thedroidguy retakes #1 in the compress variant and now leads all three file-size variants again; autocomplete is byte-identical across all 20 seeds, the first fully static run since the 10:30 changes, with the slide-number shortcut still present for an eighth appearance in fourteen runs; no new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-26 (collect run ~10:30 JST: itechguides now holds FOUR slots in the EN limit query (#1, #7, #8, #9) and the EN limit article stays OUT for a fifth consecutive check, so the freshness/internal-link push stays on the table for EN; the JA limit query shows only 3 results with clipsx.app out and two new JA entrants (tac-ademy back at #2, pszet at #3), so the JA drop is unconfirmed, possibly a truncated display, recheck next run; PastePilot, a $3.99 one-time Windows clipboard manager, ENTERS the disappeared query at #4 with a vendor-cluster guide pitching itself as the fallback, so the fallback slot there is now claimed by a vendor; the XKey JA file-size article DROPS to #4 after six consecutive checks at #3, so the hold is broken; the JA slide-master fuller variant shows only assist-all this run, xkey not shown, also unconfirmed, recheck next run; autocomplete adds slide-navigation shortcut demand in both languages (EN slide-number holds for a seventh appearance in thirteen runs, JA page-move is NEW) and macOS Tahoe clipboard history; the comparison page (item #9) can lean on neither an EN nor a confirmed JA hold this run. No new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-26 (collect run ~04:30 JST: the EN limit article stays OUT for a fourth consecutive check while the JA limit article HOLDS #4 for a second consecutive check, so the freshness/internal-link push stays on the table for the EN article only; itechguides now holds TWO slots in the EN limit query (#2 and #10), so the limit query is defended by two double-slot holders; the XKey JA file-size article HOLDS #3 for a sixth consecutive check and the JA slide-master guide HOLDS #2 in the fuller variant for a fourth check, so the plain-query absence is a truncated display, confirmed three times; keyfy and updatestar enter the reddit-flavoured compress variant, keyfy with an order-of-impact format worth borrowing for the send companion; autocomplete loses 'clipboard history not showing' after one run and the slide-number shortcut suggestion is back for a sixth appearance in twelve runs. No new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-25 (collect run ~22:30 JST: the JA limit article is BACK at #5 after three checks out, while the EN limit article stays OUT for a third check, so the freshness/internal-link push stays on the table for the EN article and the JA slot is churn in both directions; WindowsForum's not-working guide now leads BOTH the plain not-working query and the disappeared query; the XKey JA file-size article HOLDS #3 for a fifth consecutive check and the JA slide-master guide HOLDS #2 in the fuller variant for a third check, so the plain-query absence is a truncated display, confirmed twice; aippt.org's dedicated send page enters the send variant at #2, so it now holds two slots there with two distinct pages and pitches its own browser compressor; autocomplete adds 'clipboard history not showing' in 'clipboard history', a pain-phrased signal for the not-working article, and the slide-number shortcut suggestion is gone again after one run back. No new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-25 (collect run ~16:30 JST: BOTH limit articles stay OUT, EN for a second consecutive check and JA for a third, so the freshness/internal-link push stays on the table for both; Edge Drop now holds TWO slots in the roundup query (#3 and #5) on top of the limit query (#2), so its cluster spans three queries; WindowsForum now holds slots in the plain not-working query, the limit query (TWO slots, #4 and #9) and the reddit-flavoured variant (#1, a guide updated 1 day ago), so it is clustering across three queries too; the XKey JA file-size article HOLDS #3 for a fourth consecutive check, and the JA slide-master guide still holds #2 in the fuller variant, though the plain query showed only writers-hub at #1 and needs a recheck; the Mac top 5 is unchanged for an eleventh check; autocomplete is static except one windows/mac reorder in "clipboard manager". No new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-25 (collect run ~10:30 JST: BOTH limit articles are now OUT at once, the EN article after two checks at #8, so the hold is broken and the freshness/internal-link push is back on the table for both, not just JA; Edge Drop's limit guide ENTERS the EN limit query at #2, a competitor publishing into a target query, and Edge Drop now spans the limit, roundup and disappeared queries; thedroidguy takes #1 in the send variant too, so it now leads all three file-size variants; the XKey JA file-size article HOLDS #3 for a third consecutive check; the slide-number shortcut suggestion is BACK in autocomplete after five runs gone; the plain not-working query and the shortcut-keys queries are unchanged in substance. No roundup query checked this run, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-25 (collect run ~04:30 JST: the EN limit article HOLDS #8 for a second consecutive check, so its entry is holding, while the JA limit article is OUT again after one run back at #4, so the JA slot is churn and the freshness/internal-link push is back on the table for the JA article; the XKey JA slide-master guide HOLDS #2 for a second consecutive check; WindowsForum now holds TWO slots in the EN limit query with a CoPanda review at #7, a new free open-source rival with local OCR entering a target query, and tac-ademy enters the JA limit query at #4 with a privacy/clear-scope angle; the Mac top 5 is unchanged for a tenth check; the main file-size query shuffled only slots 2-3; the reddit-flavoured not-working variant reverted to the old guard and its Microsoft Q and A threads were a one-run surfacing; autocomplete is static across all 20 seeds for a third consecutive run, and the slide-number shortcut suggestion is gone for a fifth consecutive run. No new roundup site, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-24 (collect run ~22:30 JST: the XKey JA file-size article HOLDS #3 in its JA target query for a second consecutive check, so the ranking is holding, not a one-run blip; Edge Drop enters the disappeared query at #3 with a restart guide that pitches its own manager as the fallback, a competitor publishing into a target query, and ugetfix is out after one run at #1; the plain not-working query and the send variant are unchanged; the reddit-flavoured not-working variant turned over completely and now surfaces three real Microsoft Q and A user threads; autocomplete is static across all 20 seeds for a second consecutive run, and the slide-number shortcut suggestion is gone for a fourth consecutive run. No roundup query checked this run, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-24 (collect run ~10:30 JST: the XKey JA file-size article ENTERS its JA target query at #3, the first ranking for that article; the plain not-working query breaks its six-check stability with guidingtech entering at #3; ugetfix takes #1 in the disappeared query with a question-first, cause-ranked format that is the new bar for the not-working brief; aippt.org now holds TWO slots in the send variant; the EN and JA shortcut-keys queries are unchanged; autocomplete has one real change, 'クリップボード 管理 の ditto' NEW in クリップボード 管理, a named manager entering JA demand; the slide-number shortcut suggestion is gone for a second consecutive run. No roundup query checked this run, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-24 (collect run ~04:30 JST: the JA Windows limit article is now OUT for a third consecutive check; thedroidguy entered the EN limit query at #2 three days after publishing and now holds slots in the limit query plus all three file-size variants, so one general how-to site is building clusters in both niches; macmyths enters the limit query at #7 with an affiliate comparison that also omits ClipsX; broughted.com bounced out after one run, tally stays 28 (29 incl. the AI-category site); Mac top 5 unchanged for an eighth check; main file-size query unchanged, Soluslide holds #1; JA slide-master still writers-hub alone at #1; autocomplete has one small change, 'android クリップボード 管理' NEW in クリップボード 管理, and the slide-number shortcut suggestion is gone again after one run back.)
+Previous: 2026-11-23 (collect run ~22:30 JST: the JA Windows limit article is confirmed OUT for a second consecutive check, so the drop is real and the limit article needs a freshness or internal-link push rather than patience; WindowsForum now holds slots in all three fix queries; thedroidguy leads the send variant and ideaseed leads the JA file-size query with quantified format devices worth borrowing; edgedrop enters the disappeared query at #4; autocomplete's slide-number shortcut suggestion is back for the second time in four runs; no roundup query checked this run, tally stays 28 (29 incl. the AI-category site).)
+Previous: 2026-11-23 (collect run ~16:30 JST: the JA Windows limit article dropped OUT of the shown results after holding #4 for two checks, so the JA hold is broken and the comparison page premise needs watching; a new roundup site, broughted.com, omits ClipsX, tally 27 to 28 (29 incl. the AI-category site); Soluslide retook #1 in the file-size query and thedroidguy now leads the compress variant too; the EN limit query churned with two new generic entrants and masteryourtech out after one run; the Mac top 5 is unchanged for a seventh check; autocomplete is static except one reorder.)
+Last updated: 2026-11-23 (weekly scan: no reorder this week. The not-working article stays the top unwritten pick with a fresh thin Nov 22 entrant as new evidence; the JA comparison holds second; the send companion and the shortcut list are reaffirmed; the AI comparison is refreshed by Stashcut 1.1.1, Clypy MCP and a verified new AI roundup omitting ClipsX. Articles remain the best lever, and the outreach drift grows by one site.)
+Last updated: 2026-11-23 (collect run ~10:30 JST: the not-working query is stable for a fifth consecutive check and the send variant for a second, so both briefs are unchanged; the disappeared query now has WindowsForum's not-working guide at #2, so one forum is clustering across both fix queries; the reddit compress variant turned over again with thedroidguy now in all three file-size query variants and a new UpdateStar guide confirming the save-a-copy and verification-step devices; the EN shortcut-keys query shuffled its bottom two slots and the JA list is still a single Microsoft column; autocomplete reversed its one change, the slide-number shortcut suggestion is gone after a single run.)
+Previous: 2026-11-23 (collect run ~04:30 JST: a new roundup site, solutionhow, enters at #2 in the Windows roundup query omitting ClipsX, so the tally goes 26 to 27; the JA Windows limit article holds #4 for a second consecutive check; thedroidguy refreshed and took #1 back in the file-size query with two new format devices to borrow, a loss table and a verification step; masteryourtech is a new entrant at #6 in the EN limit query; the Mac top 5 is unchanged for a sixth check; the JA slide-master top 3 is unchanged for a second check; autocomplete has one small change, a new slide-number shortcut suggestion in the PowerPoint shortcut seed.)
+Previous: 2026-11-22 (collect run ~22:30 JST: autocomplete static except one reorder; the not-working query is stable for a fourth consecutive check and the disappeared query for a second, so both briefs are unchanged; the send variant is unchanged; the JA file-size query churned again with digitash out after one run and go.lazyscheme back; the reddit compress variant churned with bellevue out and UglyPear back at #4, its worked case study already recorded as a format device; the EN shortcut-keys query shuffled its bottom two slots; no roundup query checked this run, tally stays 26.)
+Previous: 2026-11-22 (collect run ~16:30 JST: the JA Windows limit article itself now ranks #4 in the JA limit query, the first ranking for that article; the JA slide-master query is now served by three guides after writers-hub dropped out, so the widest opening is filling fast; the EN limit query churns again with two new generic entrants and the CoPanda guide out after one run; Soluslide is back at #1 in the file-size query and thedroidguy dropped after one run; the Mac top 5 is unchanged for a fifth check; no new roundup site, tally stays 26.)
 Previous: 2026-11-22 (collect run ~10:30 JST: the plain not-working query is stable for a third consecutive check; unstuckguide is back at #1 in the disappeared query after one run out, and its short TL;DR-first page is the format bar for the recover article; expertslides is back at #1 in the send variant; digitash, a 2-day-old guide, enters the JA file-size query at #3 with a diagnostic matrix worth borrowing, and its Method 4 is slide-master cleanup as a file-size fix; the EN shortcut-keys query is stable for a second check; the JA shortcut list is still a single Microsoft column; the Mac roundup top 5 shuffled but no new site, tally stays 26.)
 Previous: 2026-11-22 (collect run ~04:30 JST: the live EN limit article drops OUT of the top 10 after three runs in it, and a new free open-source rival, CoPanda, enters the limit query at #8 on a 19-hour-old WindowsForum guide; thedroidguy takes #1 in the file-size query one day after publishing, with two new format devices to borrow; the Mac top 5 is unchanged for a fourth check; the JA slide-master query is still held by a single JA guide; no new roundup site, tally stays 26.)
 Previous: 2026-11-21 (collect run ~22:30 JST: the Mac roundup gap widens by one site to 26 as AsianEfficiency enters; Paste now ships OCR search as well as MCP, so the outreach pitch cannot lean on either; the disappeared query churns hard and is now served by the same guides as the not-working query; aippt holds two slots in the send variant and Smallpdf enters with a before/after size table; the JA shortcut list is now led by Microsoft's own 2021 column, still the only JA page; the not-working query is stable for a second consecutive check.)
@@ -322,6 +338,16 @@ the way HelpDeskGeek did. The JA slide-master draft should ship while
 the query is still contested by fresh entrants rather than a settled
 incumbent. Gabriele's call on outreach is still the bottleneck, not
 content.
+2026-11-22 collect run ~22:30: no roundup query checked this run, so the
+tally stays 26 (15 Windows + 11 Mac) with no new site to add. The gap
+moved instead in a PROBLEM-adjacent query on the XKey side: the
+reddit-flavoured compress variant turned over again — bellevue's 2017
+university libguide, which held #1 for two checks, is OUT entirely,
+Soluslide took #1, and UglyPear is back at #4 with its SmartSlim guide
+(pub 2026-08-06), whose worked 200MB-to-14.2MB case study and CJK font
+subsetting numbers are already recorded as format devices for the
+file-size article. No new format device this run, and no new roundup
+site. Gabriele's call on outreach is still the bottleneck, not content.
 2026-11-22 collect run ~10:30: no roundup query change in the sense that
 matters, the Mac roundup top 5 shuffled (asianefficiency rose #5 to #2,
 lets-suite #2 to #3, techbullion #3 to #4, aitoolsoft #4 to #5) but no
@@ -340,8 +366,89 @@ so the shortest page in the cluster, a TL;DR plus "What NOT to do" page
 of about 74 lines, is the stable leader there, which confirms the
 disappeared query rewards the fastest answer, not the deepest guide.
 Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-23 collect run ~04:30: the gap widens by ONE more Windows site
+to 27 (16 Windows + 11 Mac): solutionhow.com, "Free Clipboard Manager
+Windows 11: 5 Best Tools" (pub 2026-11-15), entered at #2 in the
+Windows roundup query with five tools (Win+V, Ditto, CopyQ, PowerToys
+Advanced Paste, ClipboardFusion) and no ClipsX. Its pick names CopyQ
+for cross-platform use, the exact slot ClipsX would take in an outreach
+pitch, and its "Myths and Facts" section is a trust device our
+comparison content does not have yet. The site also cross-links its own
+screenshot-tools and screen-recorder roundups, so it is building a
+Windows free-tools cluster the way HelpDeskGeek did. Second, the gap
+moved in a problem query too: masteryourtech.com entered the EN limit
+query at #6 with a complete Win+V how-to whose "Do I need to install a
+clipboard app?" answer is "No, paste into a note instead", so it
+concedes the tool slot entirely. Third, on the good-news side, the JA
+Windows limit article now HOLDS #4 for a second consecutive check, so
+JA rankings are holding, not just entering. Gabriele's call on outreach
+is still the bottleneck, not content.
+2026-11-23 weekly scan: the gap widened by ONE more verified site in a NEW category, AI clipboard managers. aitoolcompare.ai "Best AI Clipboard Manager Apps in 2026" (vendor pages read November 2026, checked 2026-11-23) ranks 13 tools, Paste #1, Raycast #2, Maccy #3, CopyQ #9, Ditto #10, and ClipsX is in NONE of the 13 slots, even though the page says only Paste and Raycast describe AI features on their own pages. ClipsX has named AI features (Meaning Search, MCP) and would qualify for this list, yet it is absent, and CopyQ holds the "only free manager here that runs on Linux, Windows and macOS" row, the exact slot ClipsX would take. That makes 28 sites omitting ClipsX since 2026-11-16 (27 from the collect runs plus this one). Two more comparison pages found the same day are NOT yet verified for omission and stay out of the tally: appbreakup.com "6 Best Clippy Alternatives in 2026" (CopyQ, Ditto, Maccy, Paste in the shown top picks) and laptop251.com "Best Clipboard Manager Software in 2026" (Relic #1). The outreach target list for the AI category is now aitoolcompare.ai first, since it is the list where ClipsX most clearly belongs. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-23 collect run ~10:30: no roundup query checked this run, so the
+tally stays 27 in the collect-run count (28 including the weekly scan's
+AI-category site, aitoolcompare.ai). The gap moved instead in a PROBLEM
+query: WindowsForum's not-working guide now ranks #2 in the disappeared
+query as well as #1 in the not-working query, so a forum is clustering
+across the fix queries the way HelpDeskGeek did, and the disappeared query
+is now served by the same guides as the not-working query. On the XKey
+side, thedroidguy now holds slots in all three file-size query variants
+(main, send, compress), so a third site is building a cluster across the
+file-size family. Neither changes the outreach priority: no article ranks
+in a roundup query, and the outreach list is still waiting on Gabriele's
+call.
 
-## Topic mix — the standard (agreed with Gabriele 2026-11-16)
+## Topic mix2026-11-23 collect run ~16:30: the gap widens by ONE more Windows site
+to 28 in the collect-run count (29 including the weekly scan's AI-category
+site, aitoolcompare.ai): broughted.com "Clipboard Manager for Windows: 4
+Free Picks Compared" (pub 2026-11-19) entered at #5 in the Windows roundup
+query with four tools (Win+V, Ditto, CopyQ, PowerToys Advanced Paste) and
+no ClipsX; CopyQ holds the cross-platform row, the exact slot ClipsX would
+take, and the site cross-links its own screenshot-tools and password-manager
+roundups, so it is building a Windows free-tools cluster the way HelpDeskGeek
+did. solutionhow, the 04:30 entrant, is already OUT after one run, so fresh
+roundup entrants bounce as fast as fresh problem-guide entrants do. Second,
+the gap moved in a PROBLEM query too, and it is bad news: the JA Windows
+limit article DROPPED OUT of the shown results for 「クリップボード 履歴
+上限」 after holding #4 for two consecutive checks (the search returned only
+3 results this run, verified twice, so the drop is real in the shown set but
+the result count changed too). JA was the ranking route for both published
+articles; if the drop holds next run, the JA-first comparison page (plan item
+#9) loses its "JA rankings are holding" premise and the limit article needs a
+freshness or internal-link push rather than patience. Gabriele's call on
+outreach is still the bottleneck, not content.
+2026-11-23 collect run ~22:30: the drop is CONFIRMED — the JA query is
+unchanged vs the 16:30 run (Nikkei #1, clipster JA #2, minto.tech #3)
+and clipsx.app is still out, so the JA Windows limit article has now
+missed two consecutive checks. The "JA rankings are holding" premise for
+plan item #9 is lost: the comparison page can no longer lean on our own
+JA ranking, only on Clipster's JA comparison holding #1 in the JA limit
+query. The pick is unchanged, but the limit article needs a freshness or
+internal-link push first, not patience. Second, the gap moved in a
+PROBLEM query again: WindowsForum's not-working guide entered the
+reddit-flavoured variant at #3, so one forum now holds slots in ALL
+THREE fix queries (plain not-working #1, disappeared #2,
+reddit-flavoured #3) — the fix-query cluster is consolidating around a
+forum the way the file-size cluster consolidated around thedroidguy and
+Soluslide. Third, on the XKey side, thedroidguy took #1 in the send
+variant too and ideaseed took #1 in the JA file-size query with a
+diagnosis-only page that quantifies every cause (photo 5-20 MB, fonts
+500 KB-2 MB per family) and a worked 150 MB to under 20 MB example, so
+the file-size article's diagnosis section has a format bar worth
+borrowing. No roundup query was checked this run, so the tally stays 28
+in the collect-run count (29 including the weekly scan's AI-category
+site). Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-24 collect run ~04:30: the JA drop is now THREE consecutive checks (16:30, 22:30, 04:30), so the limit article needs a freshness or internal-link push, not patience, and the comparison page (item #9) still cannot lean on our own JA ranking. Second, the gap moved in a PROBLEM query in a new way: thedroidguy entered the EN limit query at #2 only three days after publishing its copy-paste guide (pub 2026-11-20), and it now holds slots in the limit query plus all three file-size variants, so one general how-to site is building clusters in BOTH niches at once, rising in days, not weeks. Freshness is the weapon: our published articles are losing to fresh generalist guides, not to better content. Third, macmyths entered the EN limit query at #7 with an affiliate comparison (Windows history, Apple Universal Clipboard, CopyQ, Paste) that also omits ClipsX, so comparison-format pages in problem queries are a second omission front, though the roundup tally counts only the roundup query. The roundup tally stays 28 in the collect-run count (29 including the weekly scan's AI-category site): broughted.com bounced out after one run, like solutionhow before it. Autocomplete has one small change: 'android クリップボード 管理' is NEW in クリップボード 管理, replacing 'クリップボード 管理 アプリ windows'. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-24 collect run ~10:30: the first GOOD ranking news on the XKey side in a while: the JA file-size article ENTERED its JA target query at #3 (ideaseed #1, free-power-point-templates #2, xkey #3), so a published XKey article is now ranking in its own query, not just driving impressions. That strengthens the send companion (item #3): it can build on a JA page already in the top 10. Second, the fix-query cluster keeps consolidating around forums and fresh generalists: ugetfix took #1 in the disappeared query with a question-first, cause-ranked format (per-fix time and risk, a next-fix route after every fix), which is the new format bar for the not-working brief, and WindowsForum now holds slots in the plain query (#1) and the reddit-flavoured variant (#4). Third, aippt.org now holds TWO slots in the send variant with two different formats, so the send-variant cluster is consolidating the way thedroidguy's did. Fourth, autocomplete shows a named manager entering JA demand: 'クリップボード 管理 の ditto' is NEW in クリップボード 管理, so Ditto is the brand Japanese searchers type when they want a manager, which matters for the comparison page (item #9) and for outreach targeting. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-24 collect run ~16:30: the BEST ranking news of the run, on both sites at once. First, BOTH limit articles are back in the top 10 in the same run: the EN article ENTERS the EN limit query at #8 (its first EN ranking in the recent record) and the JA article RETURNS at #4 after three consecutive checks out, with no freshness or internal-link push applied, so the JA drop now reads as churn, not a demotion, and the "JA rankings are holding" premise for the comparison page (item #9) is restored for now; the freshness push drops back down the list, watch whether both hold next run. Second, the XKey JA slide-master guide ENTERED its target query at #2, the second XKey article to start ranking in its own query in two days (JA file-size #3 on Nov 24 10:30, JA slide-master #2 now), so XKey now has two published articles ranking, not just one driving impressions. Third, the fix-query cluster keeps consolidating around WindowsForum: its fix guide now leads the reddit-flavoured variant at #1 as well as the plain query, and its complete guide holds #3 in the EN limit query, so one forum now holds slots in three queries with two formats. Fourth, thedroidguy retook #1 in the main file-size query, so the top slot keeps turning over between the same three guides. No new roundup site, tally stays 28 (29 including the AI-category site). Autocomplete: ZERO change across all 20 seeds. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-24 collect run ~22:30: Edge Drop is now publishing into a target query, not just the roundup query: its restart guide entered the disappeared query at #3 and pitches Edge Drop itself as the fallback, with a cluster of its own fix guides behind it. The disappeared query keeps turning over (ugetfix out after one run at #1), so the not-working article still has an open slot, but the fallback slot in that query is now claimed by a vendor, not empty. On the good-news side, the XKey JA file-size article holds #3 for a second consecutive check, so the send companion (item #3) builds on a JA page that is holding, not just entering. The reddit-flavoured not-working variant now surfaces three real Microsoft Q and A user threads, so the pain is visible in the search results themselves, and windowstechit names Ditto and ClipboardFusion as conflict sources, which reinforces the not-working brief's conflict addendum. No new roundup site, tally stays 28 (29 including the AI-category site). Autocomplete: ZERO change across all 20 seeds. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-25 collect run ~04:30: the two limit articles split this run, and the split is instructive. The EN article HOLDS #8 for a second consecutive check, so its entry is real, while the JA article is OUT again one run after returning at #4, so the JA slot is churn in both directions and the freshness or internal-link push is back on the table for the JA article, not the EN one. Second, the gap moved in a PROBLEM query in a new way: WindowsForum now holds TWO slots in the EN limit query, its complete guide at #3 and a CoPanda review at #7, so the forum is becoming a clipboard cluster of its own, and CoPanda is the closest free open-source rival to ClipsX yet to enter a target query, local OCR search, no account, no cloud, with the same pitch shape as ClipsX minus Linux, sync and MCP. The JA limit query got a fresh privacy-angle entrant the same run, tac-ademy at #4, which pushed our JA article out, so the JA query is filling with angles our JA article does not cover (pin/clear/sync scope, shared-PC safety). Third, the XKey JA slide-master guide HOLDS #2 for a second consecutive check, so XKey now has two published articles ranking and both are holding. The roundup tally stays 28 in the collect-run count (29 including the weekly scan's AI-category site). Autocomplete: ZERO change across all 20 seeds for a third consecutive run. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-25 collect run ~16:30: the two vendor clusters deepen in parallel. Edge Drop now holds TWO slots in the roundup query, its "7 Best Free" page at #3 and its "8 Compared" page at #5, on top of the limit query at #2, so it spans three queries with two formats (limit guide + roundups). WindowsForum now holds slots in the plain not-working query at #1, the limit query at #4 AND #9, and the reddit-flavoured not-working variant at #1 with a guide updated 1 day ago, so it is clustering across three queries too. Both clusters pitch their own product as the fallback, and neither lists ClipsX, so the distribution gap is now defended by two vendors building the same way ClipsX would need to: one cluster of problem guides plus one cluster of roundups. The freshness/internal-link push for the two limit articles stays on the table (both out, EN second check, JA third), and the XKey side keeps holding (JA file-size #3 for a fourth check, JA slide-master #2 in the fuller variant). Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-25 collect run ~10:30: the split from 04:30 is gone, and not in our favour: BOTH limit articles are now OUT at once, the EN article after two checks at #8, so the hold is broken and the freshness or internal-link push is back on the table for BOTH articles, not just JA. The cause is visible in the same query: Edge Drop's own limit guide entered at #2, so a vendor is now publishing into the limit query itself, and Edge Drop now spans the limit query (#2), the roundup query (#4) and the disappeared query (was #3 for one run), the same cluster pattern WindowsForum built in the fix queries and thedroidguy built in the file-size variants. Thedroidguy took #1 in the send variant too this run, so it now leads all three file-size variants. The JA limit query also gained a second fresh angle in two runs, desknote at #2 with a two-item worked exercise, while Nikkei and Clipster's JA comparison both dropped out, so the JA query is turning over on format as well as freshness. The one hold that survives is on the XKey side: the JA file-size article holds #3 for a third consecutive check. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-25 collect run ~22:30: the two limit articles split again, and the split flips the freshness call. The JA article is BACK at #5 after three consecutive checks out, with no freshness or internal-link push applied, so the JA slot is churn in both directions and the push is no longer urgent for JA; the EN article stays OUT for a third check, so the push stays on the table for EN, and the comparison page (item #9) can lean on a JA hold again, one run only. Second, the fix-query cluster consolidates further: WindowsForum's not-working guide now leads BOTH the plain not-working query and the disappeared query, so one guide serves both fix queries and the not-working article still has the same two openings (the guide is a fix list, not a cause-ranked diagnosis, and it names no manager as a fallback). Third, aippt.org's dedicated send page enters the send variant at #2, so aippt.org now holds two slots there with two distinct pages and pitches its own browser compressor as the fallback, the same tool-as-fallback pattern Edge Drop and WindowsForum use, and its two counter-intuitive facts first plus an order-that-works closer are format devices worth borrowing for future XKey file-size refreshes. The XKey side keeps holding: JA file-size #3 for a fifth check, JA slide-master #2 in the fuller variant for a third, so the plain-query absence is a truncated display, confirmed twice now. Autocomplete adds a pain-phrased signal, 'clipboard history not showing' is NEW in 'clipboard history', which maps to the not-working article (item 1a) and strengthens its demand evidence. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-26 collect run ~04:30: the limit split holds and hardens in opposite directions: the EN article is OUT for a fourth consecutive check while the JA article HOLDS #4 for a second consecutive check, so the freshness or internal-link push stays on the table for EN only and the comparison page (item #9) can lean on a JA hold again, two runs now. Second, the limit query is now defended by TWO double-slot holders: itechguides holds #2 and #10 with two distinct guides, alongside windowsforum's #5 and #8, so the query's top 10 is increasingly owned by sites publishing clusters, not single pages. Third, the compress variant gained two new guides in one run, keyfy at #3 and updatestar at #4, and keyfy's order-of-impact framing plus its impact/quality trade-off table are format devices worth borrowing for the send companion (item #3); keyfy also cites real r/powerpoint and r/mac threads where people compressed images and the file barely moved, the media-weight blind spot the XKey file-size article already answers with its zip-inspection diagnosis. The XKey side keeps holding: JA file-size #3 for a sixth check, JA slide-master #2 in the fuller variant for a fourth, so the plain-query absence is a truncated display, confirmed three times now. Autocomplete: 'clipboard history not showing' is gone after a single run, so the pain-phrased signal flickers, and the slide-number shortcut suggestion is back for a sixth appearance in twelve runs. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-26 collect run ~16:30: the 10:30 alarms both resolve as churn, not demotion: the JA limit article is BACK at #3 and the XKey JA file-size article is BACK at #3 after one run out each, so both holds are restored and the comparison page (item #9) can lean on a JA hold again. The one hold still in doubt is the JA slide-master #2 in the fuller variant, missing for a second consecutive run. Second, a NEW open-source rival surfaces on social, not in the SERPs yet: 'Windows Clipboard History Manager' (github.com/Umbra9179/clipboard-history-manager-windows, 1.3K stars), promoted in a Nov 25 Instagram reel, free, Windows-only, keyword search, tags and folders, private-app exclusions, so the free open-source row in the problem queries has another claimant in the wings, after CoPanda. Third, Clipster is now publishing short-form video into the exact query space (its Nov 24 Instagram reel demos Win+V and the Mac Tahoe history), so the format front widens beyond text guides. The EN limit article stays out for a sixth check while itechguides holds four slots, so the freshness/internal-link push stays on the table for EN. Gabriele's call on outreach is still the bottleneck, not content.
+2026-11-26 collect run ~10:30: a THIRD vendor-cluster builder enters the disappeared query: PastePilot (paste-pilot.netlify.app), a $3.99 one-time Windows clipboard manager, takes #4 with a five-causes guide that pitches itself as the fallback, and its cluster behind it spans the limit, search, not-working, vs and roundup queries, so the disappeared query's fallback slot is now claimed by a vendor, not empty, joining Edge Drop and WindowsForum. Second, the EN limit query is now dominated by one cluster publisher: itechguides holds FOUR of nine slots (#1, #7, #8, #9) with four distinct guides, so the query's top 10 is increasingly owned by sites publishing clusters, not single pages, and our EN article stays out for a fifth check. Third, on the XKey side, the JA file-size hold breaks: the article drops to #4 after six checks at #3, and the JA slide-master fuller variant shows only assist-all this run, so both XKey holds need a recheck next run before calling them drops. The JA limit query also shows only 3 results with our JA article out, so that drop is unconfirmed too. Gabriele's call on outreach is still the bottleneck, not content.
+ — the standard (agreed with Gabriele 2026-11-16)
 
 Not every article has to be about clipboard/PowerPoint directly. Google
 rewards topical authority over a problem space, not one keyword. Target mix
@@ -357,7 +464,22 @@ demand. Tag items core / adjacent / product when re-ranking.
 
 ## WRITE — in order
 
+2026-11-24 collect run ~04:30: EN limit query CHANGED again, itechguides #1 holds, thedroidguy #2 NEW (OPENED, pub 2026-11-20, a broad copy-paste guide with a shortcuts table, a limits table, pin/delete, cross-device sync, the Office Clipboard 24-item note and a small troubleshoot table, all citing Microsoft Support, no manager named as a fallback), windowsforum #3 holds, automatlabs #4 holds, larely #5 NEW (Windows and Mac how-to), makeuseof #6 (was #5), macmyths #7 NEW (OPENED, an affiliate comparison of Windows history, Apple Universal Clipboard, CopyQ and Paste, with a privacy angle and November 2026 checked stamps, no ClipsX), live2tech #8 (was #6), winaero #9 (was #8), windowsforum #10 (second slot). helpdeskgeek roundup OUT (was #2). Thedroidguy reached #2 three days after publishing, so fresh generalist guides rise in days. JA query UNCHANGED (Nikkei #1, clipster JA #2, minto.tech #3), clipsx.app still OUT, third consecutive check.
+2026-11-24 collect run ~16:30: BOTH articles are ranking at once. EN query CHANGED, itechguides #1 holds, thedroidguy #2 holds, windowsforum #3 holds (its "Master Win11 Clipboard History" guide, OPENED in winners.md), automatlabs #4 holds, larely #5 BACK, masteryourtech #6 BACK, makeuseof #7, clipsx.app #8 NEW — the EN limit article ENTERS the top 10, its first EN ranking in the recent record; windowsforum #9 (second slot), anygen #10 BACK; macmyths, live2tech and winaero OUT. JA query CHANGED, Nikkei #1 holds, microsoft.com #2 BACK, clipster JA #3, clipsx.app #4 BACK — the JA article RETURNS at #4 after three consecutive checks out, with no freshness or internal-link push applied, so the drop reads as churn, not a demotion. The freshness push drops back down the list; watch whether both hold next run. (core)
+2026-11-25 collect run ~04:30: EN query CHANGED, itechguides #1 holds, thedroidguy #2 holds, windowsforum #3 holds, automatlabs #4 holds, larely #5 holds, masteryourtech #6 holds, CoPanda windowsforum #7 NEW (OPENED, its CoPanda review, last updated 3 days ago, hands-on 41-item test, local OCR, privacy trade-offs section), clipsx.app #8 HOLDS for a second consecutive check, so the EN entry is holding; makeuseof, windowsforum second slot and anygen OUT. WindowsForum now holds TWO slots in this query. JA query CHANGED, Nikkei #1 holds, microsoft.com #2 holds, clipster JA #3 holds, tac-ademy #4 NEW (OPENED, its pin/clear/sync privacy guide, checked 2026-11-23); clipsx.app OUT (was #4, one run only). The JA article flickers in and out, so the freshness/internal-link push is back on the table for the JA article. (core)
+2026-11-25 collect run ~16:30: EN query CHANGED in slots 9-10 only, itechguides #1 holds, edgedrop #2 holds, thedroidguy #3 holds, windowsforum #4 holds, automatlabs #5 holds, makeuseof #6 holds, macmyths #7 holds, live2tech #8 holds, windowsforum #9 NEW (second windowsforum page, an enable/pin/sync guide, so WindowsForum now holds TWO slots in this query); itechguides second page OUT, solveyourtech OUT. clipsx.app still OUT, second consecutive check. JA query CHANGED, microsoft.com #1 holds, Nikkei #2 BACK, desknote #3 (was #2), clipster JA #4 BACK, minto.tech #5 (was #3); tac-ademy OUT (was #4, one run only). clipsx.app still OUT, third consecutive check. The freshness or internal-link push stays on the table for BOTH limit articles. Autocomplete has one trivial change: a windows/mac reorder at #2/#3 in "clipboard manager"; all other 19 seeds byte-identical. (core)
+2026-11-25 collect run ~10:30: EN query CHANGED HARD, itechguides #1 holds, edgedrop #2 NEW (OPENED, its limit guide, pub 2026-08-21, upd 2026-11-21, answer-first with a documented-limits table, a "why fewer than 25" diagnostic list, a managers table with a history-size column, and a sources section; it pitches Edge Drop itself as the fallback), thedroidguy #3 (was #2), windowsforum #4 (was #3), automatlabs #5 (was #4), makeuseof #6 BACK, macmyths #7 holds, live2tech #8 BACK, itechguides #9 NEW (second itechguides page), solveyourtech #10 NEW; clipsx.app OUT (was #8, two checks), so the EN hold is broken and BOTH limit articles are out at once. larely OUT (was #5), masteryourtech OUT (was #6), CoPanda windowsforum OUT (was #7, one run only). JA query CHANGED, microsoft.com #1 (was #2), desknote #2 NEW (OPENED, its two-item reverse-paste exercise guide, pub 2026-11-10, with a scope table and a pin warning), minto.tech #3 BACK, tac-ademy #4 holds; Nikkei OUT (was #1), clipster JA OUT (was #3); clipsx.app still OUT, second consecutive check. The freshness or internal-link push is now back on the table for BOTH limit articles, and the comparison page (item #9) can lean on neither an EN nor a JA hold. Autocomplete has one real change: 'powerpoint shortcut to go to slide number' is BACK in 'powerpoint shortcut', replacing 'powerpoint shortcut keys pdf', after five runs gone (fourth appearance in ten runs, it flickers but recurs, keep it in the shortcut list, plan item #6). (core)
+2026-11-25 collect run ~22:30: EN query CHANGED in slots 1 and 8-9 only, makeuseof #1 NEW (was #6, its old Win+V explainer, last updated 287 days ago), itechguides #2 (was #1), edgedrop #3 (was #2), thedroidguy #4 (was #3), windowsforum #5 (was #4), automatlabs #6 (was #5), macmyths #7 holds, windowsforum #8 (was #9), live2tech #9 (was #8); clipsx.app still OUT, third consecutive check, so the freshness or internal-link push stays on the table for the EN article. JA query CHANGED, microsoft.com #1 holds, Nikkei #2 holds, desknote #3 holds, minto.tech #4 (was #5), clipsx.app #5 NEW BACK after three consecutive checks out; clipster JA OUT (was #4). The JA article is back in with no push applied, so the JA slot is churn in both directions, and the comparison page (item #9) can lean on a JA hold again, one run only. Autocomplete has two real changes: 'clipboard history not showing' is NEW in 'clipboard history' at #8, replacing 'clipboard history on my phone', a pain-phrased signal for the not-working article (item 1a); 'powerpoint shortcut keys pdf' is BACK in 'powerpoint shortcut' and 'powerpoint shortcut to go to slide number' is GONE again (fifth appearance in eleven runs, it flickers but recurs, keep it in the shortcut list, plan item #6). 'clipboard manager' reordered only. (core)
+2026-11-26 collect run ~04:30: EN query CHANGED in slots 2-6 and 10, makeuseof #1 holds, itechguides #2 (was #1), edgedrop #3 (was #2), thedroidguy #4 (was #3), windowsforum #5 (was #4), automatlabs #6 (was #5), macmyths #7 holds, windowsforum #8 (was #9), live2tech #9 (was #8), itechguides #10 NEW (a second itechguides page, "Windows 11 Clipboard History: 25 Entries, Pin, and Sync", so itechguides now holds TWO slots in this query, #2 and #10, alongside windowsforum's two). clipsx.app still OUT, fourth consecutive check, so the freshness or internal-link push stays on the table for the EN article. JA query CHANGED, microsoft.com #1 holds, Nikkei #2 holds, desknote #3 holds, clipsx.app #4 (was #5), minto.tech #5 (was #4); clipster JA still OUT. The JA article holds for a second consecutive check, so the push is no longer urgent for JA. Autocomplete has two real changes: 'clipboard history not showing' is GONE again after one run, 'clipboard history on my phone' is BACK at #10, so the pain-phrased signal flickers; 'powerpoint shortcut to go to slide number' is BACK in 'powerpoint shortcut', replacing 'powerpoint shortcut keys pdf', sixth appearance in twelve runs, it flickers but recurs, keep it in the shortcut list, plan item #6. 'windows clipboard history' and 'mac clipboard history' reordered only. All other 16 seeds byte-identical. (core)
+2026-11-26 collect run ~16:30: EN query CHANGED in slots 6-7 only, itechguides #1 holds, edgedrop #2 holds, thedroidguy #3 holds, windowsforum #4 holds, automatlabs #5 holds, itechguides #6 (was #7), learn.larely #7 BACK, itechguides #8 holds, itechguides #9 holds, so itechguides still holds FOUR slots, #1, #6, #8 and #9. macmyths OUT (was #6). clipsx.app still OUT, sixth consecutive check, so the freshness or internal-link push stays on the table for the EN article. JA query CHANGED, Nikkei #1 holds, pszet #2 (was #3), clipsx.app #3 BACK (was OUT at 10:30); tac-ademy OUT (was #2). Only 3 results shown again, so the 10:30 drop was churn or a truncated display, not a demotion, and the comparison page (item #9) can lean on a JA hold again. Autocomplete is byte-identical across all 20 seeds this run. (core)
+2026-11-26 collect run ~10:30: EN query CHANGED HARD, itechguides #1 (was #2), edgedrop #2 (was #3), thedroidguy #3 (was #4), windowsforum #4 (was #5), automatlabs #5 (was #6), macmyths #6 (was #7), itechguides #7 (was #10), itechguides #8 NEW (its Windows 10 open-and-manage page), itechguides #9 NEW (its Windows 10 clipboard access page), so itechguides now holds FOUR slots in this query, #1, #7, #8 and #9, up from two. makeuseof OUT (was #1), live2tech OUT (was #9), windowsforum's second slot OUT (was #8). clipsx.app still OUT, fifth consecutive check, so the freshness or internal-link push stays on the table for the EN article. JA query CHANGED, Nikkei #1 (was #2), tac-ademy #2 NEW (OPENED in the 2026-11-25 04:30 run, its pin/clear/sync privacy guide, back after one run out), pszet #3 NEW (OPENED, a local PC support shop's '使いこなす' guide, pub 2026-11-17, with a batch-copy workflow angle and a screen-share privacy warning); microsoft.com OUT (was #1), desknote OUT (was #3), minto.tech OUT (was #5); clipsx.app OUT (was #4). Only 3 results shown this run vs 5 at 04:30, so the JA drop is UNCONFIRMED, possibly a truncated display; recheck next run. Autocomplete has several real changes: 'clipboard manager mac free' and 'clipboard manager iphone' are NEW in 'clipboard manager'; 'mac clipboard history reddit' and 'clipboard history macos tahoe' are NEW in 'mac clipboard history'; 'クリップボード 履歴 どこ' is NEW in 'クリップボード 履歴'. All other seeds byte-identical except reorders. (core)
 1. **Windows 11 clipboard history limits (EN+JA) — ClipsX** · STATUS: ✅ PUBLISHED
+   2026-11-23 collect run ~22:30 — JA query 「クリップボード 履歴 上限」
+   UNCHANGED vs the 16:30 run (Nikkei #1, clipster JA #2, minto.tech #3):
+   clipsx.app still OUT, so the drop is CONFIRMED after two consecutive
+   checks. The JA article needs a freshness or internal-link push rather
+   than patience; the "JA rankings are holding" premise for item #9 is
+   lost.
    2026-11-15 — /en/blog/windows-clipboard-history-limit and
    /ja/blog/windows-clipboard-history-limit now live in the sitemap (both 200,
    title/meta/canonical present; first seen in the 2026-11-15 16:29 JST
@@ -381,7 +503,34 @@ demand. Tag items core / adjacent / product when re-ranking.
    "tool safety" caution sections (official download source, passwords
    in history, work-PC permission) are the trust content a JA reader
    expects before installing.
-1a. **Clipboard history not working (Win+V troubleshooting) — ClipsX** ·
+1a. **Clipboard history not working2026-11-24 collect run ~22:30: plain not-working query UNCHANGED (windowsforum #1, makeuseof #2, guidingtech #3, helpdeskgeek #4). Reddit-flavoured variant CHANGED HARD, windowstechit #1 NEW (OPENED, its 15-fixes guide built around the 24H2 bug, citing Reddit discussions, fix 15 names Ditto and ClipboardFusion as conflict sources), learn.microsoft.com #2, #3 and #5 (three real user Q and A threads), windowsreport #4; windowsforum OUT (was #1), amarbhattarai OUT, itechguides OUT, makeuseof OUT. The conflict-source angle recurs again, which reinforces the brief's addendum. Brief unchanged. (core)
+2026-11-25 collect run ~22:30: plain not-working query UNCHANGED vs the 10:30 run (windowsforum #1, makeuseof #2, helpdeskgeek #3, amarbhattarai #4). Disappeared query CHANGED, windowsforum #1 (was #2, its not-working guide now leads BOTH the plain not-working query and the disappeared query), techdows #2 (was #3), myrecover #3 BACK, edgedrop #4 NEW (its restart guide, back after one run out); unstuckguide OUT (was #1), makeuseof OUT (was #4). The disappeared query is again served by the same not-working guides as the plain query plus the restart angle, so the one not-working article still answers both. Reddit-flavoured variant CHANGED, guidingtech #1 BACK, windowsforum #2 (was #1), makeuseof #3 BACK, amarbhattarai #4 BACK; ugetfix OUT (was #1). The variant reverted to the old guard again. Autocomplete adds a pain-phrased signal: 'clipboard history not showing' is NEW in 'clipboard history' at #8, replacing 'clipboard history on my phone', which maps to this article and strengthens its demand evidence. Brief unchanged. (core)
+2026-11-26 collect run ~04:30: plain not-working query UNCHANGED (windowsforum #1, makeuseof #2, helpdeskgeek #3, amarbhattarai #4). Disappeared query CHANGED in slots 2-3 only, windowsforum #1 holds, techdows #2 (was #3), myrecover #3 (was #2), edgedrop #4 holds; same four guides. The disappeared query is still served by the same not-working guides as the plain query plus the restart angle, so the one not-working article still answers both. Reddit-flavoured variant CHANGED in slots 2-4 only, guidingtech #1 holds, makeuseof #2 (was #3), amarbhattarai #3 (was #4), windowsforum #4 (was #2); same four guides, the variant keeps reverting to the old guard. Autocomplete: 'clipboard history not showing' is GONE again after one run, so the pain-phrased signal flickers rather than holds. Brief unchanged. (core)
+2026-11-26 collect run ~16:30: plain not-working query UNCHANGED (windowsforum #1, makeuseof #2, helpdeskgeek #3, amarbhattarai #4). Disappeared query UNCHANGED (unstuckguide #1, techdows #2, amarbhattarai #3, paste-pilot #4 holds), so the disappeared query is stable for a second check with its fallback slot vendor-claimed. Reddit-flavoured variant UNCHANGED (ugetfix #1, guidingtech #2, amarbhattarai #3, windowstechit #4, learn.microsoft.com #5 holds). The fix queries are stable for the first time in several runs, so the brief is unchanged. (core)
+2026-11-26 collect run ~10:30: plain not-working query UNCHANGED (windowsforum #1, makeuseof #2, helpdeskgeek #3, amarbhattarai #4). Disappeared query CHANGED, unstuckguide #1 BACK, techdows #2 holds, amarbhattarai #3 NEW, paste-pilot #4 NEW (OPENED, its 'Clipboard History Disappeared? Why Your Copied Items Vanish' guide, pub 2026-10-26, a five-causes table with an honest 'can you get it back' column and a section pitching PastePilot, a $3.99 one-time Windows manager, as the fallback); windowsforum OUT (was #1), myrecover OUT (was #3), edgedrop OUT (was #4). The disappeared query turned over again, and its fallback slot is now claimed by a vendor, so the one not-working article still answers both queries but the fallback pitch now competes with a named product in the results. Reddit-flavoured variant CHANGED, ugetfix #1 BACK, guidingtech #2 (was #1), amarbhattarai #3 holds, windowstechit #4 NEW (OPENED in the 2026-11-24 22:30 run, its 15-fixes 24H2 guide, back after two runs out), learn.microsoft.com #5 NEW (a Microsoft Q and A user thread); makeuseof OUT (was #2), windowsforum OUT (was #4). The conflict-source angle recurs again (windowstechit fix 15 names Ditto and ClipboardFusion), which reinforces the brief's addendum. Brief unchanged. (core)
+2026-11-24 collect run ~10:30: plain not-working query CHANGED in slots 3-4 after six unchanged checks, windowsforum #1 holds, makeuseof #2 holds, guidingtech #3 NEW (its broken-history guide enters the plain query; it already led the reddit-flavoured variant), helpdeskgeek #4 (a DIFFERENT helpdeskgeek page, "7 Ways to Fix Copy and Paste Not Working in Windows 11", upd 25 days ago, with a quick-diagnosis section and a Notepad copy-paste test), amarbhattarai OUT (was #4). Disappeared query CHANGED HARD, ugetfix #1 NEW (OPENED, facts checked 2026-11-08, question-first with a cause table ranked by frequency, per-fix time and risk, and an "it worked if / if not" route after every fix — the new format bar for the brief), techdows #2 (was #3), myrecover #3 (was #4), techetips #4 NEW; unstuckguide OUT (was #1), windowsforum OUT (was #2), edgedrop OUT (was #4). The disappeared query is now served by the same not-working guides as the plain query, so the one not-working article still answers both. Brief unchanged, but borrow ugetfix's format devices: question-first, cause-ranked, per-fix time and risk, next-fix routing. (core)
+2026-11-24 collect run ~16:30: the reddit-flavoured variant CHANGED, windowsforum #1 NEW (its fix guide, OPENED in winners.md, pub 2026-02-24, upd 2026-09-26, Difficulty/Time header and 10 ordered fixes with per-fix warnings; step 8 names third-party clipboard managers as a possible conflict source), amarbhattarai #2, itechguides #3 NEW, makeuseof #4; guidingtech OUT (was #1), windowstechit OUT. WindowsForum now leads the plain query AND this variant, and its complete guide holds #3 in the EN limit query, so one forum holds slots in three queries with two formats. Borrow for the brief: the difficulty + time header up front and per-fix warning/tip boxes, alongside ugetfix's question-first, cause-ranked devices. Brief unchanged. (core)
+2026-11-23 collect run ~16:30: EN limit query CHANGED, itechguides #1
+   holds (two slots), helpdeskgeek roundup #2 holds, windowsforum #3 holds,
+   automatlabs #4 holds, makeuseof #5 holds, live2tech #6 NEW (OPENED, pub
+   2025-06-13, upd 2026-11-11 — a short how-to with a privacy note and a
+   "When Win+V Doesn't Work" mini-troubleshoot close, no manager named as a
+   fallback), winaero #8 NEW, windowsforum #9 (second windowsforum slot);
+   masteryourtech OUT after one run. Clipster still OUT, edgedrop still OUT,
+   live EN article still out. JA query CHANGED: only 3 shown (Nikkei #1,
+   clipster JA #2, minto.tech #3), microsoft.com OUT and clipsx.app OUT —
+   the JA Windows limit article DROPPED OUT after holding #4 for two
+   consecutive checks, verified with a second identical search in the same
+   run. The result count changed too (4 to 3 shown), so watch the next run
+   to see whether it returns; if it stays out, the article needs a
+   freshness or internal-link push, not patience. (core)
+2026-11-23 collect run ~22:30: plain not-working query UNCHANGED for a
+   SIXTH consecutive check (windowsforum #1, makeuseof #2, helpdeskgeek
+   #3, amarbhattarai #4), so the brief is unchanged. The reddit-flavoured
+   variant CHANGED: windowsforum #3 NEW, so WindowsForum now holds slots
+   in ALL THREE fix queries (plain #1, disappeared #2, reddit-flavoured
+   #3) — a forum is clustering across the fix queries. Brief unchanged.
+ (Win+V troubleshooting) — ClipsX** ·
    TOP UNWRITTEN ITEM (promoted 2026-11-16 weekly scan).
    Evidence: the freshest repeated publishing of any query this week — 7 fix
    guides Oct 21 – Nov 14, 2026: techdows.com (pub 2026-10-21, upd 2026-11-03),
@@ -610,6 +759,21 @@ demand. Tag items core / adjacent / product when re-ranking.
    consecutive check. The reddit-flavoured variant is also unchanged
    (guidingtech #1, windowstechit #2, makeuseof #3, amarbhattarai #4).
    The brief needs no change. (core)
+2026-11-22 collect run ~22:30: the plain query is UNCHANGED, identical
+   to the 2026-11-21 10:30 and 22:30 runs and the 2026-11-22 10:30 and
+   16:30 runs (windowsforum #1, makeuseof #2, helpdeskgeek "7 Ways" #3,
+   amarbhattarai #4), stable for a fourth consecutive check. The
+   reddit-flavoured variant is also unchanged (guidingtech #1,
+   windowstechit #2, makeuseof #3, amarbhattarai #4), identical to the
+   04:30, 10:30 and 16:30 runs. The brief needs no change. (core)
+2026-11-23 weekly scan: the not-working article stays the top unwritten pick, and the fresh evidence for shipping it now is a thin new entrant, phwhy.com "Why Is Windows Clipboard History Empty After I Copy Something?" (pub/upd Nov 22, 2026, 2-minute read, Notepad test first, 25-item and 4 MB limits, restart-wipe note). The cluster keeps admitting thin fresh pages at the bottom while the top 4 holds, so the brief's diagnostic structure plus the desktop-wide fallback is still unmatched in the query. The addendum answering the named conflict objection (now four sites name clipboard managers as a conflict source) is already in the brief. The only blocker is Gabriele's approval. (core)
+2026-11-23 collect run ~10:30: the plain query is UNCHANGED, identical to
+   the 2026-11-21 10:30 and 22:30 runs and the 2026-11-22 10:30, 16:30 and
+   22:30 runs (windowsforum #1, makeuseof #2, helpdeskgeek "7 Ways" #3,
+   amarbhattarai #4), stable for a fifth consecutive check. The
+   reddit-flavoured variant is also unchanged (guidingtech #1,
+   windowstechit #2, makeuseof #3, amarbhattarai #4). The brief needs no
+   change. (core)
    too (edgedrop #1, clipster #2, hp #3, technobezz #4, umatech #5,
    clipboardman #6, windowsforum #7 NEW, edgedrop #8 second article);
    screensnap.pro dropped out. So Clipster holds #2 in limit EN +
@@ -833,6 +997,22 @@ demand. Tag items core / adjacent / product when re-ranking.
    FIRST ranking for that article (previously only the JA Mac article
    ranked here, once, at #3 on 2026-11-20). minto.tech OUT (was #4). JA
    is now the ranking route for both published articles. (core)
+2026-11-23 collect run ~04:30: EN limit CHANGED, itechguides #1 (holds,
+   two slots again, #1 + #7), helpdeskgeek #2 (its roundup, holds),
+   windowsforum #3, automatlabs #4, makeuseof #5 (was #6),
+   masteryourtech #6 NEW (OPENED: pub 2024-11-19, upd 2026-10-31, a
+   complete Win+V how-to with a Q and A table, a privacy-habits section
+   and a two-word confirmation test, and it cross-links its own
+   copy-paste and screenshot guides; its "Do I need a clipboard app?"
+   answer is "No, paste into a note instead", so it concedes the tool
+   slot), itechguides #7 (was #9), windowsforum #8 (was #7).
+   learn.larely OUT (was #5, one run only), macmyths OUT (was #7, one
+   run only), live2tech OUT (was #8). Only 8 shown. Clipster still OUT,
+   edgedrop still OUT. No clipsx.app; the live EN limit article is still
+   out. JA limit UNCHANGED (Nikkei #1, microsoft.com #2, clipster JA #3,
+   clipsx.app #4), so the JA Windows limit article HOLDS #4 for a second
+   consecutive check, and the first ranking for that article is a hold,
+   not a one-run blip. (core)
 2026-11-18 collect run ~22:35 — PLAIN QUERY first check: "windows
    clipboard history" (EN, 6 shown) is FRESH-HEAVY — umatechnology.org
    #1 (multi-device guide), tipmosaic.com #2 NEW (beginner's guide, upd
@@ -849,6 +1029,8 @@ demand. Tag items core / adjacent / product when re-ranking.
    clipboard manager" without naming one. Our limit article already
    covers the limits; the practice-exercise + workflow-section devices
    are the borrowable part for the not-working article. (core)
+2026-11-24 collect run ~04:30: Mac top 5 UNCHANGED for an EIGHTH consecutive check (cultofmac #1, idownloadblog #2, howtogeek #3, macobserver #4, merlin #5). The EN Mac article still does not rank in the EN query. (core)
+2026-11-25 collect run ~04:30: Mac top 5 UNCHANGED for a tenth consecutive check (cultofmac #1, idownloadblog #2, howtogeek #3, macobserver #4, merlin #5). EN Mac article still not ranking. (core)
 2. **Mac clipboard history: 7-day Spotlight limit + free/open-source options —
    ClipsX**. Evidence: autocomplete "mac clipboard history free / open source /
    like windows / app"; Spotlight guides published Nov 1–9, 2026; max retention
@@ -1011,7 +1193,43 @@ demand. Tag items core / adjacent / product when re-ranking.
    the same place; macobserver still says eight hours only (stale,
    pre-26.1). The EN Mac article (~5 days old) still does not rank in
    the EN query. (core)
-   XKey, JA first**. Evidence: rich "powerpoint file too big (to email/send/
+2026-11-23 collect run ~04:30: Mac top 5 UNCHANGED for a SIXTH
+   consecutive check (cultofmac #1, idownloadblog #2, howtogeek #3,
+   macobserver #4, merlin #5), identical to the 2026-11-20 16:30,
+   2026-11-21 04:30, 16:30 and 2026-11-22 04:30, 16:30 runs. Cult of Mac
+   holds #1. idownloadblog still says macOS 27 ("Golden Gate") keeps
+   history in the same place; macobserver still says eight hours only
+   (stale, pre-26.1). The EN Mac article still does not rank in the EN
+   query. (core)
+2026-11-24 collect run ~16:30: Mac top 5 UNCHANGED for a NINTH consecutive check (cultofmac #1, idownloadblog #2, howtogeek #3, macobserver #4, merlin #5). idownloadblog still says macOS 27 keeps history in the same place; macobserver still says eight hours only (stale, pre-26.1). The EN Mac article still does not rank in the EN query. (core)
+2026-11-24 collect run ~04:30: MAIN file-size query UNCHANGED (soluslide #1, aippt.org #2, thedroidguy #3, alibaba #4). The reddit-flavoured compress variant CHANGED, thedroidguy #1 (was #4), bellevue libguide #2 BACK, soluslide #3 holds, groovypost #4 BACK, lifetips.alibaba #5; aippt.org OUT. Thedroidguy now leads the compress variant too, so it holds slots in all three file-size variants (main #3, send #1, compress #1). Brief unchanged. (core)
+   XKey, JA first**.2026-11-24 collect run ~22:30: JA file-size query UNCHANGED, ideaseed #1, free-power-point-templates #2, xkey.infiniticlips.com #3 HOLDS for a second consecutive check, so the JA file-size ranking is holding, not a one-run blip, and the send companion builds on a JA page already in the top 10. Send variant UNCHANGED, expertslides #1, thedroidguy #2, aippt.org #3, aippt.org #4. Reddit compress variant CHANGED, thedroidguy #1 BACK (was #5), bellevue libguide #2, soluslide #3, groovypost #4 BACK, lifetips.alibaba #5; aippt.org OUT (was #2). Thedroidguy is back at #1 in the compress variant too. Brief unchanged. (core)
+2026-11-25 collect run ~22:30: send variant CHANGED in slots 2-3, thedroidguy #1 holds, aippt.org #2 NEW (OPENED, its dedicated send page, 'PowerPoint Too Big to Email? What Actually Works', pub 2026-11-11, problem-first with two counter-intuitive facts up front, base64 inflation and zip doing almost nothing, three fixes, an 'order that works' closer, a measured benchmark of 16 decks and 20 runs, and its own browser compressor pitched as fix 2), aippt.org #3 (its 5-ways page), supportyourtech #4 holds; so aippt.org now holds TWO slots in the send variant with two distinct pages. Thedroidguy still leads all three file-size variants (main #1, send #1, compress #2). JA file-size query UNCHANGED, ideaseed #1, free-power-point-templates #2, xkey #3 HOLDS for a fifth consecutive check, so the JA file-size ranking is holding. Reddit compress variant CHANGED, housingbasics #1 NEW (was #3), thedroidguy #2 (was #4), groovypost #3 BACK, aippt.org #4 (was #1), bellevue libguide #5 BACK; soluslide OUT (was #2). Format devices to borrow for future XKey file-size refreshes: the two counter-intuitive facts first, and the 'order that works' closer. Brief unchanged. (core)
+2026-11-26 collect run ~04:30: MAIN file-size query UNCHANGED (thedroidguy #1, aippt.org #2, soluslide #3, alibaba #4). JA file-size query UNCHANGED, ideaseed #1, free-power-point-templates #2, xkey #3 HOLDS for a sixth consecutive check, so the JA file-size ranking is holding. Reddit compress variant CHANGED, aippt.org #1 (was #4), thedroidguy #2 holds, keyfy.com #3 NEW (OPENED, its "How to Reduce PowerPoint File Size for Email", pub 2026-09-21, upd 2026-09-29, problem-first with a "why the usual advice falls short" section citing real r/powerpoint and r/mac threads, a three-step fix in order of impact, an impact/quality trade-off table, a "zipping barely helps" counter-intuitive note and a cloud-link fallback), news.updatestar.com #4 NEW (its "PowerPoint too big to email? Shrink it in minutes", media-first with the same save-a-copy and verification devices); housingbasics OUT (was #1), groovypost OUT (was #3), bellevue libguide OUT (was #5). Thedroidguy holds a slot in the main query (#1) and the compress variant (#2) this run, and led the send variant at the last check (22:30). Format devices to borrow for the send companion: keyfy's order-of-impact framing, the impact/quality trade-off table, and citing real Reddit threads; the media-weight blind spot ("compressed images and the file barely moved") is the pain the XKey file-size article already answers with its zip-inspection diagnosis. Brief unchanged. (core)
+2026-11-26 collect run ~16:30: MAIN file-size query UNCHANGED (thedroidguy #1, aippt.org #2, soluslide #3, alibaba #4). JA file-size query CHANGED, ideaseed #1 holds, free-power-point-templates #2 holds, xkey #3 BACK (was #4), artofpresentations #4 (was #3), so the XKey JA file-size article is BACK at #3 after one run at #4 and the hold is restored, not broken; the send companion (item #3) builds on a JA page holding #3 again. Send variant UNCHANGED (thedroidguy #1, aippt.org send #2, aippt.org 5-ways #3, supportyourtech #4). Reddit compress variant CHANGED, thedroidguy #1 (was #3), bellevue libguide #2 BACK, soluslide #3 (was #2), groovypost #4 NEW (back), housingbasics #5 (was #4); aippt.org OUT (was #1). Thedroidguy now holds a slot in all three file-size variants again (main #1, send #1, compress #1). People: Clipster's own Instagram reel (Nov 24) demos Win+V and the Mac Tahoe history, so a competitor is publishing short-form video into the query space. Brief unchanged. (core)
+2026-11-26 collect run ~10:30: MAIN file-size query UNCHANGED (thedroidguy #1, aippt.org #2, soluslide #3, alibaba #4). JA file-size query CHANGED, ideaseed #1 holds, free-power-point-templates #2 holds, artofpresentations #3 NEW (an old guide, last updated 1371 days ago), xkey #4 (was #3). The XKey JA file-size article DROPS to #4 after six consecutive checks at #3, so the hold is broken; the send companion (item #3) still builds on a JA page in the top 10, but no longer on a #3 hold. Send variant UNCHANGED vs the 22:30 run (thedroidguy #1, aippt.org send #2, aippt.org 5-ways #3, supportyourtech #4). Reddit compress variant CHANGED, aippt.org #1 holds, soluslide #2 NEW, thedroidguy #3 (was #2), housingbasics #4 BACK; keyfy OUT (was #3, one run only), updatestar OUT (was #4, one run only). Thedroidguy holds a slot in the main query (#1) and the compress variant (#3) this run, and led the send variant at the last check. People: a Tiny Upgrade Instagram reel (Nov 24) demos Compress Pictures as a 66 MB to 1 MB before/after, a proof device the XKey file-size articles lack. Brief unchanged. (core)
+2026-11-24 collect run ~10:30: JA file-size query CHANGED, ideaseed #1 holds, free-power-point-templates #2 holds, xkey.infiniticlips.com #3 NEW — the XKey JA file-size article ENTERS its JA target query for the first time, at #3; groovypost OUT (was #3), go.lazyscheme OUT (was #4). Only 3 shown against 4 before. The send companion can now build on a JA page already in the top 10. Send variant CHANGED, expertslides #1 BACK (was #4), thedroidguy #2 (was #1), aippt.org #3 (was #2), aippt.org #4 NEW second slot (OPENED, "PowerPoint Too Big to Email? What Actually Works", pub 2026-11-11, base64-inflation opener and a measured 16-deck benchmark behind its browser compressor); smallpdf OUT (was #3). AIPPT now holds two send-variant slots with two formats, so the send cluster is consolidating. Reddit compress variant CHANGED, thedroidguy #1 holds, groovypost #2, aippt.org #3, bellevue libguide #4, everydaytech #5 NEW; soluslide OUT, lifetips.alibaba OUT. Borrow for the send companion: aippt's base64 number as the opener and a measured benchmark behind any tool claim. (core)
+2026-11-24 collect run ~16:30: MAIN file-size query CHANGED, thedroidguy #1 BACK (was #3), soluslide #2 (was #1), aippt.org #3 (was #2), alibaba #4 holds. The top slot keeps turning over between the same three guides. Reddit compress variant CHANGED, soluslide #1 (was #3), aippt.org #2 holds, bellevue libguide #3, lifetips.alibaba #4, thedroidguy #5 (was #1); groovypost OUT, everydaytech OUT. Thedroidguy still holds a slot in all three file-size variants (main #1, send #2, compress #5). Brief unchanged. (core)
+2026-11-23 collect run ~16:30: Mac top 5 UNCHANGED for a SEVENTH
+   consecutive check (cultofmac #1, idownloadblog #2, howtogeek #3,
+   macobserver #4, merlin #5), identical to the 2026-11-20 16:30,
+   2026-11-21 04:30, 16:30, 2026-11-22 04:30, 16:30 and 2026-11-23 04:30
+   runs. Cult of Mac holds #1. idownloadblog still says macOS 27 ("Golden
+   Gate") keeps history in the same place; macobserver still says eight
+   hours only (stale, pre-26.1). The EN Mac article still does not rank in
+   the EN query. (core)
+2026-11-23 collect run ~22:30: send variant CHANGED, thedroidguy #1
+   (was #2), aippt.org #2, smallpdf #3, expertslides #4 (was #1), so
+   thedroidguy now leads the send variant and holds slots in all three
+   file-size variants. JA file-size query CHANGED in slots 1-2, ideaseed
+   #1 (was #2), free-power-point-templates #2 (was #1); still zero JA
+   pages. Ideaseed OPENED: it quantifies every cause (photo 5-20 MB,
+   fonts 500 KB-2 MB per family), a worked 150 MB to under 20 MB example
+   (60-80%), and a /ppt/slideMasters/ folder check — format devices
+   worth borrowing for the file-size article's diagnosis section. The
+   reddit compress variant turned over completely again (lifetips.alibaba
+   #1, thedroidguy #4). Brief unchanged.
+ Evidence: rich "powerpoint file too big (to email/send/
    open)" autocomplete cluster; JA「ファイル サイズ 大きい 原因」;
    "too many slide masters" itself has ZERO autocomplete demand — do not
    target that phrase. XKey /ja is the site's click leader.
@@ -1331,7 +1549,88 @@ demand. Tag items core / adjacent / product when re-ranking.
    the format bar. Reddit-flavoured compress variant UNCHANGED
    (bellevue #1, soluslide #2, groovypost #3, lifetips.alibaba #4,
    makeuseof #5), identical to the 10:30 run. (core)
-9. **ClipsX vs Win+V comparison (JA first) — ClipsX**. Added 2026-11-19
+2026-11-22 collect run ~22:30: SEND VARIANT UNCHANGED (expertslides #1,
+   thedroidguy #2, aippt.org #3, smallpdf #4), identical to the 10:30
+   run. JA file-size query CHANGED: free-power-point-templates #1 (was
+   #2, 894 days old), ideaseed #2 (was #1), groovypost #3 (was #4, 1896
+   days old), go.lazyscheme #4 BACK (was OUT at 10:30); digitash OUT
+   (was #3 at 10:30, one run only — the 2-day-old guide bounced as fast
+   as it entered, the same pattern as thedroidguy in the main file-size
+   query). Still ZERO JA pages for a JA query. Reddit-flavoured compress
+   variant CHANGED: soluslide #1 (was #2), aippt.org #2, groovypost #3,
+   uglypear.com #4 BACK (its SmartSlim guide, pub 2026-08-06 — OPENED
+   this run: bottom-line-first opening, a size-share table with measured
+   shares, type-based image strategies, font subsetting with CJK numbers
+   (Source Han Sans Regular 16.8 MB complete, 0.32 MB after subsetting,
+   98.1%), a worked case study with a step-by-step size table (200.6 MB
+   → 14.2 MB, 92.9% reduction), and a per-deck-type recommendation
+   table; it also cleans unused master layouts in its final step, so the
+   master-cleanup angle sits inside the file-size story here too). No
+   new format device — UglyPear's case study was already recorded in the
+   2026-11-17 and 2026-11-21 04:30 runs — but the full read confirms the
+   CJK font-subsetting numbers, which matter for the JA version of the
+   file-size article. bellevue libguide OUT (was #1 for two checks),
+   lifetips.alibaba OUT, makeuseof OUT. Fresh entrants in the file-size
+   cluster keep bouncing as fast as they enter; the format bar (worked
+   example + diagnostic + loss table) still stands. (core)
+2026-11-23 collect run ~04:30: MAIN CLUSTER CHANGED, thedroidguy #1 BACK
+   (was #3), soluslide #2 (was #1), aippt.org #3 (was #2), alibaba #4
+   (holds). Only 4 shown. No xkey. thedroidguy's guide was refreshed
+   about 2026-11-21 and took #1 back two days after publishing, so the
+   file-size query still admits a refreshed fresh entrant at the top.
+   OPENED this run: the refresh adds a method table up front, a "Save a
+   copy before you compress" warning, a "What each step removes" LOSS
+   table, a "What each picture option means" comparison table, a "Send a
+   smaller PDF instead" alternative, a "Check that the file got smaller"
+   verification step, and an "Official sources" list. It has no
+   zip-inspection diagnostic and no worked case study, so Soluslide's
+   format bar still stands, but the loss table and the verification step
+   are new devices the XKey file-size article should match.
+2026-11-23 weekly scan: the send companion ("PowerPoint file too big to email") stays the top unwritten XKey pick. The live file-too-big article now drives about 59 percent of XKey's 28-day impressions (125 EN plus 125 JA, GSC data through Nov 19, checked Nov 22) with its first click on the JA version, so the cluster is the one proven impression source on either site. The send variant is stable (expertslides #1, thedroidguy #2, aippt.org #3, smallpdf #4), thedroidguy's refresh retook #1 in the main query two days after publishing, so the cluster still admits refreshed fresh entrants, and the JA file-size query is still served entirely by EN pages with zero JA pages. Same format bar as before: expertslides structure, AIPPT myth-bust opening, smallpdf before/after numbers, ending with XKey's in-app slide-master cleanup, the fix none of them has. JA first.
+   Reddit-flavoured compress variant CHANGED: bellevue libguide #1 BACK
+   (was OUT at 22:30), groovypost #2, lifetips.alibaba #3 BACK, soluslide
+   #4 (was #1), makeuseof #5 BACK; aippt.org OUT, uglypear.com OUT. The
+   variant turns over completely again with no new format device. (core)
+2026-11-23 collect run ~10:30: the send variant is UNCHANGED (expertslides
+   #1, thedroidguy #2, aippt.org #3, smallpdf #4), identical to the
+   2026-11-22 22:30 run. The JA file-size query is also UNCHANGED
+   (free-power-point-templates #1, ideaseed #2, groovypost #3,
+   go.lazyscheme #4), still served entirely by EN pages with zero JA
+   pages. The reddit-flavoured compress variant turned over completely
+   again (soluslide #1 BACK, aippt.org #2, thedroidguy #3 NEW, updatestar
+   #4 NEW, pub 2026-11-04; bellevue, groovypost, lifetips.alibaba and
+   makeuseof OUT), so thedroidguy now holds slots in all three file-size
+   query variants. UpdateStar's guide was OPENED: it confirms the
+   save-a-copy and verification-step devices already recorded from
+   thedroidguy and adds a mild "Our verdict / do it today" action close
+   the send article could borrow. The brief needs no change. (core)
+2026-11-24 collect run ~04:30: the JA limit query is UNCHANGED (Nikkei #1, clipster JA #2, minto.tech #3) and clipsx.app is still OUT, so the JA Windows limit article has now missed three consecutive checks. The premise stays lost: the comparison page cannot lean on our own JA ranking, only on Clipster's JA comparison holding #1 in the JA limit query. The limit article needs a freshness or internal-link push first.
+2026-11-25 collect run ~04:30: the premise wobbles again — the JA limit article is OUT of the shown results one run after returning at #4, while the EN limit article HOLDS #8, so the comparison page can lean on the EN ranking but not on a JA hold. The JA query also gained a fresh privacy-angle entrant (tac-ademy at #4, pin/clear/sync scope and shared-PC safety), an angle our JA limit article does not cover. Watch next run.
+2026-11-25 collect run ~22:30: the premise flips back, the JA limit article is BACK at #5 after three checks out, while the EN limit article stays OUT for a third check, so the comparison page can lean on a JA hold again, one run only, and not on an EN ranking. The JA slot is churn in both directions, so the comparison premise stays fragile either way. Watch next run.
+2026-11-26 collect run ~04:30: the premise steadies, the JA limit article HOLDS #4 for a second consecutive check, up from #5, while the EN limit article stays OUT for a fourth check, so the comparison page can lean on a JA hold again, two runs now, and not on an EN ranking. Watch next run.
+2026-11-26 collect run ~16:30: the premise steadies again, the JA limit article is BACK at #3 after one run out, so the comparison page can lean on a JA hold again, and the EN article stays out for a sixth check, so the EN side still cannot be leaned on. The JA query's top 3 this run is Nikkei, pszet's workflow guide and our own article, with tac-ademy out, so Clipster's JA comparison is still the only comparison-format page in the query, and ours is the only one of our articles back in it. Watch whether the JA hold sticks next run.
+2026-11-26 collect run ~10:30: the premise weakens again, the JA limit query shows only 3 results with clipsx.app out (was #4), so the JA hold is unconfirmed, possibly a truncated display, and the EN article stays out for a fifth check, so the comparison page can lean on neither an EN nor a confirmed JA hold this run. The JA query's new entrants are both angle pages (tac-ademy's privacy/clear-scope guide back at #2, pszet's local-shop workflow guide at #3), not comparisons, so Clipster's JA comparison is still the only comparison-format page in the query. Watch next run for whether the JA article returns.
+9. **ClipsX vs Win+V comparison2026-11-23 collect run ~16:30: MAIN file-size query CHANGED, soluslide
+   #1 BACK (was #2), aippt.org #2 (was #3), thedroidguy #3 (was #1),
+   alibaba #4 holds. Soluslide retook #1 two days after losing it, so the
+   top slot keeps turning over between the same three guides. The
+   reddit-flavoured compress variant CHANGED: thedroidguy #1 NEW (was #3
+   at 10:30), bellevue libguide #2 BACK, groovypost #3 BACK, soluslide #4
+   (was #1), lifetips.alibaba #5 BACK; aippt.org OUT, updatestar OUT.
+   Thedroidguy now LEADS the compress variant too, so it holds slots in
+   all three file-size query variants (main #3, send #2, compress #1) —
+   the file-size cluster builder is now thedroidguy, not Soluslide. The
+   brief needs no change. (core)
+2026-11-24 collect run ~16:30: the "JA rankings are holding" premise is RESTORED for now: the JA limit article is BACK at #4 in 「クリップボード 履歴 上限」 after three checks out, and the EN limit article ENTERED the EN query at #8 in the same run, so both published limit articles are ranking at once and the drop reads as churn, not a demotion. The comparison page can again lean on our own JA ranking, but both articles flickered in and out before, so the premise is restored, not proven; watch whether both hold next run before treating the JA-first case as settled. No change to the pick. (core)
+2026-11-23 collect run ~22:30: the JA limit query is UNCHANGED vs the
+   16:30 run (Nikkei #1, clipster JA #2, minto.tech #3) and clipsx.app
+   is still OUT, so the JA Windows limit article's drop is CONFIRMED
+   after two consecutive checks. The "JA rankings are holding" premise
+   for this comparison page is now LOST: the page can no longer lean on
+   our own JA ranking, only on Clipster's JA comparison holding #1 in
+   the JA limit query. The pick is unchanged, but the limit article
+   needs a freshness or internal-link push first.
+ (JA first) — ClipsX**. Added 2026-11-19
    collect run. Evidence: Clipster's JA comparison page
    (clipster-app.com/ja/vs/windows-clipboard) took #1 for the JA
    「クリップボード 履歴 上限」 query in this run — the comparison format
@@ -1375,7 +1674,25 @@ demand. Tag items core / adjacent / product when re-ranking.
    would enter a query where the incumbent comparison is stable, and the
    honest-disclosure table plus the cross-link to the limit guide remain
    the format to match. (core)
-4. **Slide master problems (JA): 反映されない / 削除できない / 差し替え — XKey**.
+2026-11-23 weekly scan: Clipster's JA comparison page still HOLDS #3 in the JA limit query (fourth consecutive check per the 2026-11-23 04:30 collect run), and our own JA Windows limit article now HOLDS #4 for a second consecutive check. The comparison page stays the second pick: JA is the proven ranking route for both published articles, the incumbent comparison is stable rather than churning, and no ClipsX comparison page exists in JA or EN. (core)
+2026-11-25 collect run ~04:30: JA slide-master query UNCHANGED (assist-all #1, xkey #2 HOLDS for a second consecutive check), so the XKey JA slide-master guide is holding its ranking, not a one-run blip. XKey now has two published articles ranking and both are holding (JA file-size #3, JA slide-master #2). (core)
+4. **Slide master problems2026-11-23 collect run ~16:30: the premise needs watching — the JA
+   Windows limit article DROPPED OUT of the shown results for
+   「クリップボード 履歴 上限」 after holding #4 for two consecutive
+   checks (only 3 results shown this run, verified twice). If the drop
+   holds next run, "JA rankings are holding" no longer supports the
+   JA-first case, and the comparison page would enter a query where our
+   own article just lost its slot. Clipster's JA comparison page holds #2
+   (was #3). No change to the pick yet — one run of a 3-result set is not
+   a verdict — but the next run decides whether the comparison page stays
+   second or the limit article needs attention first. (core)
+2026-11-25 collect run ~16:30: the plain JA slide-master query returned only ONE result this run, writers-hub #1 NEW (OPENED, its "スライドマスターとは" explainer, pub 2026-11-02, upd 2026-11-04, a broad what-is-a-master guide with a 5-item table, a 4-step procedure, a master-vs-layout scope table, a Google Slides section and a 3-cause "not applying" section), and xkey NOT shown. A re-check with the fuller query 「スライドマスター 反映されない パワーポイント」 gives assist-all #1 holds, xkey #2 HOLDS, so the XKey guide is still in the top 10 and the plain-query absence is unconfirmed, likely a truncated display; recheck next run. The query now has three guides in rotation (assist-all, xkey, writers-hub). The writers-hub guide is a general explainer, not fix-first, so the XKey guide's symptom-first format still stands apart. (core)
+2026-11-25 collect run ~22:30: plain JA slide-master query returned only ONE result again, writers-hub #1, second consecutive run with a single-result display. Re-check with the fuller query 「スライドマスター 反映されない パワーポイント」 gives assist-all #1 holds, xkey #2 HOLDS for a third consecutive check, so the XKey guide is still in the top 10 and the plain-query absence is a truncated display, confirmed twice now. No change to the item. (core)
+2026-11-26 collect run ~04:30: plain JA slide-master query returned only ONE result again, writers-hub #1, third consecutive run with a single-result display. Re-check with the fuller query 「スライドマスター 反映されない パワーポイント」 gives assist-all #1 holds, xkey #2 HOLDS for a fourth consecutive check, so the XKey guide is still in the top 10 and the plain-query absence is a truncated display, confirmed three times now. No change to the item. (core)
+2026-11-26 collect run ~16:30: plain JA slide-master query returned only ONE result again, writers-hub #1, fifth consecutive run with a single-result display. Re-check with the fuller query 「スライドマスター 反映されない パワーポイント」 now shows only ONE result too, assist-all #1, and xkey is NOT shown for a second consecutive run, where the fuller variant showed 2 results (assist-all #1, xkey #2) for four consecutive checks before this. The #2 hold is now in doubt rather than merely unconfirmed; a third miss next run calls it broken. No change to the item. (core)
+2026-11-26 collect run ~10:30: plain JA slide-master query returned only ONE result again, writers-hub #1, fourth consecutive run with a single-result display. Re-check with the fuller query 「スライドマスター 反映されない パワーポイント」 now shows only ONE result too, assist-all #1, and xkey is NOT shown, where the fuller variant showed 2 results (assist-all #1, xkey #2) for four consecutive checks. The #2 hold is therefore UNCONFIRMED rather than broken, both displays may be truncated this run; recheck next run. No change to the item. (core)
+2026-11-24 collect run ~16:30: the JA slide-master query CHANGED and the news is good: assist-all #1 BACK, xkey.infiniticlips.com #2 NEW — the XKey JA slide-master guide ENTERS its target query for the first time, at #2; writers-hub OUT (was #1), draw.page OUT, unstuckguide OUT. Only 2 shown against 1 before. This is the second XKey article to start ranking in its own query in two days, so the JA-first slide-master work is now ranking alongside the JA file-size article, not just published. (core)
+ (JA): 反映されない / 削除できない / 差し替え — XKey**.
    Evidence: JA autocomplete problem cluster; ties to existing JA slide-master
    content; XKey's audience is demonstrably Japanese.
    2026-11-16 winner pattern (winners.md, JA query 「スライドマスター
@@ -1586,7 +1903,30 @@ demand. Tag items core / adjacent / product when re-ranking.
    JA draft should match assist-all's format devices (the parent/child
    tree diagram and the symptom table) and ship while the query is still
    turning over. (core)
-5. **Clipboard history disappeared / recover it (EN+JA) — ClipsX**.
+2026-11-23 collect run ~04:30: JA 「スライドマスター 反映されない」
+   UNCHANGED (lifestyle.assist-all #1, draw.page #2, unstuckguide #3),
+   identical to the 16:30 run, stable for a second consecutive check.
+   Only 3 shown. No xkey; Gabriele's live JA slide-master guide still
+   not ranking. The three-guide top 3 is holding rather than turning
+   over, so the JA draft should still ship while the query is contested
+   by fresh entrants rather than a settled incumbent. (core)
+5. **Clipboard history disappeared2026-11-24 collect run ~22:30: disappeared query CHANGED, techdows #1 (was #2), myrecover #2 (was #3), edgedrop #3 NEW (OPENED, its restart guide, pub 2026-08-21, upd 2026-11-21, answer-first with a what-survives-a-restart table, a power-action comparison table with honest not-documented rows, a quick-checks diagnostic list, and a section pitching Edge Drop itself as the fallback), techetips #4 holds; ugetfix OUT (was #1, one run only). The query is still served by the same not-working guides as the plain query plus the restart angle, so the one not-working article still answers both, and the recover article's honest-answer opening is still the one thing neither leader offers. Borrow for the brief: the power-action comparison table with honest not-documented rows, the quick-checks diagnostic list, and the sources section. The brief needs no change. (core)
+2026-11-26 collect run ~16:30: disappeared query UNCHANGED, unstuckguide #1 holds, techdows #2 holds, amarbhattarai #3 holds, paste-pilot #4 holds, so the query is stable for a second check with the fallback slot vendor-claimed by PastePilot. Brief unchanged. (core)
+2026-11-26 collect run ~10:30: disappeared query CHANGED, unstuckguide #1 BACK, techdows #2 holds, amarbhattarai #3 NEW, paste-pilot #4 NEW (OPENED, its 'Clipboard History Disappeared? Why Your Copied Items Vanish' guide, pub 2026-10-26, a five-causes table with an honest 'can you get it back' column, a 'stop diagnosing if it was a restart' routing line, and a section pitching PastePilot, a $3.99 one-time Windows manager, as the fallback, with a Win+V vs PastePilot comparison table). windowsforum OUT (was #1), myrecover OUT (was #3), edgedrop OUT (was #4). The query is still served by the same not-working guides as the plain query plus the restart angle, so the one not-working article still answers both, but the fallback slot is now claimed by a vendor, and paste-pilot's honest 'no' recovery answer plus its causes table are format devices worth borrowing for the recover article. Brief unchanged. (core)
+2026-11-24 collect run ~10:30: disappeared query CHANGED HARD, ugetfix #1 NEW (OPENED, facts checked 2026-11-08, question-first, cause-ranked, per-fix time and risk), techdows #2 (was #3), myrecover #3 (was #4), techetips #4 NEW (its Win+V enable guide with the "history was never on, nothing to retrieve" honesty line); unstuckguide OUT (was #1), windowsforum OUT (was #2), edgedrop OUT (was #4). The query is now served by the same not-working guides as the plain query, so the not-working article answers both, and the recover article's honest-answer opening is still the one thing neither leader offers. The brief needs no change. (core)
+2026-11-23 collect run ~16:30: JA 「スライドマスター 反映されない」
+   CHANGED, writers-hub #1 BACK (it held #1 on 2026-11-21 16:30, then
+   dropped out); assist-all, draw.page and unstuckguide all OUT of the
+   shown results. Only 1 result shown this run against 3 before, so the
+   picture is partial, but the query is still contested by fresh entrants
+   rather than a settled incumbent. No xkey; Gabriele's live JA
+   slide-master guide still not ranking. The JA draft should still ship
+   while the query is contested. (core)
+2026-11-23 collect run ~22:30: disappeared query CHANGED in slot 4,
+   edgedrop #4 NEW (its restart page), myrecover OUT; top 3 hold
+   (unstuckguide #1, windowsforum #2, techdows #3). The restart angle is
+   the freshest device in this query. Brief unchanged.
+ / recover it (EN+JA) — ClipsX**.
    Evidence: "clipboard history disappeared", "how to recover deleted
    clipboard history", JA「クリップボード 履歴 復元」 autocomplete clusters.
    Honest angle: built-in history often can't recover it; persistent history
@@ -1750,7 +2090,34 @@ demand. Tag items core / adjacent / product when re-ranking.
    recover article should open with its honest answer (built-in history
    often cannot recover it) in the first screen, then the
    persistent-history fix. The brief needs no change. (core)
+2026-11-22 collect run ~22:30: EN "clipboard history disappeared"
+   UNCHANGED (unstuckguide #1, techdows #2, makeuseof #3, myrecover
+   #4), identical to the 10:30 run, stable for a second consecutive
+   check. The brief needs no change. (core)
+2026-11-23 collect run ~10:30: EN "clipboard history disappeared" CHANGED
+   in slots 2-3 (unstuckguide #1 holds, windowsforum #2 NEW — its
+   not-working guide, already #1 in the plain not-working query, so it now
+   holds slots in both fix queries; techdows #3, was #2; myrecover #4
+   holds; makeuseof OUT, was #3). The disappeared query is now served by
+   the same guides as the not-working query, so the not-working article
+   answers both, and the recover article's honest-answer opening is still
+   the one thing neither leader offers. The brief needs no change. (core)
+2026-11-24 collect run ~10:30: autocomplete in "powerpoint shortcut" is unchanged from the 04:30 run, so the slide-number suggestion is now gone for a SECOND consecutive run (it appeared in three of the last six runs and vanished in between, so it flickers but keeps recurring: keep the go-to-slide-number shortcut in the list). EN shortcut-keys query UNCHANGED (geeksforgeeks #1, corporatefinanceinstitute #2, republicworld #3, computerhope #4) and the JA list UNCHANGED (microsoft.com #1, computerhope #2, only one JA page). No xkey.
+2026-11-24 collect run ~04:30: autocomplete reversed again, in "powerpoint shortcut", "powerpoint shortcut keys pdf" is back and "powerpoint shortcut to go to slide number" is GONE. The slide-number suggestion has now appeared in three of the last five runs and vanished in between, so it flickers but keeps recurring: keep the go-to-slide-number shortcut in the list.
+2026-11-25 collect run ~22:30: autocomplete reversed again, in "powerpoint shortcut", "powerpoint shortcut keys pdf" is BACK and "powerpoint shortcut to go to slide number" is GONE after one run back. The slide-number suggestion has now appeared in five of the last eleven runs and vanished in between, so it flickers but keeps recurring: keep the go-to-slide-number shortcut in the list.
+2026-11-26 collect run ~04:30: autocomplete flipped again, in "powerpoint shortcut", "powerpoint shortcut to go to slide number" is BACK and "powerpoint shortcut keys pdf" is GONE. The slide-number suggestion has now appeared in six of the last twelve runs and vanished in between, so it flickers but keeps recurring: keep the go-to-slide-number shortcut in the list.
+2026-11-26 collect run ~16:30: autocomplete is byte-identical across all 20 seeds, so the slide-number shortcut suggestion is STILL present in 'powerpoint shortcut', eighth appearance in fourteen runs, and the JA page-move suggestion is STILL present in 'パワーポイント ショートカット'. The slide-navigation demand signal holds in both languages. No change to the list.
+2026-11-26 collect run ~10:30: autocomplete flipped again, in 'powerpoint shortcut', 'powerpoint shortcut keys pdf' is BACK and 'powerpoint shortcut for presentation mode' is GONE, while 'powerpoint shortcut to go to slide number' is STILL present, seventh appearance in thirteen runs. In 'パワーポイント ショートカット', 'パワーポイント ショートカット ページ移動' (page navigation) is NEW, so slide-navigation shortcuts now show demand in BOTH languages: keep the go-to-slide-number shortcut in the list, and add the JA page-move wording to the JA list. In 'powerpoint slide master', 'powerpoint slide master add page number', 'powerpoint slide master template' and 'powerpoint slide master shortcut' are NEW, and in 'パワーポイント スライドマスター', 'パワーポイント スライドマスター コピー' and 'パワーポイント スライドマスター 保存' are NEW, so master copy/save and page-number angles are new demand signals around the slide-master topic.
 6. **PowerPoint shortcut keys list / 早見表 (EN+JA) — XKey**.
+   2026-11-23 collect run ~22:30: autocomplete change is BACK — in
+   "powerpoint shortcut", "powerpoint shortcut to go to slide number"
+   is NEW and "powerpoint shortcut keys pdf" is GONE. The slide-number
+   suggestion has now appeared in two of the last four runs (04:30 and
+   22:30) and vanished in between, so it flickers but recurs: keep the
+   go-to-slide-number shortcut in the list. EN shortcut-keys query
+   shuffled slots 2-4 (corporatefinanceinstitute #2, republicworld #3,
+   computerhope #4; geeksforgeeks #1 holds). JA list UNCHANGED
+   (microsoft.com #1, computerhope #2, only one JA page).
    Evidence: "powerpoint shortcut keys (pdf/cheat sheet)", JA「ショートカットキー
    一覧・早見表」; /en/product/shortcuts already indexed (Nov 7 crawl) so a
    real resource page builds on an indexed URL.
@@ -1886,6 +2253,34 @@ demand. Tag items core / adjacent / product when re-ranking.
    UNCHANGED (microsoft.com #1, the official 2021-07-12 column,
    computerhope #2), only 2 shown, still the only JA page. The format
    decision stands. (core)
+2026-11-22 collect run ~22:30: EN "powerpoint shortcut keys" CHANGED in
+   the bottom two slots (geeksforgeeks #1 holds, corporatefinanceinstitute
+   #2 holds, computerhope #3 NEW, archive.org #4 NEW — a Microsoft
+   PowerPoint shortcut PDF hosted on archive.org, 1447 days old;
+   republicworld OUT, was #3). JA 「パワーポイント ショートカット 一覧」
+   UNCHANGED (microsoft.com #1, computerhope #2), only 2 shown, still
+   the only JA page. The format decision stands. (core)
+2026-11-23 collect run ~04:30: the shortcut-keys queries were not
+   re-checked this run, but autocomplete moved in the "powerpoint
+   shortcut" seed: "powerpoint shortcut to go to slide number" is NEW
+   and "powerpoint shortcut keys pdf" is GONE, the first autocomplete
+   change in this seed since the checks began. A slide-number jump
+   shortcut is a presentation-mode intent, so the shortcut list should
+   include the go-to-slide-number shortcut as a named entry. All other
+   seeds are identical, and "powerpoint too many slide masters" still
+   has zero suggestions. (core)
+2026-11-23 weekly scan: the shortcut list stays fourth in the shortlist, JA first. Two new names in the JA orbit this week, neither closing the opening: shortcut-tools.com "PowerPoint Keyboard Shortcuts: 279 for Windows and Mac (2026)" (EN exhaustive Win/Mac side-by-side tables) and keyboardgym.com, a JA printable PDF list with slideshow-mode keys (F5, Shift+F5, N/P, B/W, Ctrl+L laser pointer). The JA query is still served by a single JA page, Microsoft's 2021 column with no table and no PDF, so the format decision stands: tiered learning path plus searchable table plus PDF plus kulau's curated-16 memory-hooks layer, with the go-to-slide-number shortcut as a named entry and XKey's own shortcuts closing the list. (core)
+2026-11-23 collect run ~10:30: EN "powerpoint shortcut keys" CHANGED in
+   the bottom two slots (geeksforgeeks #1 holds, republicworld #2 BACK,
+   computerhope #3 holds, corporatefinanceinstitute #4, was #2;
+   archive.org OUT, was #4). JA 「パワーポイント ショートカット 一覧」
+   UNCHANGED (microsoft.com #1, computerhope #2), only 2 shown, still the
+   only JA page. Autocomplete reversed its one change from the 04:30 run:
+   "powerpoint shortcut keys pdf" is back and "powerpoint shortcut to go
+   to slide number" is gone after a single run, so the slide-number
+   suggestion was a one-run blip, but the shortcut stays a named entry in
+   the list (it is in the geeksforgeeks, computerhope and CFI pages
+   themselves). The format decision stands. (core)
 8. **AI clipboard managers compared (Nov 2026): the paid Mac rival went
    subscription — ClipsX**. Added 2026-11-16 weekly scan (refresh of the
    2026-11-10 scan's idea 1). Evidence: Stashcut 1.1 shipped 2026-11-10 and
@@ -1928,6 +2323,7 @@ demand. Tag items core / adjacent / product when re-ranking.
    the same query: edgedrop.app's "AI Clipboard Managers: Which Keep
    Your Data Local?" (upd 2026-10-13) — a privacy-by-model-location
    comparison format worth borrowing for this article's structure.
+2026-11-23 weekly scan: the comparison is refreshed and stays fifth in the shortlist, with a new lead angle, the secrets race. Stashcut 1.1.1 shipped Nov 16, 2026 (stashcut.com/changelog): secret detection rebuilt on gitleaks rules, faster checks, far fewer false alarms. PastePal shipped Secret Clips plus secret detection Nov 6 to 10, 2026 (indiegoodies.com/pastepal/updates): masked previews, Face ID or Touch ID to reveal. Clypy's current changelog (checked Nov 23, undated on the page) adds a built-in MCP server (Pro, one-click connect for Claude Code, Codex, Cursor and others), a paste stack, encrypted backups and concealed or password clips kept out of agents' reach. RAAD now publishes a 10-manager audit table on raad.app. Paste shipped Paste Stack on Nov 17, 2026 (pasteapp.io/updates). The honest picture to state in the article: MCP is no longer a ClipsX-only story (Paste, Clypy and RAAD all ship it now), OCR search is no longer unique either (Paste, CoPanda), and Stashcut, RAAD and PastePal are all ahead on secret handling. ClipsX's remaining outright wins are free, open-source, cross-platform, Linux, 8 MCP tools and Recall. Lead the article with the comparison and the secrets question, not with the semantic-search phrase, which still has zero autocomplete demand.
 
 ## CHANGE — existing pages
 
@@ -1998,6 +2394,10 @@ demand. Tag items core / adjacent / product when re-ranking.
   UPDATE 2026-11-21 ~16:30: still OUT of the EN limit query; its JA
   comparison page holds #3 in the JA limit query for a second consecutive
   check.
+  UPDATE 2026-11-23 ~04:30: still OUT of the EN limit query (16:30,
+  22:30 and this run); its JA comparison page holds #3 in the JA limit
+  query for a fourth consecutive check. The EN limit slot keeps admitting
+  fresh generic entrants (masteryourtech #6 this run) instead of it.
 - techlifenavi.jp — NEW 2026-11-20: JA Win+V how-to site (pub 2026-11-12,
   upd 2026-11-16) that took #1 for JA「クリップボード 履歴 上限」 on its
   first appearance, with a symptom-to-cause diagnostic table and a
@@ -2557,3 +2957,22 @@ demand. Tag items core / adjacent / product when re-ranking.
   logo nuance, but no first-level-text nuance and no master-cleanup
   angle. Watch whether it holds #1 and whether the site publishes more
   PowerPoint guides.
+- SolutionHow (solutionhow.com), NEW 2026-11-23: "Free Clipboard Manager
+  Windows 11: 5 Best Tools" (pub 2026-11-15) entered at #2 for "best
+  free clipboard manager windows" with five tools (Win+V, Ditto, CopyQ,
+  PowerToys Advanced Paste, ClipboardFusion) and no ClipsX, so the
+  roundup tally goes 26 to 27. Its pick names CopyQ for cross-platform
+  use, the exact slot ClipsX would take in an outreach pitch, and it has
+  a "Myths and Facts" trust section. It cross-links its own
+  screenshot-tools and screen-recorder roundups, so it is building a
+  Windows free-tools cluster. Watch whether it holds #2 and whether it
+  publishes more clipboard guides.
+- MasterYourTech (masteryourtech.com), NEW 2026-11-23: "How to Open
+  Clipboard in Windows 11 and Use Its History" (pub 2024-11-19, upd
+  2026-10-31) entered at #6 for "windows clipboard history limit" with a
+  complete Win+V how-to (Q and A table, privacy-habits section, two-word
+  confirmation test, emoji-panel tab section). Its "Do I need a clipboard
+  app?" answer is "No, paste into a note instead", so it concedes the
+  tool slot. It cross-links its own copy-paste, screenshot and emoji
+  guides. Watch whether it holds a limit-query slot and whether it
+  publishes into the not-working query.

@@ -3,26 +3,29 @@
 Source: Google Search Console via signed-in browser (no connector exists).
 Data lags ~2–3 days. Never fill gaps with estimates.
 
-## Latest snapshot - checked 2026-11-22, data through 2026-11-19 (new data arrived)
+## Latest snapshot - checked 2026-11-26, data through 2026-11-23 (new data arrived)
 
-Performance, last 28 days (Oct 23-Nov 19):
-- 11 clicks, 180 impressions, CTR 6.1%, avg position 4.6
-- Last 7 days: 4 clicks, 56 impressions, CTR 7.1%, avg position 3.7
-- Top query: "clipsx" - 11 clicks / 123 impressions (28d)
-- All other listed queries 0 clicks: clipcache 0/3, extendx 0/1
-- **Generic (non-brand) clicks: still zero - all 11 clicks are "clipsx".**
-- Top pages (28d): /en 10 clicks/150 imp; /ja/contact 1/2;
-  /en/download 0 clicks / 30 imp; /ja 0/9; /ja/download 0/7; docs.clipsx.app/ 0/7;
-  /meaning-search 0/6; /en/changelog 0/5; /en/pricing 0/5;
-  /en/contact 0/5
-- Top pages (7d): /en 4/46; /en/download 0/12; /ja/download 0/4;
-  /ja 0/3; /en/changelog 0/3; /en/product 0/3; /en/contact 0/2;
-  /en/meaning-search 0/2; /ja/developers 0/2; /ja/extensions 0/2
-- vs 2026-11-21 (data through Nov 18): clicks 10 to 11, impressions 178 to 180,
-  CTR 5.6% to 6.1%, position 5.1 to 4.6; 7d 3/51/5.9%/3.9 to
-  4/56/7.1%/3.7. Small move; all clicks still brand.
-- Note: GSC display quirk - the 28d top-pages rows sum to 226 impressions vs
-  the 180 header total; figures reproduced as displayed, not reconciled.
+Performance, last 28 days (Oct 27-Nov 23):
+- 11 clicks, 204 impressions, CTR 5.4%, avg position 4.6
+- Last 7 days: 3 clicks, 66 impressions, CTR 4.5%, avg position 4.7
+- Top query: "clipsx" - 10 clicks / 130 impressions (28d)
+- All other listed queries 0 clicks: clipcache 0/4, "clips-x" 0/1,
+  "clip x free" 0/1
+- 7d queries: "clipsx" 2/32; clipcache 0/2; "clips-x" 0/1; "clip x free" 0/1
+- **Generic (non-brand) clicks: still zero among listed queries - the 11th
+  28d click (and the 3rd 7d click) is not attributed to any listed query.**
+- Top pages (28d): /en 11 clicks/170 imp; /en/download 0 clicks / 39 imp;
+  /en/product 0/15; /ja 0/9; /en/pricing 0/9; /ja/download 0/7;
+  /meaning-search 0/6; /en/changelog 0/6; /en/contact 0/6; /ja/faq 0/4 (new)
+- Top pages (7d): /en 3/55; /en/download 0/15; /en/product 0/13;
+  /en/pricing 0/4; /ja 0/2; /en/terms 0/2; /en/meaning-search 0/1;
+  /ja/download 0/1; /en/privacy 0/1;
+  /en/blog/why-clipboard-extensions-need-boundaries 0/1 (new, first impression)
+- vs 2026-11-25 (data through Nov 22): clicks 12 to 11, impressions 195 to 204,
+  CTR 6.2% to 5.4%, position 4.6 flat; 7d 3/58/5.2%/5.2 to
+  3/66/4.5%/4.7. Clicks down 1, impressions up 9; all listed clicks still brand.
+- Note: GSC display quirk - the 28d top-pages rows sum to more impressions
+  than the 204 header total; figures reproduced as displayed, not reconciled.
 - Property note: the account lists only domain properties, so this check used
   sc-domain:clipsx.app (covers clipsx.app and docs.clipsx.app); figures are
   consistent with previous days, same property data as before.
@@ -34,14 +37,13 @@ Indexing (Page Indexing report dated Nov 16 — unchanged since Nov 20):
   2 noindex, 2 duplicate Google-chose-canonical, 2 "Discovered –
   currently not indexed"
 
-Live-verified indexed (URL Inspection, 2026-11-22) - no state changed vs 2026-11-21:
-- /en (crawled Nov 16 21:35), /ja (crawled Nov 19 02:02 — fresh crawl,
-  still indexed), /en/blog (Nov 7), /en/download (crawled Nov 18 16:51,
-  still indexed)
+Live-verified indexed (URL Inspection, 2026-11-26) - no state changed vs 2026-11-25:
+- /en (crawled Nov 16 21:35), /ja (crawled Nov 19 02:02), /en/blog (Nov 7),
+  /en/download (crawled Nov 18 16:51)
 - Root https://clipsx.app/ NOT indexed — "Page with redirect", canonical /en.
   By design, not a problem.
 
-Live-verified still not indexed (URL Inspection, 2026-11-22):
+Live-verified still not indexed (URL Inspection, 2026-11-26):
 - docs/meaning-search (crawled Nov 10 09:00), docs/assistant-setup
   (Nov 10 08:58), docs/automation (Nov 10 08:58), docs/recall (last crawl
   Nov 11 15:07 — recrawled after the Nov 11 indexing request, still
@@ -57,9 +59,10 @@ Indexing requested 2026-11-10 (authorised by Gabriele):
   been requested. Requesting only queues a priority crawl — indexing is
   Google's call.
 
-Blog visibility (the real problem — not indexing):
-- 0 clicks, ≤2 impressions per blog URL over 28 days; /en/blog indexed but
-  0 impressions in the checked windows.
+Blog visibility (the real problem, not indexing):
+- 0 clicks, at most 2 impressions per blog URL over 28 days; /en/blog indexed but
+  0 impressions in the checked windows. New: /en/blog/why-clipboard-extensions-need-boundaries
+  got its first impression (1) in the last 7 days.
 
 ## History
 
@@ -78,3 +81,7 @@ Blog visibility (the real problem — not indexing):
 | 2026-11-18 | Oct 19–Nov 15 (28d) | 10 | 179 | Clicks 8→10, imp 178→179, CTR 4.5%→5.6%, pos 6.7 flat; still zero generic (all 10 "clipsx"); 7d 5/51/9.8%/2.6 (all 5 clicks from /en); indexing report still Nov 13, totals 42/167 unchanged; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
 | 2026-11-20 | Oct 21–Nov 17 (28d) | 10 | 178 | Clicks flat 10, imp 178 flat, pos 5.6→5; still zero generic (all 10 "clipsx"); 7d 3/54/5.6%/3.5 (was 4/51/7.8%/3.0); indexing report updated to Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
 | 2026-11-22 | Oct 23-Nov 19 (28d) | 11 | 180 | Clicks 10 to 11, imp 178 to 180, pos 5.1 to 4.6; still zero generic (all 11 "clipsx"); 7d 4/56/7.1%/3.7 (was 3/51/5.9%/3.9); indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
+| 2026-11-23 | Oct 24-Nov 20 (28d) | 11 | 184 | Clicks flat 11, imp 180 to 184, pos 4.6 to 4.4; still zero generic (all 11 "clipsx"); 7d 4/59/6.8%/3.8 (was 4/56/7.1%/3.7); new query "clip x free" 0/1; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
+| 2026-11-24 | Oct 25-Nov 21 (28d) | 12 | 193 | Clicks 11 to 12, imp 184 to 193, CTR 6.0% to 6.2%, pos 4.4 flat; 7d 4/59/6.8%/3.8 to 5/62/8.1%/4.0; 12th 28d click and 5th 7d click not attributed to any listed query (top query "clipsx" still 11/128); still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
+| 2026-11-25 | Oct 26-Nov 22 (28d) | 12 | 195 | Clicks flat 12, imp 193 to 195, CTR 6.2% flat, pos 4.4 to 4.6; 7d 5/62/8.1%/4.0 to 3/58/5.2%/5.2; new query "clips-x" 0/1; still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
+| 2026-11-26 | Oct 27-Nov 23 (28d) | 11 | 204 | Clicks 12 to 11, imp 195 to 204, CTR 6.2% to 5.4%, pos 4.6 flat; 7d 3/58/5.2%/5.2 to 3/66/4.5%/4.7; still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
