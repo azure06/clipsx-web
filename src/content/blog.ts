@@ -527,7 +527,7 @@ const clipboardMcp: BlogPost = {
 
 const windowsClipboardLimit: BlogPost = {
   slug: "windows-clipboard-history-limit",
-  date: "2026-11-10",
+  date: "2026-11-26",
   topic: l("Windows workflows", "Windows 活用"),
   title: l("Windows 11 clipboard history: the 25-item limit and how to overcome it", "Windows 11 クリップボード履歴の「25件制限」：消える原因と容量不足の解決策"),
   description: l("Windows 11 clipboard history caps out at 25 items, ignores clips over 4 MB, and purges unpinned entries on reboot, with no registry setting to raise the ceiling. Here is how the limit works and what to use when you outgrow it.", "Windows 11 のクリップボード履歴は最大25件で頭打ちになり、4MB超のデータは保存されず、再起動で未ピン留めの項目がすべて消去されます。レジストリや設定で上限を増やす裏技もありません。その仕組みと、制限を気にせず作業するための現実的な解決策を解説します。"),
@@ -550,6 +550,7 @@ const windowsClipboardLimit: BlogPost = {
       paragraphs: [
         l("Microsoft documents four specific boundaries for the Windows clipboard subsystem. These limits apply across every Windows 11 PC, regardless of edition (Home, Pro, Enterprise) or hardware specs (whether you have 8 GB or 64 GB of RAM).", "Windows のクリップボード機能には、Microsoft の公式ドキュメントに明記された 4 つの厳格な制限が存在します。これらはエディション（Home、Pro、Enterprise）や搭載メモリ量（8GB でも 64GB でも）に関係なく、すべての Windows 11 PC に一律で適用されます。"),
         l("Crucially, there is no setting, registry key, or Group Policy to raise these thresholds. Searching online often turns up registry myths proposing keys like HistoryLimit under Software\\Microsoft\\Clipboard, but Windows simply ignores them. What ships is a hard-coded system constraint.", "重要なのは、これらの数値を引き上げる裏技が一切存在しないという点です。ネット上にはレジストリを編集して上限を増やすような噂もありますが、Windows 11 にそのような設定キーは存在せず、すべて無視されます。OS のシステムレベルで完全にハードコードされた仕様です。"),
+        l("We rechecked these limits against Microsoft's documentation in November 2026, and they are unchanged in the current Windows 11 builds. The cap is still 25 items, the per item limit is still 4 MB, and there is still no supported way to raise either one.", "2026年11月に Microsoft のドキュメントで再確認しましたが、現在の Windows 11 でもこれらの制限は変わっていません。上限は 25 件のまま、1 件あたり 4 MB のままで、どちらを引き上げる公式な方法もありません。"),
       ],
       table: {
         caption: l("Technical limits of the Windows 11 clipboard buffer", "Windows 11 クリップボード履歴の技術的制限マトリクス"),
@@ -612,10 +613,14 @@ const windowsClipboardLimit: BlogPost = {
       id: "faq",
       title: l("Frequently asked questions", "よくある質問（FAQ）"),
       paragraphs: [
-        l("How many items does Windows 11 clipboard history store? Exactly 25 items. When you copy a 26th item, the oldest unpinned entry is permanently erased from the bottom of the list without any warning or confirmation dialog.", "Windows 11 のクリップボード履歴は何件まで保存できますか？ 正確に 25 件です。26 件目をコピーした瞬間、ピン留めされていない最も古い項目が警告や確認ダイアログなしで完全に消去されます。"),
-        l("Why does my clipboard history disappear after restarting my PC? Because Windows stores unpinned clipboard items in temporary volatile memory by design. Only items that you explicitly pin before restarting will survive a reboot or shutdown.", "PC を再起動するとクリップボード履歴が消えるのはなぜですか？ Windows の仕様により、未ピン留めのクリップボード項目は揮発性メモリ上に保持されるためです。再起動前に手動でピン留めした項目だけが再起動後も残ります。"),
-        l("Can I increase the Windows 11 clipboard limit via the registry or Group Policy? No. Microsoft does not provide any setting, registry value (such as a DWORD key), or policy to increase the 25-item buffer or the 4 MB per-item limit. To retain more items, you must use a dedicated clipboard manager.", "レジストリやグループポリシーでクリップボード履歴の上限を増やせますか？ 増やせません。25 件の上限や 1 件 4 MB の制限を引き上げる設定やレジストリ値は用意されていません。より多くの履歴を保持するには、専用のクリップボードマネージャーが必要です。"),
-        l("Is Windows clipboard history safe for passwords and API keys? Caution is required: any copied credential remains exposed in plain text to anyone who presses Win+V on your unlocked computer. If you must copy secrets, clear history immediately, and remember that pinned credentials survive 'Clear all' until unpinned.", "パスワードや API キーなどの機密情報をコピーしても安全ですか？ 注意が必要です。コピーした内容は、ロックされていない PC で Win+V を押した人なら誰でも閲覧できます。機密情報を扱った後は履歴を消去し、ピン留めした項目は「すべてクリア」でも残るため事前にピンを解除してください。"),
+        l("How many items does Windows 11 clipboard history store?", "Windows 11 のクリップボード履歴は何件まで保存できますか？"),
+        l("Exactly 25 items. When you copy a 26th item, the oldest unpinned entry is permanently erased from the bottom of the list without any warning or confirmation dialog.", "正確に 25 件です。26 件目をコピーした瞬間、ピン留めされていない最も古い項目が警告や確認ダイアログなしで完全に消去されます。"),
+        l("Why does my clipboard history disappear after restarting my PC?", "PC を再起動するとクリップボード履歴が消えるのはなぜですか？"),
+        l("Because Windows stores unpinned clipboard items in temporary volatile memory by design. Only items that you explicitly pin before restarting will survive a reboot or shutdown.", "Windows の仕様により、未ピン留めのクリップボード項目は揮発性メモリ上に保持されるためです。再起動前に手動でピン留めした項目だけが再起動後も残ります。"),
+        l("Can I increase the Windows 11 clipboard limit via the registry or Group Policy?", "レジストリやグループポリシーでクリップボード履歴の上限を増やせますか？"),
+        l("No. Microsoft does not provide any setting, registry value (such as a DWORD key), or policy to increase the 25-item buffer or the 4 MB per-item limit. To retain more items, you must use a dedicated clipboard manager.", "増やせません。25 件の上限や 1 件 4 MB の制限を引き上げる設定やレジストリ値は用意されていません。より多くの履歴を保持するには、専用のクリップボードマネージャーが必要です。"),
+        l("Is Windows clipboard history safe for passwords and API keys?", "パスワードや API キーなどの機密情報をコピーしても安全ですか？"),
+        l("Caution is required: any copied credential remains exposed in plain text to anyone who presses Win+V on your unlocked computer. If you must copy secrets, clear history immediately, and remember that pinned credentials survive 'Clear all' until unpinned.", "注意が必要です。コピーした内容は、ロックされていない PC で Win+V を押した人なら誰でも閲覧できます。機密情報を扱った後は履歴を消去し、ピン留めした項目は「すべてクリア」でも残るため事前にピンを解除してください。"),
       ],
     },
   ],

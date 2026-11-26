@@ -6,13 +6,13 @@ import { blogPosts, blogText, readingMinutes } from './blog';
 import { pick } from './marketing';
 
 describe('published blog content', () => {
-  it('keeps existing publication dates and puts the new rewrite article first', () => {
+  it('orders posts by date, with the revised Windows limits guide first', () => {
     expect(blogPosts.map(post => post.slug)).toEqual([
-      'mac-clipboard-history-limit', 'windows-clipboard-history-limit', 'rewrite-work-message-local-ai-windows',
+      'windows-clipboard-history-limit', 'mac-clipboard-history-limit', 'rewrite-work-message-local-ai-windows',
       'connect-your-assistant-to-clipboard-with-mcp',
       'why-clipboard-extensions-need-boundaries', 'meaning-search-with-ollama', 'local-first-is-a-data-boundary',
     ]);
-    expect(blogPosts.map(post => post.date)).toEqual(['2026-11-17', '2026-11-10', '2026-11-07', '2026-10-25', '2026-10-04', '2026-09-20', '2026-09-06']);
+    expect(blogPosts.map(post => post.date)).toEqual(['2026-11-26', '2026-11-17', '2026-11-07', '2026-10-25', '2026-10-04', '2026-09-20', '2026-09-06']);
     for (let index = 1; index < blogPosts.length; index++) {
       expect(Date.parse(blogPosts[index - 1].date)).toBeGreaterThan(Date.parse(blogPosts[index].date));
     }

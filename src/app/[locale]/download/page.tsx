@@ -34,6 +34,7 @@ const text = {
     nextBody: "These setups are optional. Try saving and finding a harmless note first.",
     assistant: "Use clips in Codex or Claude Code",
     localAi: "Set up local AI and choose models",
+    limits: "Why Win+V stops at 25 items",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
@@ -65,6 +66,7 @@ const text = {
     nextBody: "以下の設定は任意です。まず安全なメモを保存し、探してみてください。",
     assistant: "Codex や Claude Code でクリップを使う",
     localAi: "ローカル AI を設定してモデルを選ぶ",
+    limits: "Win+V が 25 件で止まる理由",
     windows: "Windows",
     linux: "Linux",
     macos: "macOS",
@@ -168,6 +170,7 @@ export default async function Download({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.mcp}>{c.assistant}</a>
             <a className="button-secondary px-4 py-3 text-sm" href={documentationConfig.localAi}>{c.localAi}</a>
+            <Link className="button-secondary px-4 py-3 text-sm" href="/blog/windows-clipboard-history-limit">{c.limits}</Link>
           </div>
         </aside>
       </section>
