@@ -5,6 +5,14 @@ import { blogPosts } from '@/content/blog';
 import { pick } from '@/content/marketing';
 import { BlogComparison, BlogWorkflow, BlogFigure, BlogBeforeAfter } from './BlogVisuals';
 
+const decodeHtml = (html: string) =>
+  html
+    .replace(/&#x27;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+
 describe('article visual explanations', () => {
   it('keeps the original and observed suggestion in English in both editions', () => {
     const example = blogPosts.flatMap(post => post.sections).find(section => section.rewriteExample)!.rewriteExample!;
@@ -45,13 +53,11 @@ describe('article visual explanations', () => {
   it('renders comparisons with a caption and scoped row and column headers', () => {
     const table = blogPosts.flatMap(post => post.sections).find(section => section.table)!.table!;
     for (const locale of ['en', 'ja'] as const) {
-      const html = renderToStaticMarkup(createElement(BlogComparison, { table, locale }));
+      const html = decodeHtml(renderToStaticMarkup(createElement(BlogComparison, { table, locale })));
       expect(html).toContain(pick(table.caption, locale));
       expect(html.match(/scope="col"/g)).toHaveLength(table.headers.length);
       expect(html.match(/scope="row"/g)).toHaveLength(table.rows.length);
-      for (const cell of [...table.headers, ...table.rows.flat()]) {
-        expect(html).toContain(renderToStaticMarkup(pick(cell, locale)));
-      }
+      for (const cell of [...table.headers, ...table.rows.flat()]) expect(html).toContain(pick(cell, locale));
     }
   });
 });
