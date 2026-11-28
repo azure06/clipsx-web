@@ -747,7 +747,201 @@ const macClipboardHistory: BlogPost = {
   ],
 };
 
-export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp, windowsClipboardLimit, macClipboardHistory].sort((a, b) => b.date.localeCompare(a.date));
+const windowsClipboardNotWorking: BlogPost = {
+  slug: "windows-clipboard-history-not-working",
+  date: "2026-11-28",
+  topic: l("Windows workflows", "Windows 活用"),
+  title: l("Windows clipboard history not working? 8 fixes, and when to stop fixing Win+V", "Windows のクリップボード履歴が使えない？Win+V を直す8つの方法と、見切りをつける目安"),
+  description: l("Win+V shows nothing? Work through these 8 fixes in order, from turning history on to the policy that greys it out, then the option that keeps history for good.", "Win+V に何も表示されないときは、履歴をオンにするところから、設定をグレーアウトさせるポリシーの確認まで、8つの対処法を順番に試しましょう。履歴を長く残す方法も紹介します。"),
+  takeaway: l("Start by testing Win+V with two fresh plain-text copies. If it works but you keep losing unpinned items after a restart or hitting the 25-item limit, use one clipboard manager that keeps history across restarts.", "まず短いプレーンテキストを2つコピーして、Win+V に表示されるか確認しましょう。再起動で未ピン留めの項目が消えたり、25件の上限に繰り返し達したりするなら、再起動後も履歴を残せる管理ツールを1つ使いましょう。"),
+  image: {
+    src: "/images/blog/windows-clipboard-history-not-working.webp",
+    width: 1600,
+    height: 900,
+    alt: l("A puzzled yellow clipboard character looks at an empty clipboard panel with a question mark above it.", "困った表情の黄色いクリップボードのキャラクターが、上に疑問符の浮かぶ空の履歴パネルを見つめている。"),
+    caption: l("An empty history panel: when Win+V shows nothing, the cause is usually a setting, a stuck item, or a service that stopped.", "Win+V の履歴パネルが空のときは、設定、処理が止まった項目、停止したサービスのいずれかをまず確認しましょう。"),
+  },
+  sections: [
+    {
+      id: "when-win-v-shows-nothing",
+      title: l("When Win+V shows nothing", "Win+V に何も表示されないとき"),
+      paragraphs: [
+        l("You copied something, pressed Win+V, and got nothing. No list, no error you can act on, just an empty panel, or a “Turn on” button you already pressed.", "コピーして Win+V を押したのに、履歴が出てこない。何を直せばいいか分かるエラーもなく、空のパネルか、すでに押したはずの「オンにする」ボタンだけが表示されます。"),
+        l("Most of the time this is one of three things: history was never actually turned on, the panel is holding a stuck item, or something on the PC (a policy, a crashed service) is blocking it. Work through the fixes below in order. They go from the 30-second check to the last-resort tests, and each one tells you how to know whether it worked before you move on.", "まず疑いたいのは、履歴が有効になっていない、項目の処理が途中で止まっている、ポリシーやサービスの異常で履歴が使えなくなっている、という3つの可能性です。30秒でできる確認から最後の切り分けまで、下の手順を順番に試してください。次に進む前に、各手順で改善したかを確かめましょう。"),
+      ],
+      table: {
+        caption: l("First, find out which problem you have", "まず症状から原因を絞り込む"),
+        headers: [l("What you see", "症状"), l("Most likely cause", "考えられる原因"), l("Go to", "確認する箇所")],
+        rows: [
+          [l("Win+V shows only a Turn on button", "Win+V に「オンにする」だけが表示される"), l("History is off. It is off by default.", "履歴がオフになっている。初期状態では無効。"), l("Fix 1", "対処法1")],
+          [l("Win+V shows nothing at all, or “Can't show history”", "Win+V を押しても何も起きない、または履歴を表示できないと出る"), l("History is off, or the panel is stuck", "履歴がオフか、パネルが応答していない"), l("Fix 1, then Fix 2", "対処法1、次に2")],
+          [l("The panel opens but stays blank, even though history is on", "履歴はオンでパネルも開くが、何も表示されない"), l("A stuck item, or Explorer or the clipboard service needs a restart", "処理が止まった項目があるか、エクスプローラーやサービスの再起動が必要"), l("Fix 2, then Fixes 3-4", "対処法2、次に3と4")],
+          [l("The toggle in Settings is greyed out", "設定のスイッチがグレーアウトしている"), l("A policy has disabled clipboard history, usually on a work or school PC", "職場や学校などのポリシーで履歴が無効になっている"), l("Fix 5", "対処法5")],
+          [l("Items vanish every time you restart", "再起動するたびに項目が消える"), l("Windows clears unpinned items on restart by design", "Windows の仕様で、未ピン留めの項目は再起動時に消える"), l("Fix 8 and the limits table below", "対処法8と、下の制限一覧")],
+          [l("Items appear on one PC but not the other", "片方の PC にしか項目が表示されない"), l("Sync is off, or the PCs use different accounts", "同期がオフか、PC ごとに別のアカウントを使っている"), l("The sync note in Fix 6", "対処法6の同期に関する補足")],
+          [l("Win+V stopped working after you installed another clipboard tool, or history only fails while that tool is running", "別のクリップボード管理ツールを入れてから Win+V が使えなくなった、またはそのツールの起動中だけ履歴が出ない"), l("Another clipboard manager may be interfering", "別のクリップボード管理ツールと競合している可能性がある"), l("The check after Fix 7", "対処法7の直後にある確認手順")],
+        ],
+      },
+    },
+    {
+      id: "the-limits-plainly",
+      title: l("The limits, plainly", "標準のクリップボード履歴でできること"),
+      paragraphs: [
+        l("Before you start troubleshooting, check the limits that explain why many copied items do not appear in Win+V.", "対処を始める前に、コピーした内容が Win+V に表示されない理由を判断するため、標準機能の制限を確認してください。"),
+        l("If an item has already been pushed out of the 25-entry history, was bigger than 4 MB, or was unpinned when you restarted, the fixes below will not bring it back. If you need to keep future copies beyond those limits, see Fix 8.", "25件の履歴から押し出された項目、4 MBを超える項目、再起動前にピン留めしていなかった項目は、このあとの対処法では取り戻せません。今後のコピーをこの制限を超えて保存したい場合は、対処法8を参照してください。"),
+      ],
+      table: {
+        caption: l("Windows clipboard history limits", "Windows のクリップボード履歴の制限"),
+        headers: [l("Limit", "制限"), l("What it means", "実際の動作")],
+        rows: [
+          [l("25 items, maximum", "最大25件"), l("Win+V holds up to 25 entries. New copies push out the oldest unpinned item when the history is full.", "Win+V に表示できるのは最大25件です。上限に達すると、新しいコピーで未ピン留めの最も古い項目が押し出されます。")],
+          [l("4 MB per item", "1件あたり4 MB"), l("Anything bigger is not saved at all. Supported formats are text, HTML and bitmap.", "上限を超えた項目は保存されません。対応形式はテキスト、HTML、ビットマップです。")],
+          [l("Unpinned items are wiped on restart", "再起動で未ピン留めの項目が消える"), l("Unpinned items are cleared every time the PC restarts. Pinned items survive a restart, but turning history off in Settings erases everything, pins included.", "PC の再起動で未ピン留めの項目は消えます。ピン留めした項目は再起動後も残りますが、設定で履歴をオフにするとピン留めも含めてすべて消えます。")],
+          [l("Nothing from before you turn it on", "有効にする前のコピーは対象外"), l("History only records copies made after the feature is on. Earlier copies cannot be recovered from the panel.", "履歴に残るのは、機能を有効にしたあとにコピーした内容だけです。それ以前のコピーはパネルから復元できません。")],
+        ],
+      },
+    },
+    {
+      id: "fix-1-turn-history-on",
+      title: l("Fix 1: Turn history on, and test it properly (30 seconds)", "対処法1：履歴をオンにして、30秒で動作を確認する"),
+      paragraphs: [
+        l("Start here because clipboard history is off by default. If both fresh copies appear after you enable it, you are done. If the toggle is greyed out, skip to Fix 5. If history is on and the panel is still empty, keep going to Fix 2.", "クリップボード履歴は初期状態ではオフなので、まずここから始めましょう。有効にしたあと、新しくコピーした2つの項目が両方表示されれば解決です。スイッチがグレーアウトしているときは対処法5、オンでもパネルが空なら対処法2に進みます。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Win+V. If it offers a Turn on button, select it.", "Win+V を押し、「オンにする」ボタンが表示されたら選択します。"),
+        l("You can also go to Start, Settings, System, Clipboard and set Clipboard history to On.", "スタートメニューから「設定」「システム」「クリップボード」と進み、「クリップボードの履歴」をオンにすることもできます。"),
+        l("Copy two different things, such as two short words in Notepad, then press Win+V again. Both should appear, newest first.", "メモ帳に入力した短い単語など、異なる内容を2つコピーしてもう一度 Win+V を押します。両方が新しい順に表示されることを確認してください。"),
+      ] },
+    },
+    {
+      id: "fix-2-clear-and-toggle",
+      title: l("Fix 2: Clear the history, then toggle it off and on", "対処法2：履歴を消去してから、オフとオンを切り替える"),
+      paragraphs: [
+        l("A bad or stuck entry can leave the panel blank even with history on. Save anything you need to keep before toggling history off, since that also removes pinned items.", "異常がある項目や処理が止まった項目の影響で、履歴がオンでもパネルが空になることがあります。履歴をオフにするとピン留めした項目も消えるので、残したい内容は先に別の場所に保存してください。"),
+        l("If the panel works after this reset, a stuck item was likely the cause. If it goes blank again after working for a while, check the service in Fix 4.", "このリセットで表示が戻ったなら、項目の処理が止まっていた可能性があります。しばらく使えてからまた空になる場合は、対処法4でサービスを確認してください。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Win+V and select Clear all. Or go to Settings, System, Clipboard and select Clear under Clear clipboard data. This removes everything except pinned items.", "Win+V で「すべてクリア」を選びます。または「設定」「システム」「クリップボード」と進み、「クリップボードのデータをクリア」のクリアボタンを押します。この操作ではピン留めした項目は残ります。"),
+        l("Turn Clipboard history off, restart the PC, then turn it back on.", "クリップボード履歴をオフにして PC を再起動し、履歴をオンに戻します。"),
+        l("Copy a few short plain-text items and press Win+V again.", "短いプレーンテキストをいくつかコピーし、もう一度 Win+V を押します。"),
+      ] },
+    },
+    {
+      id: "fix-3-restart-explorer",
+      title: l("Fix 3: Restart Windows Explorer", "対処法3：エクスプローラーを再起動する"),
+      paragraphs: [
+        l("When copy and paste still work but Win+V shows nothing, try restarting Windows Explorer to see whether the history panel responds again.", "コピーと貼り付けはできるのに Win+V に何も出ないときは、エクスプローラーを再起動し、履歴パネルが反応するようになるか確認します。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Ctrl + Shift + Esc to open Task Manager.", "Ctrl + Shift + Esc を押してタスク マネージャーを開きます。"),
+        l("Find Windows Explorer, right-click it, and select Restart. Your taskbar will flicker for a moment.", "「エクスプローラー」を探して右クリックし、「再起動」を選びます。再起動中はタスクバーが一瞬消えることがあります。"),
+        l("Copy something new and press Win+V.", "新しい内容をコピーして Win+V を押し、履歴に出るか確認します。"),
+      ] },
+    },
+    {
+      id: "fix-4-restart-clipboard-service",
+      title: l("Fix 4: Restart the Clipboard User Service", "対処法4：クリップボード ユーザー サービスを再起動する"),
+      paragraphs: [
+        l("Windows runs clipboard history through the Clipboard User Service (cbdhsvc). If the service has stopped, clipboard history can stop working.", "Windows のクリップボード履歴は、クリップボード ユーザー サービス（cbdhsvc）を使います。このサービスが停止すると、履歴も機能しなくなることがあります。"),
+      ],
+      list: { ordered: true, items: [
+        l("Press Win+R, type services.msc, and press Enter.", "Win+R を押し、services.msc と入力して Enter キーを押します。"),
+        l("Find Clipboard User Service, right-click it, and select Restart if available. Windows may append a suffix to the name. If the service template was disabled on your own PC, restore its default startup type, Automatic (Delayed Start), and restart the PC.", "クリップボード ユーザー サービスを探して右クリックし、選べる場合は「再起動」を選びます。サービス名の末尾に識別子が付く場合があります。自分の PC でサービステンプレートが無効にされている場合は、スタートアップの種類を既定の「自動（遅延開始）」に戻し、PC を再起動してください。"),
+        l("Copy something new and press Win+V.", "新しい内容をコピーして Win+V を押し、履歴に出るか確認します。"),
+      ] },
+    },
+    {
+      id: "fix-5-policy-greyed-out",
+      title: l("Fix 5: Check for a policy when the toggle is greyed out", "対処法5：設定がグレーアウトしているときはポリシーを確認する"),
+      paragraphs: [
+        l("If you cannot turn on the Clipboard history toggle, a policy may have disabled it. This is common on work or school PCs with centrally managed settings.", "クリップボード履歴のスイッチをオンにできない場合、ポリシーで無効になっていることがあります。職場や学校の PC では、組織がまとめて設定を管理している場合があります。"),
+      ],
+      list: { items: [
+        l("On a work or school PC, ask your IT administrator. The organisation controls the policy.", "職場や学校の PC なら、設定を管理している IT 管理者に確認してください。"),
+        l("On your own PC running Windows Pro, Enterprise or Education, open the Local Group Policy Editor (gpedit.msc). Go to Computer Configuration, Administrative Templates, System, OS Policies. Open Allow Clipboard History, set it to Not Configured or Enabled, and select OK. Restart and try Fix 1 again.", "Windows Pro、Enterprise、Education を使う自分の PC なら、ローカル グループ ポリシー エディター（gpedit.msc）を開きます。「コンピューターの構成」「管理用テンプレート」「システム」「OS ポリシー」と進み、「クリップボードの履歴を許可する」を「未構成」または「有効」にして OK を押します。再起動後、対処法1をもう一度試してください。"),
+        l("Windows Home does not include the Group Policy Editor. If the toggle is greyed out on Home, check whether the PC is managed through a work or school account.", "Windows Home にはグループ ポリシー エディターがありません。Home で設定がグレーアウトしている場合は、職場または学校のアカウントで PC が管理されていないか確認してください。"),
+      ] },
+    },
+    {
+      id: "fix-6-update-and-repair",
+      title: l("Fix 6: Run Windows Update, then repair system files", "対処法6：Windows Update を実行し、システムファイルを修復する"),
+      paragraphs: [
+        l("If the panel worked before and broke after an update, or if it keeps breaking, try repairing the Windows system files that clipboard history depends on.", "以前は使えていたパネルが更新後に動かなくなったり、繰り返し不調になったりする場合は、履歴の動作に必要な Windows のシステムファイルを修復してみましょう。"),
+        l("If the problem is syncing between PCs, check the account and sync settings first. Sign in to both PCs with the same Microsoft or work account, then enable clipboard sync on both.", "PC 間の同期だけがうまくいかない場合は、まずアカウントと同期設定を確認します。両方の PC で同じ Microsoft アカウントまたは職場のアカウントにサインインし、クリップボードの同期をオンにしてください。"),
+      ],
+      list: { ordered: true, items: [
+        l("Install any pending Windows updates and restart.", "未適用の Windows 更新プログラムをインストールして再起動します。"),
+        l("Open Command Prompt as administrator. Run DISM.exe /Online /Cleanup-Image /RestoreHealth first. Once it completes successfully, run sfc /scannow.", "コマンド プロンプトを管理者として開き、まず DISM.exe /Online /Cleanup-Image /RestoreHealth を実行します。正常に完了したら sfc /scannow を実行します。"),
+        l("Restart, turn history on if needed, and test with two fresh copies.", "再起動し、必要なら履歴をオンに戻して、新たに2つの項目をコピーして試します。"),
+      ] },
+    },
+    {
+      id: "fix-7-new-account-test",
+      title: l("Fix 7: Test a new local Windows account", "対処法7：新しい Windows ローカルアカウントで試す"),
+      paragraphs: [
+        l("Testing with a new local account helps you work out whether the problem is in your user profile or affects Windows as a whole.", "新しいローカルアカウントで試すと、問題が普段使っているユーザープロファイルにあるのか、Windows 全体に及ぶのかを切り分けられます。"),
+      ],
+      list: { ordered: true, items: [
+        l("Create a new local account in Settings, Accounts, Other users.", "「設定」「アカウント」「他のユーザー」から新しいローカルアカウントを作成します。"),
+        l("Sign in to it, turn clipboard history on, and copy two items.", "作成したアカウントにサインインし、履歴をオンにして2つの項目をコピーします。"),
+        l("If Win+V works there, the problem is specific to your usual account. Moving to a fresh profile is one way to resolve it. If it fails in the new account too, report the system-wide problem through Feedback Hub with your Windows build and the steps that reproduce it.", "新しいアカウントで Win+V が動くなら、普段のアカウントに固有の問題です。新しいプロファイルに移行する方法があります。新しいアカウントでも動かなければ、Windows のビルド番号と再現手順を添えてフィードバック Hub で報告してください。"),
+      ] },
+    },
+    {
+      id: "check-for-another-clipboard-manager",
+      title: l("Check for another clipboard manager first", "別のクリップボード管理ツールとの競合を確認する"),
+      paragraphs: [
+        l("If you already use a clipboard manager, or you tried one before, it can take over the clipboard and leave Win+V with nothing to show. Two clipboard managers running at once can fight over the same copies.", "すでに別のクリップボード管理ツールを使っている場合や、以前試したツールがまだ動いている場合は、そのツールの影響で Win+V に何も表示されないことがあります。管理ツールを同時に動かすと、同じコピーを処理するときに競合する場合があります。"),
+        l("Close or pause the other clipboard manager completely. Do not just minimise it. Check the system tray and quit it from there.", "別のクリップボード管理ツールを完全に終了するか、一時停止します。最小化だけでは止まりません。通知領域を確認し、そこから終了してください。"),
+        l("Copy two short plain-text items and press Win+V.", "短いプレーンテキストを2つコピーして Win+V を押し、両方が履歴に出るか確認します。"),
+        l("If history works now, that tool was the conflict. Either keep using Windows history on its own, or replace the old tool with one manager only. Do not run two at once.", "これで履歴が表示されれば、そのツールが競合していたと考えられます。Windows 標準の履歴をそのまま使うか、古いツールを別の管理ツール1つに置き換えてください。2つを同時に動かさないようにしましょう。"),
+        l("This also applies before Fix 8. If you move to ClipsX, pause or uninstall the old clipboard manager first, then install ClipsX. ClipsX replaces the built-in history and any other manager. It is not an extra layer on top of one.", "対処法8へ進む場合も同じです。ClipsX に切り替えるなら、先に以前の管理ツールを停止するかアンインストールしてから ClipsX を導入します。ClipsX は標準の履歴や別の管理ツールに重ねて使うのではなく、履歴の管理を引き継ぐためのツールです。"),
+      ],
+    },
+    {
+      id: "fix-8-when-to-stop-fixing",
+      title: l("Fix 8: When to stop fixing Win+V", "対処法8：Win+V の修復を切り上げる目安"),
+      paragraphs: [
+        l("If you have worked through Fixes 1-7 and history still fails, or if it fails again every few weeks, consider how much time you want to spend trying to restore it. The built-in history holds up to 25 items at 4 MB each and clears unpinned items whenever you restart. Windows has no setting to raise these limits.", "対処法1から7まで試しても履歴が使えない、あるいは数週間おきにまた調子が悪くなるなら、修復にどれだけ時間をかけるか見直す頃合いです。標準の履歴は最大25件、1件あたり4 MBで、再起動すると未ピン留めの項目が消えます。Windows にこれらの上限を引き上げる設定はありません。"),
+        l("That is the point where a dedicated clipboard manager earns its place. Use one manager only. If another clipboard tool is still running, pause or uninstall it first, as above. It is why I built ClipsX: it keeps your clipboard history on your own device (text, images, links, files and more) across restarts, with no 25-item cap, and lets you search it properly. If you remember what something was about but not its exact wording, its optional Meaning Search can find it by meaning, using a local AI model you choose. No account is required for local history, which stays on your device. ClipsX is free and open source for Windows, macOS and Linux.", "そんなときは専用のクリップボード管理ツールが役立ちます。使うのは1つだけにしましょう。別のツールが起動中なら、前の手順のとおり、先に停止またはアンインストールします。このために ClipsX を作りました。テキスト、画像、リンク、ファイルなどの履歴を端末に保存し、再起動後も25件の上限なしで検索できます。正確な言い回しを忘れても、任意の「意味検索」を有効にすれば、選んだローカル AI モデルで内容から探せます。端末内の履歴を使うのにアカウントは不要です。ClipsX は Windows、macOS、Linux 向けの無料のオープンソースアプリです。"),
+      ],
+      links: [
+        { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+        { label: l("ClipsX on GitHub", "GitHub の ClipsX"), href: "https://github.com/azure06/clipsx" },
+      ],
+    },
+    {
+      id: "faq",
+      title: l("Frequently asked questions", "よくある質問"),
+      paragraphs: [
+        l("Why is my Windows clipboard history not working?", "Windows のクリップボード履歴が使えなくなるのはなぜですか？"),
+        l("Start by checking whether history is on. Press Win+V and select Turn on, or enable Clipboard history in Settings, System, Clipboard. If it is on and still empty, clear the history (Fix 2), restart Windows Explorer (Fix 3), or restart the Clipboard User Service (Fix 4). If the toggle is greyed out, check for a policy (Fix 5).", "まず履歴がオンか確認します。Win+V で「オンにする」を選ぶか、「設定」「システム」「クリップボード」から有効にします。オンでも空のままなら、履歴の消去（対処法2）、エクスプローラーの再起動（対処法3）、サービスの再起動（対処法4）を試してください。設定がグレーアウトしていれば、ポリシーを確認します（対処法5）。"),
+        l("Why is Win+V not working when I press the shortcut?", "Win+V のショートカットキーを押しても反応しないのはなぜですか？"),
+        l("First check whether the panel opens at all. If it opens with only a Turn on button, history is off (Fix 1). If nothing opens, another app may be intercepting the shortcut, or Explorer may need a restart (Fix 3). If Ctrl+C and Ctrl+V still work, focus on the history feature.", "最初にパネルが開くか確かめます。「オンにする」だけが出るなら履歴はオフです（対処法1）。何も開かない場合は、別のアプリがショートカットを使っているか、エクスプローラーの再起動が必要な可能性があります（対処法3）。Ctrl+C と Ctrl+V が使えるなら、履歴機能に絞って確認してください。"),
+        l("Why did my clipboard history disappear after a restart?", "PC を再起動したあとにクリップボード履歴が消えたのはなぜですか？"),
+        l("Windows clears unpinned history on every restart by design. Pin the items you need to keep from the Win+V panel. Pins survive restarts. Turning history off in Settings erases everything, pins included. If you need history that survives restarts, see Fix 8.", "Windows の仕様で、再起動すると未ピン留めの履歴は消えます。残したい項目は Win+V のパネルでピン留めしてください。ピン留めした項目は再起動後も残りますが、設定で履歴をオフにするとすべて消えます。再起動後も履歴を残したい場合は対処法8を参照してください。"),
+        l("Why is the clipboard history toggle in Settings greyed out?", "Windows の設定でクリップボード履歴がグレーアウトしているのはなぜですか？"),
+        l("A policy may have disabled it. On work or school PCs, ask IT. On your own Pro, Enterprise or Education PC, check Allow Clipboard History under Computer Configuration, Administrative Templates, System, OS Policies in the Group Policy Editor (Fix 5).", "ポリシーで無効になっている可能性があります。職場や学校の PC なら IT 管理者に確認してください。自分の Pro、Enterprise、Education の PC なら、グループ ポリシー エディターの「コンピューターの構成」「管理用テンプレート」「システム」「OS ポリシー」にある「クリップボードの履歴を許可する」を確認します（対処法5）。"),
+        l("Why is my clipboard history blank even though it is enabled?", "クリップボード履歴を有効にしているのに、何も表示されないのはなぜですか？"),
+        l("An entry or service may be stuck. Clear the history and toggle the feature off, restart, and turn it back on (Fix 2). If needed, restart Windows Explorer (Fix 3) and the Clipboard User Service (Fix 4). Test with short plain-text copies. Items over 4 MB or in formats other than text, HTML and bitmap are not stored.", "項目の処理やサービスが止まっている場合があります。履歴を消去して機能をオフにし、再起動後にオンに戻します（対処法2）。必要に応じてエクスプローラー（対処法3）やクリップボード ユーザー サービス（対処法4）を再起動します。短いプレーンテキストで試してください。4 MBを超える項目や、テキスト、HTML、ビットマップ以外の形式は保存されません。"),
+        l("Why is clipboard history not syncing to my other PC?", "クリップボード履歴がもう一方の PC に同期されないのはなぜですか？"),
+        l("Both PCs must be signed in with the same Microsoft account or the same work account, and clipboard sync must be on for each one. If you use manual sync, select the cloud icon on the text item you want to send.", "両方の PC で同じ Microsoft アカウントまたは職場のアカウントにサインインし、それぞれでクリップボードの同期をオンにしてください。手動同期を使っている場合は、送りたいテキスト項目のクラウドアイコンを選びます。"),
+        l("Can I increase the clipboard history limit?", "Windows 標準のクリップボード履歴で保存件数の上限を増やせますか？"),
+        l("Windows offers no setting to raise the 25-item cap or the 4 MB per-item limit, or to keep unpinned items after a restart. The Windows clipboard history limits article covers these rules in detail.", "25件の上限や1件あたり4 MBの制限を引き上げる設定や、再起動後に未ピン留めの項目を保持する設定はありません。詳しくは Windows のクリップボード履歴の制限を解説した記事をご覧ください。"),
+      ],
+      links: [
+        { label: l("Windows clipboard history: the 25-item limit and how to overcome it", "Windows のクリップボード履歴：25件の上限と対処法"), href: "/blog/windows-clipboard-history-limit" },
+      ],
+    },
+  ],
+  resources: [
+    { label: l("Download ClipsX", "ClipsX をダウンロード"), href: "/download" },
+    { label: l("Windows clipboard history limits", "Windows のクリップボード履歴の制限"), href: "/blog/windows-clipboard-history-limit" },
+    { label: l("ClipsX on GitHub", "GitHub の ClipsX"), href: "https://github.com/azure06/clipsx" },
+  ],
+};
+
+export const blogPosts: BlogPost[] = [localMessageRewrite, localFirst, meaningSearch, extensions, clipboardMcp, windowsClipboardLimit, macClipboardHistory, windowsClipboardNotWorking].sort((a, b) => b.date.localeCompare(a.date));
 
 export function blogText(post: BlogPost, locale: Locale): string {
   return [post.title, post.description, post.takeaway,
