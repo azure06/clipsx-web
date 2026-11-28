@@ -3,50 +3,47 @@
 Source: Google Search Console via signed-in browser (no connector exists).
 Data lags ~2–3 days. Never fill gaps with estimates.
 
-## Latest snapshot - checked 2026-11-27, data through 2026-11-23 (no new data day)
+## Latest snapshot - checked 2026-11-28, data through 2026-11-25 (new data days Nov 24-25)
 
-Performance, last 28 days (Oct 27-Nov 23):
-- 11 clicks, 205 impressions, CTR 5.4%, avg position 4.4
-- Last 7 days: 3 clicks, 66 impressions, CTR 4.5%, avg position 4.1
-- Top query: "clipsx" - 10 clicks / 132 impressions (28d)
-- All other listed queries 0 clicks: clipcache 0/4, "clips-x" 0/1,
+Performance, last 28 days (Oct 29-Nov 25):
+- 10 clicks, 209 impressions, CTR 4.8%, avg position 3.9
+- Last 7 days: 2 clicks, 69 impressions, CTR 2.9%, avg position 3.9
+- Top query: "clipsx" - 9 clicks / 134 impressions (28d)
+- All other listed queries 0 clicks: clipcache 0/3, "clips-x" 0/1,
   "clip x free" 0/1
 - 7d queries: not re-listed this check; 28d query list unchanged
-- **Generic (non-brand) clicks: still zero among listed queries - the 11th
-  28d click (and the 3rd 7d click) is not attributed to any listed query.**
-- Top pages (28d): /en 11 clicks/173 imp; /en/download 0 clicks / 38 imp;
-  /en/product 0/18; /ja 0/9; /en/pricing 0/9; /ja/download 0/7;
-  /en/changelog 0/6; /en/contact 0/6; /meaning-search 0/5; /ja/faq 0/4
-- Top pages (7d, all 12): /en 3/55; /en/product 0/16; /en/download 0/15;
-  /en/pricing 0/4; /en/terms 0/2; /en/privacy 0/1;
+- **Generic (non-brand) clicks: still zero among listed queries - the 10th
+  28d click is not attributed to any listed query.**
+- Top pages (28d): /en 10 clicks/175 imp; /en/download 0 clicks / 39 imp;
+  /en/product 0/20; /en/pricing 0/10; /ja 0/9; /ja/download 0/7;
+  /en/contact 0/6; /meaning-search 0/5; /en/changelog 0/5; /ja/faq 0/4
+- Top pages (7d, all 10): /en 2/56; /en/product 0/18; /en/download 0/16;
+  /en/pricing 0/5; /en/terms 0/2; /en/privacy 0/1;
   /en/blog/why-clipboard-extensions-need-boundaries 0/1;
-  /en/meaning-search 0/1; /ja 0/1; /en/blog 0/1; /en/changelog 0/1;
-  /en/contact 0/1
-- vs 2026-11-26 (data also through Nov 23): clicks flat 11, impressions
-  204 to 205, CTR 5.4% flat, position 4.6 to 4.4; 7d 3/66/4.5%/4.7 to
-  3/66/4.5%/4.1. Same window, tiny moves only; all listed clicks still brand.
+  /en/meaning-search 0/1; /ja 0/1; /en/blog 0/1
+- vs 2026-11-27 (data through Nov 23): clicks 11 to 10, impressions
+  205 to 209, CTR 5.4% to 4.8%, position 4.4 to 3.9; 7d 3/66/4.5%/4.1 to
+  2/69/2.9%/3.9. Two new data days, tiny moves only; all listed clicks still brand.
 - Note: GSC display quirk - the 28d top-pages rows sum to more impressions
-  than the 205 header total; figures reproduced as displayed, not reconciled.
+  than the 209 header total; figures reproduced as displayed, not reconciled.
 - Property note: the account lists only domain properties, so this check used
   sc-domain:clipsx.app (covers clipsx.app and docs.clipsx.app); figures are
   consistent with previous days, same property data as before.
 
-Indexing (Page Indexing report now dated Nov 23, first refresh since Nov 16):
-- 42 indexed, 171 not indexed - indexed flat, not-indexed up 4 (was 167)
+Indexing (Page Indexing report still dated Nov 23, unchanged):
+- 42 indexed, 171 not indexed - identical to Nov 27
 - 127 "Crawled – currently not indexed", 16 redirects,
   15 404s (stale docs JS chunks, harmless), 6 "Discovered –
-  currently not indexed" (was 2), 3 duplicate-no-canonical,
+  currently not indexed", 3 duplicate-no-canonical,
   2 noindex, 2 duplicate Google-chose-canonical
-- The rise is all in "Discovered – currently not indexed" (2 to 6):
-  Google found 4 more pages it has not crawled yet. Indexed count unchanged.
 
-Live-verified indexed (URL Inspection, 2026-11-27) - no state changed vs 2026-11-26:
+Live-verified indexed (URL Inspection, 2026-11-28) - no state changed vs 2026-11-27:
 - /en (crawled Nov 16 21:35), /ja (crawled Nov 19 02:02), /en/blog (Nov 7),
   /en/download (crawled Nov 18 16:51)
 - Root https://clipsx.app/ NOT indexed — "Page with redirect", canonical /en.
   By design, not a problem.
 
-Live-verified still not indexed (URL Inspection, 2026-11-27):
+Live-verified still not indexed (URL Inspection, 2026-11-28):
 - docs/meaning-search (crawled Nov 10 09:00), docs/assistant-setup
   (Nov 10 08:58), docs/automation (Nov 10 08:58), docs/recall (last crawl
   Nov 11 15:07 — recrawled after the Nov 11 indexing request, still
@@ -88,4 +85,5 @@ Blog visibility (the real problem, not indexing):
 | 2026-11-24 | Oct 25-Nov 21 (28d) | 12 | 193 | Clicks 11 to 12, imp 184 to 193, CTR 6.0% to 6.2%, pos 4.4 flat; 7d 4/59/6.8%/3.8 to 5/62/8.1%/4.0; 12th 28d click and 5th 7d click not attributed to any listed query (top query "clipsx" still 11/128); still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
 | 2026-11-25 | Oct 26-Nov 22 (28d) | 12 | 195 | Clicks flat 12, imp 193 to 195, CTR 6.2% flat, pos 4.4 to 4.6; 7d 5/62/8.1%/4.0 to 3/58/5.2%/5.2; new query "clips-x" 0/1; still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
 | 2026-11-26 | Oct 27-Nov 23 (28d) | 11 | 204 | Clicks 12 to 11, imp 195 to 204, CTR 6.2% to 5.4%, pos 4.6 flat; 7d 3/58/5.2%/5.2 to 3/66/4.5%/4.7; still zero generic among listed queries; indexing report still Nov 16, totals 42/167 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
+| 2026-11-28 | Oct 29-Nov 25 (28d) | 10 | 209 | Clicks 11 to 10, imp 205 to 209, pos 4.4 to 3.9; 7d 3/66/4.5%/4.1 to 2/69/2.9%/3.9; still zero generic; indexing report still Nov 23, totals 42/171 unchanged, all reason buckets identical; no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
 | 2026-11-27 | Oct 27-Nov 23 (28d) | 11 | 205 | Same window, no new data day: clicks flat 11, imp 204 to 205, pos 4.6 to 4.4; 7d 3/66/4.5%/4.7 to 3/66/4.5%/4.1; still zero generic; indexing report refreshed to Nov 23: 42/171 (not-indexed +4, all in discovered-not-indexed 2 to 6); no watchlist change (4 docs pages still crawled-not-indexed, no new crawl since Nov 10/11) |
